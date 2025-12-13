@@ -330,12 +330,14 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <button
-                  type="button"
-                  className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
-                >
-                  Try Service
-                </button>
+                <a href="/career-preparation">
+                  <button
+                    type="button"
+                    className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  >
+                    Try Service
+                  </button>
+                </a>
               </div>
             </div>
 
