@@ -16,9 +16,10 @@ import {
   GraduationCap,
   Rocket,
   ChartNoAxesCombined,
-  Store 
+  Store
 } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -41,12 +42,12 @@ export default function Home() {
           <div className="flex items-center gap-2 animate-fade-in-down">
             <div className="w-10 h-10 ">
               <Image
-                      src="logo.png"
-                      alt="Logo"
-                      width={120}
-                      height={120}
-                      className=" "
-                    />
+                src="logo.png"
+                alt="Logo"
+                width={120}
+                height={120}
+                className=" "
+              />
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Mentora
@@ -295,13 +296,12 @@ export default function Home() {
                     </li>
                   </ul>
                 </div>
-
-                <button
-                  type="button"
-                  className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
+                <Link
+                  href="/career-guide"
+                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
                 >
                   Try Service
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -347,7 +347,7 @@ export default function Home() {
 
                 <div className="relative z-10">
                   <div className="w-14 h-14 bg-gradient-to-br from-secondary to-primary rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                    <Store  className="w-7 h-7 text-white" />
+                    <Store className="w-7 h-7 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-foreground">Career Marketplace</h3>
                   <p className="text-foreground/70 mb-4">
@@ -825,11 +825,11 @@ export default function Home() {
             difference.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-           <a href="#services">
-                  <button type="button" className="px-8 py-4 bg-gradient-to-r from-primary to-accent text-white rounded-xl font-semibold hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
-                    Start Your Transformation <ArrowRight className="w-5 h-5" />
-                  </button>
-                </a>
+            <a href="#services">
+              <button type="button" className="px-8 py-4 bg-gradient-to-r from-primary to-accent text-white rounded-xl font-semibold hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
+                Start Your Transformation <ArrowRight className="w-5 h-5" />
+              </button>
+            </a>
           </div>
         </div>
       </section>
@@ -908,6 +908,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </main>
+    </main >
   )
 }
