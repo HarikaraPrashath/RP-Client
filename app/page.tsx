@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   ChevronDown,
   Sparkles,
@@ -351,14 +352,12 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <a href="/career-guide">
-                  <button
-                    type="button"
-                    className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
-                  >
-                    Try Service
-                  </button>
-                </a>
+                <Link
+                  href="/"
+                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  Try Service
+                </Link>
               </div>
             </div>
 
@@ -395,14 +394,12 @@ export default function Home() {
                     </li>
                   </ul>
                 </div>
-                <a href="/career-preparation">
-                  <button
-                    type="button"
-                    className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
-                  >
-                    Try Service
-                  </button>
-                </a>
+                <Link
+                  href="/career-preparation"
+                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  Try Service
+                </Link>
               </div>
             </div>
 
@@ -440,14 +437,12 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <a href="/career-marketplace">
-                  <button
-                    type="button"
-                    className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
-                  >
-                    Try Service
-                  </button>
-                </a>
+                <Link
+                  href="/"
+                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  Try Service
+                </Link>
               </div>
             </div>
 
@@ -485,14 +480,12 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <a href="/personality-prediction">
-                  <button
-                    type="button"
-                    className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
-                  >
-                    Try Service
-                  </button>
-                </a>
+                <Link
+                  href="/"
+                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  Try Service
+                </Link>
               </div>
             </div>
           </div>
