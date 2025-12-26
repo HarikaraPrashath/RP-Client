@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, FormEvent } from "react";
 declare global {
   interface ImportMeta {
     readonly env: {
-      readonly VITE_API_URL: string;
+      readonly NEXT_PUBLIC_API_URL: string;
     };
   }
 }
@@ -40,7 +40,7 @@ interface Message {
   timestamp: string;
 }
 
-const API_URL = `${import.meta.env.VITE_API_URL}/predict`;
+const API_URL = `${import.meta.env.NEXT_PUBLIC_API_URL}/predict`;
 // FastAPI backend
 
 export default function Home() {
