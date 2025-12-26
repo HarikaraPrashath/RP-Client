@@ -40,7 +40,8 @@ interface Message {
   timestamp: string;
 }
 
-const API_URL = `${import.meta.env.NEXT_PUBLIC_API_URL}/predict`;
+const API_URL =
+  (process.env.NEXT_PUBLIC_API_URL) + "/predict";
 // FastAPI backend
 
 export default function Home() {
