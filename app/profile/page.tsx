@@ -1445,6 +1445,18 @@ export default function ProfilePage() {
 
             <section className={styles.card}>
               <div className={styles.cardHeader}>
+                <h2>Skill insights</h2>
+              </div>
+              <p className={styles.cardBody}>
+                Compare your skills against live job demand and see your gap analysis.
+              </p>
+              <Link className={styles.featureLink} href="/merge-skills">
+                Open merge-skills
+              </Link>
+            </section>
+
+            <section className={styles.card}>
+              <div className={styles.cardHeader}>
                 <h2>All top matches</h2>
               </div>
               {topMatches.length === 0 ? (

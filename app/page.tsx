@@ -69,6 +69,9 @@ export default function Home() {
             <a href="#pricing" className="text-foreground/70 hover:text-foreground transition-colors">
               Pricing
             </a>
+            <Link href="/merge-skills" className="text-foreground/70 hover:text-foreground transition-colors">
+              Merge Skills
+            </Link>
           </div>
           <button type="button" className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
             Get Started
