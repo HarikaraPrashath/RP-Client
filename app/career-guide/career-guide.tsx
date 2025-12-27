@@ -41,8 +41,8 @@ interface Message {
 }
 
 const API_URL =
-  (process.env.NEXT_PUBLIC_API_URL) + "/predict";
-// FastAPI backend
+  (process.env.NEXT_PUBLIC_API_URL) + "/predict`";
+console.log("Api public",API_URL)
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([
@@ -339,7 +339,7 @@ export default function Home() {
 
       setIsThinking(true);
 
-      // ✅ EXACT payload keys that your FastAPI expects
+      // EXACT payload keys that your FastAPI expects
       const payload = {
         Soft_Skills: softSkills,
         Key_Skils: techSkills,
@@ -365,7 +365,7 @@ export default function Home() {
 
       try {
         addBotMessage("Awesome! 🔍 Let me analyze your profile and predict a suitable career path...");
-
+        console.log("Payload",payload)
         const res = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -429,7 +429,7 @@ export default function Home() {
                   <div className="shrink-0">
                     <div className="w-10 h-10 rounded-2xl bg-white border border-blue-200 shadow-sm overflow-hidden">
                       <img
-                        src="/vercel.svg"
+                        src="/logo.png"
                         alt="Bot"
                         className="w-full h-full object-cover"
                       />
