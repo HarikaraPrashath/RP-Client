@@ -72,6 +72,49 @@ interface AssessmentData {
   };
 }
 
+interface ValidationErrors {
+  personalInfo: {
+    name?: string;
+    email?: string;
+    age?: string;
+    phone?: string;
+    location?: string;
+    gender?: string;
+    languages?: string;
+  };
+  academicBackground: {
+    educationLevel?: string;
+    major?: string;
+    institution?: string;
+    gpa?: string;
+    graduationYear?: string;
+  };
+  technicalSkills: {
+    programming?: string;
+  };
+  psychologicalTraits: {
+    workStyle?: string;
+    communication?: string;
+    problemSolving?: string;
+    teamwork?: string;
+    adaptability?: string;
+    leadership?: string;
+    stressManagement?: string;
+    motivation?: string;
+    learningStyle?: string;
+  };
+  careerInterests: {
+    preferredRoles?: string;
+    workEnvironment?: string;
+    salaryExpectation?: string;
+    longTermGoals?: string;
+    industryPreference?: string;
+    workLifeBalance?: string;
+    companySize?: string;
+    relocation?: string;
+  };
+}
+
 const programmingLanguages = [
   'Python', 'JavaScript', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Swift', 'Kotlin',
   'TypeScript', 'Rust', 'Scala', 'Perl', 'MATLAB', 'R', 'SQL', 'HTML/CSS', 'Bash', 'PowerShell'
@@ -124,6 +167,13 @@ function StudentAssessment() {
   const router = useRouter();
   const pathname = usePathname();
   const [currentStep, setCurrentStep] = useState(1);
+  const [errors, setErrors] = useState<ValidationErrors>({
+    personalInfo: {},
+    academicBackground: {},
+    technicalSkills: {},
+    psychologicalTraits: {},
+    careerInterests: {}
+  });
   const [assessmentData, setAssessmentData] = useState<AssessmentData>({
     personalInfo: {
       name: '',
@@ -178,6 +228,134 @@ function StudentAssessment() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Validation functions
+  const validatePersonalInfo = () => {
+    const newErrors: ValidationErrors['personalInfo'] = {};
+    
+    if (!assessmentData.personalInfo.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!assessmentData.personalInfo.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(assessmentData.personalInfo.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!assessmentData.personalInfo.age || assessmentData.personalInfo.age < 16 || assessmentData.personalInfo.age > 65) {
+      newErrors.age = 'Please enter a valid age between 16 and 65';
+    }
+    
+    if (assessmentData.personalInfo.phone && !/^[+]?[\d\s-()]+$/.test(assessmentData.personalInfo.phone)) {
+      newErrors.phone = 'Please enter a valid phone number';
+    }
+    
+    if (assessmentData.personalInfo.languages.length === 0) {
+      newErrors.languages = 'Please select at least one language';
+    }
+    
+    setErrors(prev => ({ ...prev, personalInfo: newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateAcademicBackground = () => {
+    const newErrors: ValidationErrors['academicBackground'] = {};
+    
+    if (!assessmentData.academicBackground.educationLevel) {
+      newErrors.educationLevel = 'Education level is required';
+    }
+    
+    if (!assessmentData.academicBackground.major.trim()) {
+      newErrors.major = 'Major/Field of study is required';
+    }
+    
+    if (!assessmentData.academicBackground.institution.trim()) {
+      newErrors.institution = 'Institution name is required';
+    }
+    
+    if (!assessmentData.academicBackground.gpa || assessmentData.academicBackground.gpa < 0 || assessmentData.academicBackground.gpa > 4) {
+      newErrors.gpa = 'Please enter a valid GPA between 0 and 4.0';
+    }
+    
+    const currentYear = new Date().getFullYear();
+    if (!assessmentData.academicBackground.graduationYear ||
+        assessmentData.academicBackground.graduationYear < 2000 ||
+        assessmentData.academicBackground.graduationYear > currentYear + 5) {
+      newErrors.graduationYear = `Please enter a valid graduation year between 2000 and ${currentYear + 5}`;
+    }
+    
+    setErrors(prev => ({ ...prev, academicBackground: newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateTechnicalSkills = () => {
+    const newErrors: ValidationErrors['technicalSkills'] = {};
+    
+    if (assessmentData.technicalSkills.programming.length === 0) {
+      newErrors.programming = 'Please select at least one programming language';
+    }
+    
+    setErrors(prev => ({ ...prev, technicalSkills: newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validatePsychologicalTraits = () => {
+    const newErrors: ValidationErrors['psychologicalTraits'] = {};
+    const traits = assessmentData.psychologicalTraits;
+    
+    if (!traits.workStyle) newErrors.workStyle = 'Work style is required';
+    if (!traits.communication) newErrors.communication = 'Communication style is required';
+    if (!traits.problemSolving) newErrors.problemSolving = 'Problem solving approach is required';
+    if (!traits.teamwork) newErrors.teamwork = 'Teamwork preference is required';
+    if (!traits.adaptability) newErrors.adaptability = 'Adaptability level is required';
+    if (!traits.leadership) newErrors.leadership = 'Leadership style is required';
+    if (!traits.stressManagement) newErrors.stressManagement = 'Stress management approach is required';
+    if (!traits.motivation) newErrors.motivation = 'Motivation is required';
+    if (!traits.learningStyle) newErrors.learningStyle = 'Learning style is required';
+    
+    setErrors(prev => ({ ...prev, psychologicalTraits: newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateCareerInterests = () => {
+    const newErrors: ValidationErrors['careerInterests'] = {};
+    const interests = assessmentData.careerInterests;
+    
+    if (interests.preferredRoles.length === 0) {
+      newErrors.preferredRoles = 'Please select at least one preferred career role';
+    }
+    
+    if (!interests.workEnvironment) newErrors.workEnvironment = 'Work environment preference is required';
+    if (!interests.salaryExpectation) newErrors.salaryExpectation = 'Salary expectation is required';
+    if (!interests.longTermGoals.trim()) newErrors.longTermGoals = 'Long-term goals are required';
+    if (interests.industryPreference.length === 0) {
+      newErrors.industryPreference = 'Please select at least one industry preference';
+    }
+    if (!interests.workLifeBalance) newErrors.workLifeBalance = 'Work-life balance preference is required';
+    if (!interests.companySize) newErrors.companySize = 'Company size preference is required';
+    if (!interests.relocation) newErrors.relocation = 'Relocation preference is required';
+    
+    setErrors(prev => ({ ...prev, careerInterests: newErrors }));
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return validatePersonalInfo();
+      case 2:
+        return validateAcademicBackground();
+      case 3:
+        return validateTechnicalSkills();
+      case 4:
+        return validatePsychologicalTraits();
+      case 5:
+        return validateCareerInterests();
+      default:
+        return true;
+    }
+  };
 
   const handlePersonalInfoChange = (field: string, value: string | number | string[]) => {
     setAssessmentData(prev => ({
@@ -266,19 +444,31 @@ function StudentAssessment() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
-    // Simulate API call to process assessment
-    setTimeout(() => {
-      // Store assessment data in sessionStorage for the roadmap page
-      sessionStorage.setItem('assessmentData', JSON.stringify(assessmentData));
-      setIsSubmitting(false);
-      router.push('/career-preparation/personalized-roadmap');
-    }, 2000);
+    // Validate all steps before submission
+    const isPersonalInfoValid = validatePersonalInfo();
+    const isAcademicValid = validateAcademicBackground();
+    const isTechnicalValid = validateTechnicalSkills();
+    const isPsychologicalValid = validatePsychologicalTraits();
+    const isCareerValid = validateCareerInterests();
+    
+    if (isPersonalInfoValid && isAcademicValid && isTechnicalValid && isPsychologicalValid && isCareerValid) {
+      setIsSubmitting(true);
+      
+      // Simulate API call to process assessment
+      setTimeout(() => {
+        // Store assessment data in sessionStorage for the roadmap page
+        sessionStorage.setItem('assessmentData', JSON.stringify(assessmentData));
+        setIsSubmitting(false);
+        router.push('/career-preparation/personalized-roadmap');
+      }, 2000);
+    }
   };
 
   const nextStep = () => {
-    if (currentStep < 5) setCurrentStep(currentStep + 1);
+    if (validateCurrentStep() && currentStep < 5) {
+      setCurrentStep(currentStep + 1);
+    }
   };
 
   const prevStep = () => {
@@ -320,10 +510,15 @@ function StudentAssessment() {
             type="text"
             value={assessmentData.personalInfo.name}
             onChange={(e) => handlePersonalInfoChange('name', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.personalInfo.name ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="Enter your full name"
             required
           />
+          {errors.personalInfo.name && (
+            <p className="mt-1 text-sm text-red-600">{errors.personalInfo.name}</p>
+          )}
         </div>
         
         <div>
@@ -332,10 +527,15 @@ function StudentAssessment() {
             type="email"
             value={assessmentData.personalInfo.email}
             onChange={(e) => handlePersonalInfoChange('email', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.personalInfo.email ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="Enter your email"
             required
           />
+          {errors.personalInfo.email && (
+            <p className="mt-1 text-sm text-red-600">{errors.personalInfo.email}</p>
+          )}
         </div>
         
         <div>
@@ -344,9 +544,14 @@ function StudentAssessment() {
             type="tel"
             value={assessmentData.personalInfo.phone}
             onChange={(e) => handlePersonalInfoChange('phone', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.personalInfo.phone ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="Enter your phone number"
           />
+          {errors.personalInfo.phone && (
+            <p className="mt-1 text-sm text-red-600">{errors.personalInfo.phone}</p>
+          )}
         </div>
         
         <div>
@@ -355,12 +560,17 @@ function StudentAssessment() {
             type="number"
             value={assessmentData.personalInfo.age || ''}
             onChange={(e) => handlePersonalInfoChange('age', parseInt(e.target.value) || 0)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.personalInfo.age ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="Enter your age"
             min="16"
             max="65"
             required
           />
+          {errors.personalInfo.age && (
+            <p className="mt-1 text-sm text-red-600">{errors.personalInfo.age}</p>
+          )}
         </div>
         
         <div>
@@ -410,6 +620,9 @@ function StudentAssessment() {
               </label>
             ))}
           </div>
+          {errors.personalInfo.languages && (
+            <p className="mt-1 text-sm text-red-600">{errors.personalInfo.languages}</p>
+          )}
         </div>
       </div>
     </div>
@@ -425,7 +638,9 @@ function StudentAssessment() {
           <select
             value={assessmentData.academicBackground.educationLevel}
             onChange={(e) => handleAcademicChange('educationLevel', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.academicBackground.educationLevel ? 'border-red-500' : 'border-gray-300'
+            }`}
             required
           >
             <option value="">Select education level</option>
@@ -435,6 +650,9 @@ function StudentAssessment() {
             <option value="master">Master's Degree</option>
             <option value="phd">PhD</option>
           </select>
+          {errors.academicBackground.educationLevel && (
+            <p className="mt-1 text-sm text-red-600">{errors.academicBackground.educationLevel}</p>
+          )}
         </div>
         
         <div>
@@ -443,10 +661,15 @@ function StudentAssessment() {
             type="text"
             value={assessmentData.academicBackground.major}
             onChange={(e) => handleAcademicChange('major', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.academicBackground.major ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="e.g., Computer Science, Information Technology"
             required
           />
+          {errors.academicBackground.major && (
+            <p className="mt-1 text-sm text-red-600">{errors.academicBackground.major}</p>
+          )}
         </div>
         
         <div>
@@ -466,10 +689,15 @@ function StudentAssessment() {
             type="text"
             value={assessmentData.academicBackground.institution}
             onChange={(e) => handleAcademicChange('institution', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.academicBackground.institution ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="University/College name"
             required
           />
+          {errors.academicBackground.institution && (
+            <p className="mt-1 text-sm text-red-600">{errors.academicBackground.institution}</p>
+          )}
         </div>
         
         <div>
@@ -478,13 +706,18 @@ function StudentAssessment() {
             type="number"
             value={assessmentData.academicBackground.gpa || ''}
             onChange={(e) => handleAcademicChange('gpa', parseFloat(e.target.value) || 0)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.academicBackground.gpa ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="Enter your GPA"
             min="0"
             max="4"
             step="0.1"
             required
           />
+          {errors.academicBackground.gpa && (
+            <p className="mt-1 text-sm text-red-600">{errors.academicBackground.gpa}</p>
+          )}
         </div>
         
         <div>
@@ -493,12 +726,17 @@ function StudentAssessment() {
             type="number"
             value={assessmentData.academicBackground.graduationYear || ''}
             onChange={(e) => handleAcademicChange('graduationYear', parseInt(e.target.value) || 0)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.academicBackground.graduationYear ? 'border-red-500' : 'border-gray-300'
+            }`}
             placeholder="Enter graduation year"
             min="2000"
             max="2030"
             required
           />
+          {errors.academicBackground.graduationYear && (
+            <p className="mt-1 text-sm text-red-600">{errors.academicBackground.graduationYear}</p>
+          )}
         </div>
         
         <div className="md:col-span-2">
@@ -560,6 +798,9 @@ function StudentAssessment() {
               </label>
             ))}
           </div>
+          {errors.technicalSkills.programming && (
+            <p className="mt-1 text-sm text-red-600">{errors.technicalSkills.programming}</p>
+          )}
           
           {assessmentData.technicalSkills.programming.length > 0 && (
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
@@ -858,6 +1099,9 @@ function StudentAssessment() {
               </label>
             ))}
           </div>
+          {errors.careerInterests.preferredRoles && (
+            <p className="mt-1 text-sm text-red-600">{errors.careerInterests.preferredRoles}</p>
+          )}
         </div>
         
         <div>
@@ -881,6 +1125,9 @@ function StudentAssessment() {
               </label>
             ))}
           </div>
+          {errors.careerInterests.industryPreference && (
+            <p className="mt-1 text-sm text-red-600">{errors.careerInterests.industryPreference}</p>
+          )}
         </div>
         
         <div>
@@ -888,7 +1135,9 @@ function StudentAssessment() {
           <select
             value={assessmentData.careerInterests.workEnvironment}
             onChange={(e) => handleCareerInterestChange('workEnvironment', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.careerInterests.workEnvironment ? 'border-red-500' : 'border-gray-300'
+            }`}
             required
           >
             <option value="">Select preferred work environment</option>
@@ -898,6 +1147,9 @@ function StudentAssessment() {
             <option value="hybrid">Hybrid - Mix of office and remote</option>
             <option value="freelance">Freelance - Project-based work</option>
           </select>
+          {errors.careerInterests.workEnvironment && (
+            <p className="mt-1 text-sm text-red-600">{errors.careerInterests.workEnvironment}</p>
+          )}
         </div>
         
         <div>
@@ -905,7 +1157,9 @@ function StudentAssessment() {
           <select
             value={assessmentData.careerInterests.workLifeBalance}
             onChange={(e) => handleCareerInterestChange('workLifeBalance', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.careerInterests.workLifeBalance ? 'border-red-500' : 'border-gray-300'
+            }`}
             required
           >
             <option value="">Select work-life balance preference</option>
@@ -914,6 +1168,9 @@ function StudentAssessment() {
             <option value="life-focused">Life-focused - Strict work hours boundaries</option>
             <option value="flexible">Flexible - Adapt as needed</option>
           </select>
+          {errors.careerInterests.workLifeBalance && (
+            <p className="mt-1 text-sm text-red-600">{errors.careerInterests.workLifeBalance}</p>
+          )}
         </div>
         
         <div>
@@ -921,7 +1178,9 @@ function StudentAssessment() {
           <select
             value={assessmentData.careerInterests.companySize}
             onChange={(e) => handleCareerInterestChange('companySize', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.careerInterests.companySize ? 'border-red-500' : 'border-gray-300'
+            }`}
             required
           >
             <option value="">Select company size preference</option>
@@ -931,6 +1190,9 @@ function StudentAssessment() {
             <option value="large">Large (1001-5000 employees)</option>
             <option value="enterprise">Enterprise (5000+ employees)</option>
           </select>
+          {errors.careerInterests.companySize && (
+            <p className="mt-1 text-sm text-red-600">{errors.careerInterests.companySize}</p>
+          )}
         </div>
         
         <div>
@@ -938,7 +1200,9 @@ function StudentAssessment() {
           <select
             value={assessmentData.careerInterests.relocation}
             onChange={(e) => handleCareerInterestChange('relocation', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.careerInterests.relocation ? 'border-red-500' : 'border-gray-300'
+            }`}
             required
           >
             <option value="">Select relocation preference</option>
@@ -947,6 +1211,9 @@ function StudentAssessment() {
             <option value="limited">Limited relocation - specific locations only</option>
             <option value="not-willing">Not willing to relocate</option>
           </select>
+          {errors.careerInterests.relocation && (
+            <p className="mt-1 text-sm text-red-600">{errors.careerInterests.relocation}</p>
+          )}
         </div>
         
         <div>
@@ -954,7 +1221,9 @@ function StudentAssessment() {
           <select
             value={assessmentData.careerInterests.salaryExpectation}
             onChange={(e) => handleCareerInterestChange('salaryExpectation', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.careerInterests.salaryExpectation ? 'border-red-500' : 'border-gray-300'
+            }`}
             required
           >
             <option value="">Select salary expectation</option>
@@ -963,6 +1232,9 @@ function StudentAssessment() {
             <option value="senior">$90,000 - $130,000 (Senior Level)</option>
             <option value="lead">$130,000+ (Lead/Expert Level)</option>
           </select>
+          {errors.careerInterests.salaryExpectation && (
+            <p className="mt-1 text-sm text-red-600">{errors.careerInterests.salaryExpectation}</p>
+          )}
         </div>
         
         <div>
@@ -970,11 +1242,16 @@ function StudentAssessment() {
           <textarea
             value={assessmentData.careerInterests.longTermGoals}
             onChange={(e) => handleCareerInterestChange('longTermGoals', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.careerInterests.longTermGoals ? 'border-red-500' : 'border-gray-300'
+            }`}
             rows={3}
             placeholder="Describe your long-term career aspirations and goals..."
             required
           />
+          {errors.careerInterests.longTermGoals && (
+            <p className="mt-1 text-sm text-red-600">{errors.careerInterests.longTermGoals}</p>
+          )}
         </div>
       </div>
     </div>
