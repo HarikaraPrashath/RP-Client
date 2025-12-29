@@ -41,7 +41,7 @@ interface Message {
 }
 
 const API_URL =
-  (process.env.NEXT_PUBLIC_API_URL) + "/predict`";
+  (process.env.NEXT_PUBLIC_API_URL) + "/predict";
 console.log("Api public",API_URL)
 
 export default function Home() {
