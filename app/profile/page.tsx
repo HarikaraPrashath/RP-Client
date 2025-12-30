@@ -1338,7 +1338,7 @@ export default function ProfilePage() {
           </main>
 
           <aside className={styles.sideCol}>
-            <section className={styles.card}>
+            <section className={`${styles.card} ${styles.openToCard}`}>
               <div className={styles.cardHeader}>
                 <h2>Open to</h2>
                 <button className={styles.linkBtn} type="button" aria-label="Edit open to">
@@ -1348,7 +1348,7 @@ export default function ProfilePage() {
               <p className={styles.cardBody}>Frontend engineering, AI tooling, UI systems.</p>
             </section>
 
-            <section className={styles.card}>
+            <section className={`${styles.card} ${styles.featuredCard}`}>
               <div className={styles.cardHeader}>
                 <h2>Featured</h2>
               </div>
@@ -1384,34 +1384,9 @@ export default function ProfilePage() {
                   )}
                 </div>
               </div>
-              <div className={styles.featureItem}>
-                <div className={styles.featureThumb}>AI</div>
-                <div>
-                  <p className={styles.featureTitle}>Resume intelligence deck</p>
-                  <p className={styles.featureMeta}>Narrative, roadmap, UX flows</p>
-                </div>
-              </div>
             </section>
 
-            <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2>People also viewed</h2>
-              </div>
-              <div className={styles.peopleList}>
-                {[
-                  "Sonia Paul - AI Engineer",
-                  "Arjun Rao - Frontend Lead",
-                  "Meera Jose - Product Designer",
-                ].map((person) => (
-                  <div key={person} className={styles.peopleItem}>
-                    <span className={styles.peopleAvatar}>o</span>
-                    <span>{person}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className={styles.card}>
+            <section className={`${styles.card} ${styles.topMatchCard}`}>
               <div className={styles.cardHeader}>
                 <h2>Top matched job</h2>
               </div>
@@ -1443,19 +1418,19 @@ export default function ProfilePage() {
               )}
             </section>
 
-            <section className={styles.card}>
+            <section className={`${styles.card} ${styles.skillInsightsCard}`}>
               <div className={styles.cardHeader}>
                 <h2>Skill insights</h2>
               </div>
               <p className={styles.cardBody}>
                 Compare your skills against live job demand and see your gap analysis.
               </p>
-              <Link className={styles.featureLink} href="/merge-skills">
+              <Link className={`${styles.featureLink} ${styles.skillInsightsCta}`} href="/merge-skills">
                 Open merge-skills
               </Link>
             </section>
 
-            <section className={styles.card}>
+            <section className={`${styles.card} ${styles.allMatchesCard}`}>
               <div className={styles.cardHeader}>
                 <h2>All top matches</h2>
               </div>
