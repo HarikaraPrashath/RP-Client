@@ -32,14 +32,17 @@ interface AssessmentData {
   academicBackground: {
     educationLevel: string;
     major: string;
-    minor?: string;
     gpa: number;
     graduationYear: number;
     institution: string;
-    relevantCourses: string[];
-    projects: string[];
-    certifications: string[];
-  };
+    currentYear: number;
+    currentSemester: string;
+    expectedGraduationYear: string;
+    projects: Array<{
+      name: string;
+      rating: string;
+    }>;
+   };
   technicalSkills: {
     programming: string[];
     programmingLevel: { [key: string]: string };
@@ -87,7 +90,9 @@ interface ValidationErrors {
     major?: string;
     institution?: string;
     gpa?: string;
-    graduationYear?: string;
+    currentYear?: string;
+    currentSemester?: string;
+    expectedGraduationYear?: string;
   };
   technicalSkills: {
     programming?: string;
@@ -159,8 +164,45 @@ const industries = [
 ];
 
 const languages = [
-  'English', 'Spanish', 'Mandarin', 'French', 'German', 'Japanese', 'Korean',
-  'Arabic', 'Russian', 'Portuguese', 'Italian', 'Hindi', 'Bengali'
+  'Sinhala', 'Tamil', 'English'
+];
+
+const majorOptions = [
+  'Computer Science',
+  'Software Engineering',
+  'Information Technology',
+  'Computing and Software Systems',
+  'Data Science',
+  'Network Engineering',
+  'Cyber Security',
+  'Information Security',
+  'Cloud Computing',
+  'Interactive Media',
+  'Management Information Systems',
+  'Business Information Technology'
+];
+
+const sriLankanUniversities = [
+  'University of Colombo',
+  'University of Peradeniya',
+  'University of Sri Jayewardenepura',
+  'University of Kelaniya',
+  'University of Moratuwa',
+  'University of Jaffna',
+  'University of Ruhuna',
+  'Eastern University, Sri Lanka',
+  'South Eastern University of Sri Lanka',
+  'Rajarata University of Sri Lanka',
+  'Sabaragamuwa University of Sri Lanka',
+  'Wayamba University of Sri Lanka',
+  'Uva Wellassa University',
+  'University of Vavuniya',
+  'Sri Lanka Institute of Information Technology (SLIIT)',
+  'NSBM Green University',
+  'SLTC Research University',
+  'Informatics Institute of Technology (IIT)',
+  'ICBT Campus',
+  'Horizon Campus'
 ];
 
 function StudentAssessment() {
@@ -187,13 +229,13 @@ function StudentAssessment() {
     academicBackground: {
       educationLevel: '',
       major: '',
-      minor: '',
       gpa: 0,
       graduationYear: 0,
       institution: '',
-      relevantCourses: [],
-      projects: [],
-      certifications: []
+      currentYear: 0,
+      currentSemester: '',
+      expectedGraduationYear: '',
+      projects: []
     },
     technicalSkills: {
       programming: [],
@@ -278,11 +320,12 @@ function StudentAssessment() {
       newErrors.gpa = 'Please enter a valid GPA between 0 and 4.0';
     }
     
-    const currentYear = new Date().getFullYear();
-    if (!assessmentData.academicBackground.graduationYear ||
-        assessmentData.academicBackground.graduationYear < 2000 ||
-        assessmentData.academicBackground.graduationYear > currentYear + 5) {
-      newErrors.graduationYear = `Please enter a valid graduation year between 2000 and ${currentYear + 5}`;
+    if (!assessmentData.academicBackground.currentYear || assessmentData.academicBackground.currentYear < 1 || assessmentData.academicBackground.currentYear > 4) {
+      newErrors.currentYear = 'Please enter a valid academic year (1-4)';
+    }
+    
+    if (!assessmentData.academicBackground.expectedGraduationYear) {
+      newErrors.expectedGraduationYear = 'Expected graduation year is required';
     }
     
     setErrors(prev => ({ ...prev, academicBackground: newErrors }));
@@ -657,44 +700,39 @@ function StudentAssessment() {
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Major/Field of Study</label>
-          <input
-            type="text"
+          <select
             value={assessmentData.academicBackground.major}
             onChange={(e) => handleAcademicChange('major', e.target.value)}
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               errors.academicBackground.major ? 'border-red-500' : 'border-gray-300'
             }`}
-            placeholder="e.g., Computer Science, Information Technology"
             required
-          />
+          >
+            <option value="">Select your major</option>
+            {majorOptions.map((major) => (
+              <option key={major} value={major}>{major}</option>
+            ))}
+          </select>
           {errors.academicBackground.major && (
             <p className="mt-1 text-sm text-red-600">{errors.academicBackground.major}</p>
           )}
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Minor/Concentration (Optional)</label>
-          <input
-            type="text"
-            value={assessmentData.academicBackground.minor || ''}
-            onChange={(e) => handleAcademicChange('minor', e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="e.g., Mathematics, Data Science"
-          />
-        </div>
-        
-        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Institution</label>
-          <input
-            type="text"
+          <select
             value={assessmentData.academicBackground.institution}
             onChange={(e) => handleAcademicChange('institution', e.target.value)}
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               errors.academicBackground.institution ? 'border-red-500' : 'border-gray-300'
             }`}
-            placeholder="University/College name"
             required
-          />
+          >
+            <option value="">Select your institution</option>
+            {sriLankanUniversities.map((university) => (
+              <option key={university} value={university}>{university}</option>
+            ))}
+          </select>
           {errors.academicBackground.institution && (
             <p className="mt-1 text-sm text-red-600">{errors.academicBackground.institution}</p>
           )}
@@ -721,34 +759,51 @@ function StudentAssessment() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Graduation Year</label>
-          <input
-            type="number"
+          <label className="block text-sm font-medium text-gray-700 mb-2">Current Academic Year</label>
+          <select
             value={assessmentData.academicBackground.graduationYear || ''}
-            onChange={(e) => handleAcademicChange('graduationYear', parseInt(e.target.value) || 0)}
+            onChange={(e) => handleAcademicChange('currentYear', parseInt(e.target.value) || 0)}
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              errors.academicBackground.graduationYear ? 'border-red-500' : 'border-gray-300'
+              errors.academicBackground.currentYear ? 'border-red-500' : 'border-gray-300'
             }`}
-            placeholder="Enter graduation year"
-            min="2000"
-            max="2030"
             required
-          />
-          {errors.academicBackground.graduationYear && (
-            <p className="mt-1 text-sm text-red-600">{errors.academicBackground.graduationYear}</p>
-          )}
+          >
+            <option value="">Select academic year</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+          </select>
         </div>
         
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Relevant Courses</label>
-          <textarea
-            value={assessmentData.academicBackground.relevantCourses.join(', ')}
-            onChange={(e) => handleAcademicChange('relevantCourses', e.target.value.split(',').map(course => course.trim()).filter(course => course))}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Current Semester</label>
+          <select
+            value={assessmentData.academicBackground.currentSemester || ''}
+            onChange={(e) => handleAcademicChange('currentSemester', e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            rows={2}
-            placeholder="e.g., Data Structures, Algorithms, Database Systems, Web Development"
-          />
-          <p className="text-xs text-gray-500 mt-1">Separate multiple courses with commas</p>
+          >
+            <option value="">Select semester</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Expected Graduation Year</label>
+          <select
+            value={assessmentData.academicBackground.expectedGraduationYear || ''}
+            onChange={(e) => handleAcademicChange('expectedGraduationYear', e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            required
+          >
+            <option value="">Select graduation year</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+            <option value="2029">2029</option>
+            <option value="2030">2030</option>
+          </select>
         </div>
         
         <div className="md:col-span-2">
@@ -761,18 +816,6 @@ function StudentAssessment() {
             placeholder="e.g., E-commerce Website, Machine Learning Model, Mobile App"
           />
           <p className="text-xs text-gray-500 mt-1">Separate multiple projects with commas</p>
-        </div>
-        
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Certifications</label>
-          <textarea
-            value={assessmentData.academicBackground.certifications.join(', ')}
-            onChange={(e) => handleAcademicChange('certifications', e.target.value.split(',').map(cert => cert.trim()).filter(cert => cert))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            rows={2}
-            placeholder="e.g., AWS Certified Developer, Google Data Analytics, CompTIA Security+"
-          />
-          <p className="text-xs text-gray-500 mt-1">Separate multiple certifications with commas</p>
         </div>
       </div>
     </div>
