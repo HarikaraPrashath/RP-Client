@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   ChevronDown,
   Sparkles,
@@ -22,21 +22,25 @@ import Image from "next/image"
 import Link from "next/link"
 
 export default function Home() {
-  const [isScrolled, setIsScrolled] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <main className="min-h-screen bg-background">
       {/* Navigation */}
       <nav
-        className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? "bg-white/80 backdrop-blur-md shadow-lg" : "bg-transparent"}`}
+        className={`fixed w-full z-50 transition-all duration-300 ${
+          isScrolled
+            ? "bg-white/80 backdrop-blur-md shadow-lg"
+            : "bg-transparent"
+        }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 animate-fade-in-down">
@@ -54,26 +58,44 @@ export default function Home() {
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#services" className="text-foreground/70 hover:text-foreground transition-colors">
+            <a
+              href="#services"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
               Services
             </a>
-            <a href="#features" className="text-foreground/70 hover:text-foreground transition-colors">
+            <a
+              href="#features"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
               Features
             </a>
-            <a href="#about" className="text-foreground/70 hover:text-foreground transition-colors">
+            <a
+              href="#about"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
               About
             </a>
-            <a href="#transform" className="text-foreground/70 hover:text-foreground transition-colors">
+            <a
+              href="#transform"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
               Transform Your Career
             </a>
-            <a href="#pricing" className="text-foreground/70 hover:text-foreground transition-colors">
+            <a
+              href="#pricing"
+              className="text-foreground/70 hover:text-foreground transition-colors"
+            >
               Pricing
             </a>
             <Link href="/merge-skills" className="text-foreground/70 hover:text-foreground transition-colors">
               Merge Skills
             </Link>
           </div>
-          <button type="button" className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+          <button
+            type="button"
+            className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+          >
             Get Started
           </button>
         </div>
@@ -98,24 +120,37 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="space-y-8">
-              <div className="inline-block animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+              <div
+                className="inline-block animate-fade-in-up"
+                style={{ animationDelay: "0.2s" }}
+              >
                 <div className="px-4 py-2 bg-primary/10 rounded-full border border-primary/20 flex items-center gap-2 justify-start">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-semibold text-primary">Welcome to the Future of Careers</span>
+                  <span className="text-sm font-semibold text-primary">
+                    Welcome to the Future of Careers
+                  </span>
                   <Sparkles className="w-4 h-4 text-primary" />
                 </div>
               </div>
 
-              <h1 className="text-5xl md:text-8xl font-bold animate-fade-in-up " style={{ animationDelay: "0.4s" }}>
+              <h1
+                className="text-5xl md:text-8xl font-bold animate-fade-in-up "
+                style={{ animationDelay: "0.4s" }}
+              >
                 Shape Your
                 <span className="block bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent py-3">
                   Career Journey
                 </span>
               </h1>
 
-              <p className="text-lg text-foreground/70 max-w-2xl animate-fade-in-up " style={{ animationDelay: "0.6s" }}>
-                Transform your career path with AI-powered guidance, comprehensive preparation, real marketplace
-                opportunities, and emotional support. All in one intelligent platform designed for your success.
+              <p
+                className="text-lg text-foreground/70 max-w-2xl animate-fade-in-up "
+                style={{ animationDelay: "0.6s" }}
+              >
+                Transform your career path with AI-powered guidance,
+                comprehensive preparation, real marketplace opportunities, and
+                emotional support. All in one intelligent platform designed for
+                your success.
               </p>
 
               <div
@@ -123,12 +158,18 @@ export default function Home() {
                 style={{ animationDelay: "0.8s" }}
               >
                 <a href="#services">
-                  <button type="button" className="px-8 py-4 bg-gradient-to-r from-primary to-accent text-white rounded-xl font-semibold hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="px-8 py-4 bg-gradient-to-r from-primary to-accent text-white rounded-xl font-semibold hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                  >
                     Start Your Journey <ArrowRight className="w-5 h-5" />
                   </button>
                 </a>
 
-                <button type="button" className="px-8 py-4 border-2 border-primary text-primary rounded-xl font-semibold hover:bg-primary/5 transition-all duration-300">
+                <button
+                  type="button"
+                  className="px-8 py-4 border-2 border-primary text-primary rounded-xl font-semibold hover:bg-primary/5 transition-all duration-300"
+                >
                   Watch Demo
                 </button>
               </div>
@@ -214,7 +255,9 @@ export default function Home() {
                   <Users className="w-5 h-5 text-primary" />
                   <span className="font-semibold text-sm">50K+ Data</span>
                 </div>
-                <p className="text-xs text-foreground/70">Transforming careers daily</p>
+                <p className="text-xs text-foreground/70">
+                  Transforming careers daily
+                </p>
               </div>
 
               <div
@@ -225,7 +268,9 @@ export default function Home() {
                   <TrendingUp className="w-5 h-5 text-accent" />
                   <span className="font-semibold text-sm">95% Success</span>
                 </div>
-                <p className="text-xs text-foreground/70">Career goals achieved</p>
+                <p className="text-xs text-foreground/70">
+                  Career goals achieved
+                </p>
               </div>
             </div>
           </div>
@@ -267,35 +312,45 @@ export default function Home() {
       >
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Our Four Core Services</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Our Four Core Services
+            </h2>
             <p className="text-lg text-foreground/70">
               Comprehensive tools for every stage of your career transformation
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
-
             {/* Career Guide */}
-            <div className="group animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
+            <div
+              className="group animate-fade-in-up"
+              style={{ animationDelay: "0.2s" }}
+            >
               <div className="relative h-full bg-white rounded-2xl p-8 border border-primary/10 hover:border-primary/40 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between">
-
                 <div className="relative z-10">
                   <div className="w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Target className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-3 text-foreground">Career Guide</h3>
+                  <h3 className="text-2xl font-bold mb-3 text-foreground">
+                    Career Guide
+                  </h3>
                   <p className="text-foreground/70 mb-4">
-                    Personalized career path recommendations powered by AI. Discover opportunities aligned with your
-                    skills and aspirations.
+                    Personalized career path recommendations powered by AI.
+                    Discover opportunities aligned with your skills and
+                    aspirations.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                      <span className="text-sm text-foreground/70">AI-powered path recommendations</span>
+                      <span className="text-sm text-foreground/70">
+                        AI-powered path recommendations
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                      <span className="text-sm text-foreground/70">Skills gap analysis</span>
+                      <span className="text-sm text-foreground/70">
+                        Skills gap analysis
+                      </span>
                     </li>
                   </ul>
                 </div>
@@ -309,111 +364,133 @@ export default function Home() {
             </div>
 
             {/* Career Preparation */}
-            <div className="group animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
+            <div
+              className="group animate-fade-in-up"
+              style={{ animationDelay: "0.4s" }}
+            >
               <div className="relative h-full bg-white rounded-2xl p-8 border border-accent/10 hover:border-accent/40 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between">
-
                 <div className="relative z-10">
                   <div className="w-14 h-14 bg-gradient-to-br from-accent to-secondary rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Briefcase className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-3 text-foreground">Career Preparation</h3>
+                  <h3 className="text-2xl font-bold mb-3 text-foreground">
+                    Career Preparation
+                  </h3>
                   <p className="text-foreground/70 mb-4">
-                    Master interview techniques, resume building, and professional skills with interactive courses and
-                    real-time feedback.
+                    Master interview techniques, resume building, and
+                    professional skills with interactive courses and real-time
+                    feedback.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
-                      <span className="text-sm text-foreground/70">Interview coaching</span>
+                      <span className="text-sm text-foreground/70">
+                        Interview coaching
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
-                      <span className="text-sm text-foreground/70">Resume optimization</span>
+                      <span className="text-sm text-foreground/70">
+                        Resume optimization
+                      </span>
                     </li>
                   </ul>
                 </div>
-
-                <a href="/career-preparation">
-                  <button
-                    type="button"
-                    className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
-                  >
-                    Try Service
-                  </button>
-                </a>
+                <Link
+                  href="/career-preparation"
+                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                >
+                  Try Service
+                </Link>
               </div>
             </div>
 
             {/* Career Marketplace */}
-            <div className="group animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
+            <div
+              className="group animate-fade-in-up"
+              style={{ animationDelay: "0.6s" }}
+            >
               <div className="relative h-full bg-white rounded-2xl p-8 border border-secondary/10 hover:border-secondary/40 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between">
-
                 <div className="relative z-10">
                   <div className="w-14 h-14 bg-gradient-to-br from-secondary to-primary rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Store className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-3 text-foreground">Career Marketplace</h3>
+                  <h3 className="text-2xl font-bold mb-3 text-foreground">
+                    Career Marketplace
+                  </h3>
                   <p className="text-foreground/70 mb-4">
-                    Connect with top employers, explore curated opportunities, and showcase your profile to companies
-                    actively hiring talent.
+                    Connect with top employers, explore curated opportunities,
+                    and showcase your profile to companies actively hiring
+                    talent.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-secondary mt-1 flex-shrink-0" />
-                      <span className="text-sm text-foreground/70">Job matching algorithm</span>
+                      <span className="text-sm text-foreground/70">
+                        Job matching algorithm
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-secondary mt-1 flex-shrink-0" />
-                      <span className="text-sm text-foreground/70">Direct employer connections</span>
+                      <span className="text-sm text-foreground/70">
+                        Direct employer connections
+                      </span>
                     </li>
                   </ul>
                 </div>
 
-                <button
-                  type="button"
-                  className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
+                <Link
+                  href="/"
+                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
                 >
                   Try Service
-                </button>
+                </Link>
               </div>
             </div>
 
             {/* Career Emotion Guide */}
-            <div className="group animate-fade-in-up" style={{ animationDelay: "0.8s" }}>
+            <div
+              className="group animate-fade-in-up"
+              style={{ animationDelay: "0.8s" }}
+            >
               <div className="relative h-full bg-white rounded-2xl p-8 border border-accent/10 hover:border-accent/40 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between">
-
                 <div className="relative z-10">
                   <div className="w-14 h-14 bg-gradient-to-br from-accent to-primary rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                     <Heart className="w-7 h-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-3 text-foreground">Career Emotion Guide</h3>
+                  <h3 className="text-2xl font-bold mb-3 text-foreground">
+                    Career Emotion Guide
+                  </h3>
                   <p className="text-foreground/70 mb-4">
-                    Navigate career challenges with emotional intelligence coaching. Manage stress, build confidence,
-                    and thrive professionally and personally.
+                    Navigate career challenges with emotional intelligence
+                    coaching. Manage stress, build confidence, and thrive
+                    professionally and personally.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
-                      <span className="text-sm text-foreground/70">Emotional intelligence training</span>
+                      <span className="text-sm text-foreground/70">
+                        Emotional intelligence training
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
-                      <span className="text-sm text-foreground/70">Wellness resources</span>
+                      <span className="text-sm text-foreground/70">
+                        Wellness resources
+                      </span>
                     </li>
                   </ul>
                 </div>
 
-                <button
-                  type="button"
-                  className="mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 cursor-pointer"
+                <Link
+                  href="/"
+                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
                 >
                   Try Service
-                </button>
+                </Link>
               </div>
             </div>
-
           </div>
-
         </div>
       </section>
 
@@ -427,7 +504,9 @@ export default function Home() {
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-balance">
               Transform Your Career in 3 Simple Steps
             </h2>
-            <p className="text-lg text-foreground/70">Our proven methodology helps you achieve career excellence</p>
+            <p className="text-lg text-foreground/70">
+              Our proven methodology helps you achieve career excellence
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -451,13 +530,21 @@ export default function Home() {
                 icon: <Rocket />,
               },
             ].map((item, idx) => (
-              <div key={idx} className="animate-fade-in-up" style={{ animationDelay: `${0.2 * idx}s` }}>
+              <div
+                key={idx}
+                className="animate-fade-in-up"
+                style={{ animationDelay: `${0.2 * idx}s` }}
+              >
                 <div className="relative">
                   <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-2xl opacity-20"></div>
                   <div className="relative bg-white rounded-2xl p-8 border border-primary/10 hover:border-primary/30 transition-all duration-300 h-full">
-                    <div className="text-4xl font-bold text-primary/20 mb-4">{item.step}</div>
+                    <div className="text-4xl font-bold text-primary/20 mb-4">
+                      {item.step}
+                    </div>
                     <div className="text-9xl mb-4">{item.icon}</div>
-                    <h3 className="text-2xl font-bold mb-3 text-foreground text-primary">{item.title}</h3>
+                    <h3 className="text-2xl font-bold mb-3 text-foreground text-primary">
+                      {item.title}
+                    </h3>
                     <p className="text-foreground/70">{item.desc}</p>
                   </div>
                 </div>
@@ -471,27 +558,46 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary/10 to-accent/10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">How Mentora Works</h2>
-            <p className="text-lg text-foreground/70">Experience the power of intelligent career transformation</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              How Mentora Works
+            </h2>
+            <p className="text-lg text-foreground/70">
+              Experience the power of intelligent career transformation
+            </p>
           </div>
           <div className="flex flex-wrap gap-6 animate-slide-in-left">
-
             {[
               {
                 title: "AI Career Analysis",
-                points: ["Deep skill assessment", "Market demand analysis", "Career path projections"],
+                points: [
+                  "Deep skill assessment",
+                  "Market demand analysis",
+                  "Career path projections",
+                ],
               },
               {
                 title: "Personalized Learning",
-                points: ["Custom course recommendations", "Real-time skill tracking", "Expert mentorship"],
+                points: [
+                  "Custom course recommendations",
+                  "Real-time skill tracking",
+                  "Expert mentorship",
+                ],
               },
               {
                 title: "Job Matching",
-                points: ["Algorithm-powered matches", "Company culture alignment", "Salary benchmarking"],
+                points: [
+                  "Algorithm-powered matches",
+                  "Company culture alignment",
+                  "Salary benchmarking",
+                ],
               },
               {
                 title: "Emotional Support",
-                points: ["Wellness coaching", "Confidence building", "Stress management"],
+                points: [
+                  "Wellness coaching",
+                  "Confidence building",
+                  "Stress management",
+                ],
               },
             ].map((section, idx) => (
               <div
@@ -507,7 +613,10 @@ export default function Home() {
 
                 <ul className="space-y-2">
                   {section.points.map((point, pidx) => (
-                    <li key={pidx} className="flex items-center gap-2 text-foreground/70 text-sm">
+                    <li
+                      key={pidx}
+                      className="flex items-center gap-2 text-foreground/70 text-sm"
+                    >
                       <div className="w-2 h-2 bg-accent rounded-full"></div>
                       {point}
                     </li>
@@ -515,39 +624,48 @@ export default function Home() {
                 </ul>
               </div>
             ))}
-
           </div>
-
         </div>
-
-
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-primary/5">
+      <section
+        id="features"
+        className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-primary/5"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="animate-slide-in-left">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">Why Choose Mentora?</h2>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                Why Choose Mentora?
+              </h2>
               <div className="space-y-6">
                 {[
                   {
                     title: "AI-Powered Intelligence",
                     desc: "Machine learning algorithms personalize your entire experience",
                   },
-                  { title: "Real Opportunities", desc: "Access thousands of verified job listings from top companies" },
+                  {
+                    title: "Real Opportunities",
+                    desc: "Access thousands of verified job listings from top companies",
+                  },
                   {
                     title: "Expert Mentorship",
                     desc: "Learn from industry leaders through live sessions and recorded content",
                   },
-                  { title: "24/7 Support", desc: "Get instant answers with our AI chatbot and expert support team" },
+                  {
+                    title: "24/7 Support",
+                    desc: "Get instant answers with our AI chatbot and expert support team",
+                  },
                 ].map((feature, idx) => (
                   <div key={idx} className="flex gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center flex-shrink-0">
                       <Check className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-foreground mb-1">{feature.title}</h3>
+                      <h3 className="text-lg font-bold text-foreground mb-1">
+                        {feature.title}
+                      </h3>
                       <p className="text-foreground/70">{feature.desc}</p>
                     </div>
                   </div>
@@ -585,8 +703,14 @@ export default function Home() {
               { num: "95%", label: "Success Rate" },
               { num: "24/7", label: "Available Support" },
             ].map((stat, idx) => (
-              <div key={idx} className="text-white animate-fade-in-up" style={{ animationDelay: `${0.1 * idx}s` }}>
-                <div className="text-4xl md:text-5xl font-bold mb-2">{stat.num}</div>
+              <div
+                key={idx}
+                className="text-white animate-fade-in-up"
+                style={{ animationDelay: `${0.1 * idx}s` }}
+              >
+                <div className="text-4xl md:text-5xl font-bold mb-2">
+                  {stat.num}
+                </div>
                 <div className="text-white/80">{stat.label}</div>
               </div>
             ))}
@@ -598,8 +722,12 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Success Stories</h2>
-            <p className="text-lg text-foreground/70">Real transformations from professionals like you</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Success Stories
+            </h2>
+            <p className="text-lg text-foreground/70">
+              Real transformations from professionals like you
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -641,11 +769,19 @@ export default function Home() {
                     </span>
                   ))}
                 </div>
-                <p className="text-foreground/80 mb-6 italic">"{testimonial.quote}"</p>
+                <p className="text-foreground/80 mb-6 italic">
+                  "{testimonial.quote}"
+                </p>
                 <div className="border-t border-primary/10 pt-4">
-                  <h4 className="font-bold text-foreground">{testimonial.name}</h4>
-                  <p className="text-sm text-foreground/60">{testimonial.role}</p>
-                  <p className="text-xs text-primary font-semibold">{testimonial.company}</p>
+                  <h4 className="font-bold text-foreground">
+                    {testimonial.name}
+                  </h4>
+                  <p className="text-sm text-foreground/60">
+                    {testimonial.role}
+                  </p>
+                  <p className="text-xs text-primary font-semibold">
+                    {testimonial.company}
+                  </p>
                 </div>
               </div>
             ))}
@@ -654,11 +790,18 @@ export default function Home() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-background">
+      <section
+        id="pricing"
+        className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-background"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-lg text-foreground/70">Choose the plan that fits your career journey</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-lg text-foreground/70">
+              Choose the plan that fits your career journey
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -715,10 +858,11 @@ export default function Home() {
             ].map((plan, idx) => (
               <div
                 key={idx}
-                className={`relative rounded-2xl p-8 animate-fade-in-up transition-all duration-300 ${plan.highlighted
-                  ? "bg-gradient-to-br from-primary to-accent text-white border-0 transform scale-105 shadow-2xl"
-                  : "bg-white border border-primary/10 hover:shadow-lg"
-                  }`}
+                className={`relative rounded-2xl p-8 animate-fade-in-up transition-all duration-300 ${
+                  plan.highlighted
+                    ? "bg-gradient-to-br from-primary to-accent text-white border-0 transform scale-105 shadow-2xl"
+                    : "bg-white border border-primary/10 hover:shadow-lg"
+                }`}
                 style={{ animationDelay: `${0.2 * idx}s` }}
               >
                 {plan.highlighted && (
@@ -726,25 +870,42 @@ export default function Home() {
                     POPULAR
                   </div>
                 )}
-                <h3 className={`text-2xl font-bold mb-2 ${plan.highlighted ? "text-white" : "text-foreground"}`}>
+                <h3
+                  className={`text-2xl font-bold mb-2 ${
+                    plan.highlighted ? "text-white" : "text-foreground"
+                  }`}
+                >
                   {plan.name}
                 </h3>
-                <p className={`mb-6 text-sm ${plan.highlighted ? "text-white/80" : "text-foreground/70"}`}>
+                <p
+                  className={`mb-6 text-sm ${
+                    plan.highlighted ? "text-white/80" : "text-foreground/70"
+                  }`}
+                >
                   {plan.desc}
                 </p>
                 <div className="mb-6">
-                  <span className={`text-4xl font-bold ${plan.highlighted ? "text-white" : "text-primary"}`}>
+                  <span
+                    className={`text-4xl font-bold ${
+                      plan.highlighted ? "text-white" : "text-primary"
+                    }`}
+                  >
                     {plan.price}
                   </span>
-                  <span className={`text-sm ml-2 ${plan.highlighted ? "text-white/80" : "text-foreground/60"}`}>
+                  <span
+                    className={`text-sm ml-2 ${
+                      plan.highlighted ? "text-white/80" : "text-foreground/60"
+                    }`}
+                  >
                     {plan.period}
                   </span>
                 </div>
                 <button
-                  className={`w-full py-3 rounded-lg font-semibold mb-8 transition-all duration-300 ${plan.highlighted
-                    ? "bg-white text-primary hover:shadow-lg"
-                    : "bg-gradient-to-r from-primary to-accent text-white hover:shadow-lg"
-                    }`}
+                  className={`w-full py-3 rounded-lg font-semibold mb-8 transition-all duration-300 ${
+                    plan.highlighted
+                      ? "bg-white text-primary hover:shadow-lg"
+                      : "bg-gradient-to-r from-primary to-accent text-white hover:shadow-lg"
+                  }`}
                 >
                   {plan.cta}
                 </button>
@@ -752,10 +913,16 @@ export default function Home() {
                   {plan.features.map((feature, fidx) => (
                     <li
                       key={fidx}
-                      className={`flex items-start gap-3 text-sm ${plan.highlighted ? "text-white/90" : "text-foreground/70"}`}
+                      className={`flex items-start gap-3 text-sm ${
+                        plan.highlighted
+                          ? "text-white/90"
+                          : "text-foreground/70"
+                      }`}
                     >
                       <Check
-                        className={`w-5 h-5 flex-shrink-0 mt-0.5 ${plan.highlighted ? "text-white" : "text-primary"}`}
+                        className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                          plan.highlighted ? "text-white" : "text-primary"
+                        }`}
                       />
                       {feature}
                     </li>
@@ -771,8 +938,12 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-background to-primary/5">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h2>
-            <p className="text-lg text-foreground/70">Everything you need to know about Mentora</p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-lg text-foreground/70">
+              Everything you need to know about Mentora
+            </p>
           </div>
 
           <div className="space-y-4">
@@ -811,7 +982,9 @@ export default function Home() {
                   <span>{faq.q}</span>
                   <span className="text-primary ml-4">+</span>
                 </summary>
-                <div className="px-6 pb-6 text-foreground/70 border-t border-primary/10">{faq.a}</div>
+                <div className="px-6 pb-6 text-foreground/70 border-t border-primary/10">
+                  {faq.a}
+                </div>
               </details>
             ))}
           </div>
@@ -822,10 +995,12 @@ export default function Home() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-10 rounded-3xl"></div>
         <div className="max-w-4xl mx-auto relative z-10 text-center animate-fade-in-up">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-balance text-foreground">Your Future Starts Today</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-balance text-foreground">
+            Your Future Starts Today
+          </h2>
           <p className="text-lg text-foreground/70 mb-8 text-balance">
-            Join thousands of professionals transforming their careers. Get started free and experience the Mentora
-            difference.
+            Join thousands of professionals transforming their careers. Get
+            started free and experience the Mentora difference.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a href="#services">
@@ -843,7 +1018,9 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <h3 className="font-bold mb-4">Mentora</h3>
-              <p className="text-white/70">Transforming careers, empowering futures.</p>
+              <p className="text-white/70">
+                Transforming careers, empowering futures.
+              </p>
             </div>
             <div>
               <h4 className="font-bold mb-4">Product</h4>
