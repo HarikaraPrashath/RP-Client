@@ -1,0 +1,292 @@
+.container {
+  width: min(1600px, 98%);
+  margin: 0 auto;
+  padding: 1.5rem 0 2rem;
+}
+
+.header {
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+}
+
+.lead {
+  margin: 0;
+  color: #555;
+}
+
+.listIntro {
+  margin: 1rem 0 2rem 0;
+  color: #333;
+}
+
+.inlineCode {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.95rem;
+  background: #f5f5f5;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.list {
+  display: grid;
+  gap: 1.5rem;
+  margin: 1rem 0 2rem 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.sectionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0 2.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.sectionHint {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 1200px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  border: 1px solid #e4e4e7;
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: #fff;
+  box-shadow: 0 12px 20px rgba(17, 24, 39, 0.06);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.jobTitle {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.employer {
+  margin: 0;
+  color: #4b5563;
+}
+
+.refBadge {
+  background: #111827;
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.imagePreview {
+  margin-top: 1rem;
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
+.textSnippet {
+  margin: 1rem 0 0 0;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+.extractedActionRow {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.skillsBlock {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.skillRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.skillLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.skillValue {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  background: #e2e8f0;
+  color: #0f172a;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.chipFound {
+  background: #dcfce7;
+  color: #166534;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.chipMissing {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.chipOverlap {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.cardFooter {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.fileLink {
+  background: #f3f4f6;
+  color: #111827;
+  text-decoration: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.fileLink:hover {
+  background: #e5e7eb;
+}
+
+.muted {
+  color: #6b7280;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cta {
+  background: #111827;
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.modalMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.modalEmployer {
+  font-weight: 600;
+}
+
+.modalRef {
+  background: #0f172a;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+.modalText {
+  margin: 0;
+  color: #0f172a;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: 60vh;
+  overflow-y: auto;
+}
