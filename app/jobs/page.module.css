@@ -134,6 +134,80 @@
   line-height: 1.5;
 }
 
+.extractedActionRow {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.skillsBlock {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.skillRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.skillLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.skillValue {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  background: #e2e8f0;
+  color: #0f172a;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.chipFound {
+  background: #dcfce7;
+  color: #166534;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.chipMissing {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
+.chipOverlap {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+}
+
 .cardFooter {
   margin-top: 1rem;
   display: flex;
@@ -185,4 +259,34 @@
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   text-decoration: none;
+}
+
+.modalMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.modalEmployer {
+  font-weight: 600;
+}
+
+.modalRef {
+  background: #0f172a;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+.modalText {
+  margin: 0;
+  color: #0f172a;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: 60vh;
+  overflow-y: auto;
 }
