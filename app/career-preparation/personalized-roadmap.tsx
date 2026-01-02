@@ -87,6 +87,17 @@ interface RoadmapMilestone {
   completed: boolean;
 }
 
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  category: string;
+  link?: string;
+  completed: boolean;
+}
+
 interface CareerRoadmap {
   title: string;
   description: string;
@@ -102,6 +113,8 @@ function PersonalizedRoadmap() {
   const [roadmap, setRoadmap] = useState<CareerRoadmap | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeMilestone, setActiveMilestone] = useState<string | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [showCourses, setShowCourses] = useState(false);
 
   useEffect(() => {
     // Load assessment data from sessionStorage
@@ -116,6 +129,10 @@ function PersonalizedRoadmap() {
       
       setCareerPrediction(prediction);
       setRoadmap(generatedRoadmap);
+      
+      // Generate recommended courses
+      const recommendedCourses = generateRecommendedCourses(parsedData, prediction);
+      setCourses(recommendedCourses);
       setLoading(false);
     } else {
       // If no assessment data, redirect to assessment page
@@ -273,6 +290,158 @@ function PersonalizedRoadmap() {
     };
   };
 
+  const generateRecommendedCourses = (data: AssessmentData, prediction: CareerPrediction): Course[] => {
+    // Generate courses based on career prediction and assessment data
+    const baseCourses: Course[] = [
+      {
+        id: 'intro-course',
+        title: 'Introduction to Computer Science',
+        description: 'Learn the fundamentals of computer science and programming.',
+        duration: '4 weeks',
+        difficulty: 'Beginner',
+        category: 'Fundamentals',
+        completed: false
+      },
+      {
+        id: 'programming-course',
+        title: 'Programming Fundamentals',
+        description: 'Master the core programming concepts and problem-solving techniques.',
+        duration: '6 weeks',
+        difficulty: 'Beginner',
+        category: 'Programming',
+        completed: false
+      },
+      {
+        id: 'data-structures',
+        title: 'Data Structures and Algorithms',
+        description: 'Understand essential data structures and algorithms for efficient programming.',
+        duration: '8 weeks',
+        difficulty: 'Intermediate',
+        category: 'Computer Science',
+        completed: false
+      },
+      {
+        id: 'web-development',
+        title: 'Web Development Basics',
+        description: 'Learn to build modern web applications using HTML, CSS, and JavaScript.',
+        duration: '10 weeks',
+        difficulty: 'Beginner',
+        category: 'Web Development',
+        completed: false
+      },
+      {
+        id: 'database-course',
+        title: 'Database Management Systems',
+        description: 'Learn how to design, implement, and manage databases effectively.',
+        duration: '6 weeks',
+        difficulty: 'Intermediate',
+        category: 'Databases',
+        completed: false
+      }
+    ];
+
+    // Add role-specific courses
+    if (prediction.role === 'Data Scientist') {
+      baseCourses.push(
+        {
+          id: 'statistics-course',
+          title: 'Statistics for Data Science',
+          description: 'Master statistical concepts and methods for data analysis.',
+          duration: '8 weeks',
+          difficulty: 'Intermediate',
+          category: 'Data Science',
+          completed: false
+        },
+        {
+          id: 'ml-course',
+          title: 'Machine Learning Fundamentals',
+          description: 'Introduction to machine learning algorithms and applications.',
+          duration: '12 weeks',
+          difficulty: 'Advanced',
+          category: 'Machine Learning',
+          completed: false
+        }
+      );
+    } else if (prediction.role === 'Cybersecurity Analyst') {
+      baseCourses.push(
+        {
+          id: 'security-fundamentals',
+          title: 'Cybersecurity Fundamentals',
+          description: 'Learn the core concepts of cybersecurity and information protection.',
+          duration: '8 weeks',
+          difficulty: 'Intermediate',
+          category: 'Cybersecurity',
+          completed: false
+        },
+        {
+          id: 'network-security',
+          title: 'Network Security',
+          description: 'Understand network protocols and security measures.',
+          duration: '10 weeks',
+          difficulty: 'Advanced',
+          category: 'Cybersecurity',
+          completed: false
+        }
+      );
+    } else if (prediction.role === 'AI Engineer') {
+      baseCourses.push(
+        {
+          id: 'ai-fundamentals',
+          title: 'Artificial Intelligence Fundamentals',
+          description: 'Introduction to AI concepts, techniques, and applications.',
+          duration: '10 weeks',
+          difficulty: 'Intermediate',
+          category: 'Artificial Intelligence',
+          completed: false
+        },
+        {
+          id: 'deep-learning',
+          title: 'Deep Learning and Neural Networks',
+          description: 'Advanced deep learning techniques and neural network architectures.',
+          duration: '12 weeks',
+          difficulty: 'Advanced',
+          category: 'Deep Learning',
+          completed: false
+        }
+      );
+    } else if (prediction.role === 'Software Engineer') {
+      baseCourses.push(
+        {
+          id: 'software-design',
+          title: 'Software Design Patterns',
+          description: 'Learn common design patterns and best practices in software development.',
+          duration: '8 weeks',
+          difficulty: 'Intermediate',
+          category: 'Software Engineering',
+          completed: false
+        },
+        {
+          id: 'system-design',
+          title: 'System Design Fundamentals',
+          description: 'Design scalable and efficient software systems.',
+          duration: '10 weeks',
+          difficulty: 'Advanced',
+          category: 'Software Engineering',
+          completed: false
+        }
+      );
+    }
+
+    return baseCourses;
+  };
+
+  const toggleCourseCompletion = (courseId: string) => {
+    const updatedCourses = courses.map(course => ({
+      ...course,
+      completed: course.id === courseId ? !course.completed : course.completed
+    }));
+    setCourses(updatedCourses);
+  };
+
+  const redirectToRoadmapSh = () => {
+    window.open('https://roadmap.sh', '_blank');
+  };
+
   const toggleMilestoneCompletion = (milestoneId: string) => {
     if (!roadmap) return;
     
@@ -290,38 +459,117 @@ function PersonalizedRoadmap() {
   const downloadRoadmap = () => {
     if (!roadmap || !careerPrediction) return;
     
-    const roadmapText = `
-Personalized Career Roadmap
-===========================
+    // Create Notion-friendly content
+    const notionContent = {
+      title: `${careerPrediction.role} Career Roadmap`,
+      content: `
+## Personalized Career Roadmap
 
-Career: ${careerPrediction.role}
-Match: ${careerPrediction.matchPercentage}%
-Total Duration: ${roadmap.totalDuration}
+### Career: ${careerPrediction.role}
+- **Match:** ${careerPrediction.matchPercentage}%
+- **Total Duration:** ${roadmap.totalDuration}
 
-Description:
+### Description
 ${roadmap.description}
 
-Milestones:
+### Milestones
 ${roadmap.milestones.map((milestone, index) => `
-${index + 1}. ${milestone.title} (${milestone.duration})
-   ${milestone.description}
-   Skills: ${milestone.skills.join(', ')}
-   Resources: ${milestone.resources.map(r => r.title).join(', ')}
-   Status: ${milestone.completed ? 'Completed' : 'Pending'}
+#### ${index + 1}. ${milestone.title} (${milestone.duration})
+- **Description:** ${milestone.description}
+- **Skills:** ${milestone.skills.join(', ')}
+- **Resources:** ${milestone.resources.map(r => r.title).join(', ')}
+- **Status:** ${milestone.completed ? 'Completed' : 'Pending'}
 `).join('\n')}
 
-Generated by AI-Powered Career Guidance System
+---
+*Generated by AI-Powered Career Guidance System*
+      `
+    };
+    
+    // Create a URL-encoded version for Notion
+    const encodedContent = encodeURIComponent(notionContent.content);
+    const notionUrl = `https://www.notion.so/new?title=${encodeURIComponent(notionContent.title)}&body=${encodedContent}`;
+    
+    // Open in Notion
+    window.open(notionUrl, '_blank');
+  };
+
+  const shareRoadmap = () => {
+    if (!roadmap || !careerPrediction) return;
+    
+    const shareText = `Check out my personalized career roadmap for becoming a ${careerPrediction.role}! Match: ${careerPrediction.matchPercentage}%. Total duration: ${roadmap.totalDuration}.`;
+    const shareUrl = window.location.href;
+    
+    // Create share URLs for different platforms
+    const shareUrls = {
+      email: `mailto:?subject=My Personalized Career Roadmap&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+    };
+    
+    // Create a simple share dialog
+    const shareDialog = document.createElement('div');
+    shareDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    shareDialog.innerHTML = `
+      <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold mb-4">Share Your Roadmap</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <a href="${shareUrls.email}" target="_blank" class="flex flex-col items-center p-3 border rounded-lg hover:bg-gray-50">
+            <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mb-2">
+              <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+              </svg>
+            </div>
+            <span class="text-sm">Email</span>
+          </a>
+          <a href="${shareUrls.whatsapp}" target="_blank" class="flex flex-col items-center p-3 border rounded-lg hover:bg-gray-50">
+            <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mb-2">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <span class="text-sm">WhatsApp</span>
+          </a>
+          <a href="${shareUrls.twitter}" target="_blank" class="flex flex-col items-center p-3 border rounded-lg hover:bg-gray-50">
+            <div class="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center mb-2">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M6.29 18.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0020 3.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.073 4.073 0 01.8 7.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 010 16.407a11.616 11.616 0 006.29 1.84"></path>
+              </svg>
+            </div>
+            <span class="text-sm">Twitter</span>
+          </a>
+          <a href="${shareUrls.linkedin}" target="_blank" class="flex flex-col items-center p-3 border rounded-lg hover:bg-gray-50">
+            <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mb-2">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <span class="text-sm">LinkedIn</span>
+          </a>
+          <a href="${shareUrls.facebook}" target="_blank" class="flex flex-col items-center p-3 border rounded-lg hover:bg-gray-50">
+            <div class="w-10 h-10 bg-blue-700 rounded-full flex items-center justify-center mb-2">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M20 10c0-5.523-4.477-10-10-10S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.989C16.343 19.128 20 14.991 20 10z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <span class="text-sm">Facebook</span>
+          </a>
+        </div>
+        <button class="mt-4 w-full py-2 bg-gray-100 rounded-lg hover:bg-gray-200" onclick="this.parentElement.parentElement.remove()">Close</button>
+      </div>
     `;
     
-    const blob = new Blob([roadmapText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${careerPrediction.role.replace(/\s+/g, '_')}_Roadmap.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    document.body.appendChild(shareDialog);
+    
+    // Close dialog when clicking outside
+    shareDialog.addEventListener('click', (e) => {
+      if (e.target === shareDialog) {
+        shareDialog.remove();
+      }
+    });
   };
 
   if (loading) {
@@ -500,7 +748,10 @@ Generated by AI-Powered Career Guidance System
                 <Download className="w-4 h-4" />
                 Download
               </button>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 flex items-center gap-2">
+              <button
+                onClick={shareRoadmap}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 flex items-center gap-2"
+              >
                 <Share className="w-4 h-4" />
                 Share
               </button>
@@ -617,6 +868,103 @@ Generated by AI-Powered Career Guidance System
           ))}
         </div>
 
+        {/* Recommended Courses Section */}
+        <div className="mt-12 bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Recommended Courses</h2>
+            <button
+              onClick={() => setShowCourses(!showCourses)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 flex items-center gap-2"
+            >
+              {showCourses ? 'Hide Courses' : 'Show Courses'} <Play className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <p className="text-gray-600 mb-6">
+            Based on your career path as a {careerPrediction.role}, we've selected these courses to help you develop the necessary skills.
+          </p>
+          
+          {showCourses && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {courses.map((course) => (
+                <div
+                  key={course.id}
+                  className={`border-2 rounded-xl p-6 transition-all duration-300 ${
+                    course.completed
+                      ? 'bg-green-50 border-green-200'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">{course.title}</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          course.difficulty === 'Beginner' ? 'bg-blue-100 text-blue-800' :
+                          course.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {course.difficulty}
+                        </span>
+                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                          {course.category}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">{course.description}</p>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Clock className="w-4 h-4 mr-1" />
+                        <span>{course.duration}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <button
+                        onClick={() => toggleCourseCompletion(course.id)}
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mb-2 ${
+                          course.completed
+                            ? 'bg-green-500 border-green-500'
+                            : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        {course.completed && <Check className="w-3 h-3 text-white" />}
+                      </button>
+                      <span className="text-xs text-gray-500">
+                        {course.completed ? 'Completed' : 'Mark Complete'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">
+                      {course.completed ? 'Course Completed!' : 'Start Learning'}
+                    </span>
+                    <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                      Start Course <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Roadmap.sh Recommendation */}
+          <div className="mt-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold mb-2">Need More Learning Resources?</h3>
+                <p className="text-indigo-100">
+                  Check out roadmap.sh for comprehensive learning roadmaps across various tech domains.
+                </p>
+              </div>
+              <button
+                onClick={redirectToRoadmapSh}
+                className="px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors flex items-center gap-2 whitespace-nowrap"
+              >
+                Visit roadmap.sh <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Next Steps */}
         <div className="mt-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-8 text-white">
           <h2 className="text-2xl font-bold mb-4">Ready to Begin Your Journey?</h2>
@@ -624,8 +972,11 @@ Generated by AI-Powered Career Guidance System
             Start with the first milestone in your personalized roadmap and track your progress as you develop the skills needed for your dream career.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2">
-              Start First Milestone <ArrowRight className="w-4 h-4" />
+            <button
+              onClick={() => setShowCourses(true)}
+              className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+            >
+              Start First Course <ArrowRight className="w-4 h-4" />
             </button>
             <button className="px-6 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors">
               Schedule Reminder
