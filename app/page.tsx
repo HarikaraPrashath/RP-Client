@@ -88,6 +88,9 @@ export default function Home() {
             >
               Pricing
             </a>
+            <Link href="/trends" className="text-foreground/70 hover:text-foreground transition-colors">
+              Trend Radar
+            </Link>
             <Link href="/merge-skills" className="text-foreground/70 hover:text-foreground transition-colors">
               Merge Skills
             </Link>
