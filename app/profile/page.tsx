@@ -5,8 +5,12 @@ import "antd/dist/reset.css";
 import { EditOutlined } from "@ant-design/icons";
 import { Checkbox, Input, Modal } from "antd";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { authHeader } from "../../lib/auth";
 import styles from "./page.module.css";
+import AppSider from "../../components/app-sider";
+import siderStyles from "../../components/app-sider.module.css";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -326,6 +330,7 @@ const buildProjectEntries = (lines: string[]): ProjectEntry[] => {
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
   const defaultBasics: Basics = {
     firstName: "",
     lastName: "",
@@ -434,7 +439,7 @@ export default function ProfilePage() {
     try {
       await fetch(`${API_BASE}/profile`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify(payload),
       });
     } catch {
@@ -446,7 +451,13 @@ export default function ProfilePage() {
     let ignore = false;
     const loadProfile = async () => {
       try {
-        const res = await fetch(`${API_BASE}/profile`);
+        const res = await fetch(`${API_BASE}/profile`, {
+          headers: authHeader(),
+        });
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
         if (!res.ok) return;
         const data = await res.json();
         if (ignore) return;
@@ -737,7 +748,10 @@ export default function ProfilePage() {
   );
 
   return (
-    <div className={styles.page}>
+    <div className={siderStyles.siderLayout}>
+      <AppSider />
+      <div className={siderStyles.siderContent}>
+        <div className={styles.page}>
       <div className={styles.container}>
         <section className={styles.noticeCard}>
           <div>
@@ -1430,6 +1444,18 @@ export default function ProfilePage() {
               </Link>
             </section>
 
+            <section className={`${styles.card} ${styles.trendsCard}`}>
+              <div className={styles.cardHeader}>
+                <h2>Trends</h2>
+              </div>
+              <p className={styles.cardBody}>
+                View job and skill trends over time to spot opportunities.
+              </p>
+              <Link className={styles.featureLink} href="/trends">
+                Open trends
+              </Link>
+            </section>
+
             <section className={`${styles.card} ${styles.allMatchesCard}`}>
               <div className={styles.cardHeader}>
                 <h2>All top matches</h2>
@@ -1642,6 +1668,8 @@ export default function ProfilePage() {
           placeholder="Edit this project details"
         />
       </Modal>
+        </div>
+      </div>
     </div>
   );
 }

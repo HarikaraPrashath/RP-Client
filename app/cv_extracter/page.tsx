@@ -31,7 +31,10 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { authHeader } from "../../lib/auth";
 import styles from "./page.module.css";
+import AppSider from "../../components/app-sider";
+import siderStyles from "../../components/app-sider.module.css";
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -488,7 +491,12 @@ export default function Profile() {
     try {
       let existingProfile: Partial<ProfilePayload> | null = null;
       try {
-        const existingRes = await fetch(`${API_BASE}/profile`);
+        const existingRes = await fetch(`${API_BASE}/profile`, {
+          headers: authHeader(),
+        });
+        if (existingRes.status === 401) {
+          throw new Error("Sign in to load your profile.");
+        }
         if (existingRes.ok) {
           existingProfile = (await existingRes.json()) as Partial<ProfilePayload>;
         }
@@ -499,11 +507,14 @@ export default function Profile() {
       const payload = buildProfileFromParsed(parsed, existingProfile);
       const res = await fetch(`${API_BASE}/profile`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeader() },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error("Sign in to save your profile.");
+        }
         throw new Error("Failed to save profile");
       }
 
@@ -535,11 +546,14 @@ export default function Profile() {
     : [];
 
   return (
-    <div className={styles.page}>
-      {contextHolder}
-      <Layout className={styles.layout}>
-        <Content className={styles.content}>
-          <Card className={styles.hero}>
+    <div className={siderStyles.siderLayout}>
+      <AppSider />
+      <div className={siderStyles.siderContent}>
+        <div className={styles.page}>
+          {contextHolder}
+          <Layout className={styles.layout}>
+            <Content className={styles.content}>
+              <Card className={styles.hero}>
             <Space direction="vertical" size={8}>
               <Text className={styles.kicker}>CV parsing</Text>
               <Title level={2} className={styles.heroTitle}>
@@ -818,8 +832,10 @@ export default function Profile() {
               </Col>
             </Row>
           </Card>
-        </Content>
-      </Layout>
+            </Content>
+          </Layout>
+        </div>
+      </div>
     </div>
   );
 }

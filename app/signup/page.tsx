@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type FormEvent } from "react";
+import { setAuthToken } from "../../lib/auth";
 import styles from "./page.module.css";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -78,15 +79,16 @@ export default function SignupPage() {
         }),
       });
 
+      const data = await response.json().catch(() => null);
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
         setErrors((prev) => ({
           ...prev,
-          form: data?.message || "Sign up failed. Please review your details.",
+          form: data?.detail || "Sign up failed. Please review your details.",
         }));
         return;
       }
 
+      setAuthToken(data?.token || "");
       router.push("/profile");
     } catch {
       setErrors((prev) => ({

@@ -1,4 +1,6 @@
 import styles from "./page.module.css";
+import AppSider from "../../components/app-sider";
+import siderStyles from "../../components/app-sider.module.css";
 
 type TrendItem = {
   term: string;
@@ -98,8 +100,14 @@ const TrendList = ({
             <div>
               <p className={styles.panelTerm}>{item.term}</p>
               <p className={styles.panelMeta}>
-                current {item.current}
-                {typeof item.baseline === "number" ? `, baseline ${item.baseline}` : ""}
+                <span className={styles.panelMetaLabel}>Current</span> {item.current}
+                {typeof item.baseline === "number" ? (
+                  <>
+                    {" "}
+                    <span className={styles.panelMetaDivider}>·</span>{" "}
+                    <span className={styles.panelMetaLabel}>Baseline</span> {item.baseline}
+                  </>
+                ) : null}
               </p>
             </div>
             <span className={styles.panelDelta}>{formatChange(item.changePct)}</span>
@@ -120,24 +128,57 @@ export default async function TrendsPage() {
   const lastEntry = historySorted[historySorted.length - 1];
   const keyword = lastEntry?.keyword ? String(lastEntry.keyword) : "Not set";
   const jobCount = lastEntry?.jobCount ?? 0;
+  const chartWidth = 600;
+  const chartHeight = 180;
+  const chartPadding = 24;
+  const chartPoints =
+    historySlice.length === 0
+      ? []
+      : historySlice.map((entry, index) => {
+          const x =
+            historySlice.length === 1
+              ? chartWidth / 2
+              : chartPadding +
+                (index / (historySlice.length - 1)) * (chartWidth - chartPadding * 2);
+          const value = entry.jobCount ?? 0;
+          const y =
+            chartPadding +
+            (1 - Math.min(1, value / maxJobs)) * (chartHeight - chartPadding * 2);
+          return { x, y, value, label: formatDate(entry.ranAt) };
+        });
+  const chartPath =
+    chartPoints.length === 0
+      ? ""
+      : chartPoints
+          .map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`)
+          .join(" ");
+  const chartAreaPath =
+    chartPoints.length === 0
+      ? ""
+      : `${chartPath} L${chartPoints[chartPoints.length - 1].x},${
+          chartHeight - chartPadding
+        } L${chartPoints[0].x},${chartHeight - chartPadding} Z`;
 
   return (
-    <div className={styles.page}>
-      <div className={styles.glowOne} />
-      <div className={styles.glowTwo} />
-      <div className={styles.container}>
+    <div className={siderStyles.siderLayout}>
+      <AppSider />
+      <div className={siderStyles.siderContent}>
+        <div className={styles.page}>
+          <div className={styles.glowOne} />
+          <div className={styles.glowTwo} />
+          <div className={styles.container}>
         <header className={styles.hero}>
           <div className={styles.heroText}>
             <p className={styles.kicker}>Market trend radar</p>
             <h1 className={styles.title}>Track skill momentum over time</h1>
             <p className={styles.lead}>
-              Each scrape drops a snapshot into the timeline so you can see emerging skills,
-              rising roles, and the signals that are fading out.
+              Each scrape saves a snapshot of job postings. Compare snapshots to spot the skills
+              and roles gaining momentum or fading out.
             </p>
             <div className={styles.heroChips}>
-              <span className={styles.heroChip}>Snapshots: {summary.snapshotCount}</span>
-              <span className={styles.heroChip}>Window: {summary.windowDays} days</span>
-              <span className={styles.heroChip}>Latest: {formatDate(summary.latestAt)}</span>
+              <span className={styles.heroChip}>Snapshots collected: {summary.snapshotCount}</span>
+              <span className={styles.heroChip}>Lookback window: {summary.windowDays} days</span>
+              <span className={styles.heroChip}>Most recent: {formatDate(summary.latestAt)}</span>
             </div>
           </div>
           <div className={styles.heroPanel}>
@@ -152,6 +193,24 @@ export default async function TrendsPage() {
             </div>
           </div>
         </header>
+
+        <section className={styles.explainer}>
+          <div className={styles.explainerCard}>
+            <p className={styles.explainerTitle}>How to read this page</p>
+            <ul className={styles.explainerList}>
+              <li>Each snapshot is one scrape run with its own job count.</li>
+              <li>The timeline bars show relative volume per snapshot.</li>
+              <li>Trending sections compare the latest snapshot to earlier ones in the window.</li>
+            </ul>
+          </div>
+          <div className={styles.explainerCard}>
+            <p className={styles.explainerTitle}>Change labels</p>
+            <p className={styles.explainerText}>
+              <strong>Current</strong> is the latest count, <strong>Baseline</strong> is the earlier
+              reference, and the % shows how much it moved.
+            </p>
+          </div>
+        </section>
 
         <section className={styles.timeline}>
           <div className={styles.sectionHead}>
@@ -169,17 +228,55 @@ export default async function TrendsPage() {
               </p>
             </div>
           ) : (
-            <div className={styles.timelineBars}>
-              {historySlice.map((entry) => {
-                const height = Math.max(8, (entry.jobCount ?? 0) / maxJobs * 100);
-                return (
-                  <div key={entry.ranAt} className={styles.timelineBar}>
-                    <div className={styles.timelineFill} style={{ height: `${height}%` }} />
-                    <span className={styles.timelineLabel}>{formatDate(entry.ranAt)}</span>
-                  </div>
-                );
-              })}
-            </div>
+            <>
+              <div className={styles.timelineBars}>
+                {historySlice.map((entry) => {
+                  const height = Math.max(8, (entry.jobCount ?? 0) / maxJobs * 100);
+                  return (
+                    <div key={entry.ranAt} className={styles.timelineBar}>
+                      <div className={styles.timelineFill} style={{ height: `${height}%` }} />
+                      <span className={styles.timelineLabel}>{formatDate(entry.ranAt)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className={styles.timelineChart}>
+                <div className={styles.timelineChartHead}>
+                  <p className={styles.timelineChartTitle}>Job count trend</p>
+                  <p className={styles.timelineChartMeta}>Relative volume per snapshot</p>
+                </div>
+                <svg
+                  className={styles.timelineSvg}
+                  viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                  role="img"
+                  aria-label="Line chart showing job counts per snapshot"
+                >
+                  <defs>
+                    <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(16, 185, 129, 0.35)" />
+                      <stop offset="100%" stopColor="rgba(16, 185, 129, 0)" />
+                    </linearGradient>
+                  </defs>
+                  <rect
+                    x={chartPadding}
+                    y={chartPadding}
+                    width={chartWidth - chartPadding * 2}
+                    height={chartHeight - chartPadding * 2}
+                    className={styles.timelineGrid}
+                  />
+                  <path d={chartAreaPath} fill="url(#trendFill)" />
+                  <path d={chartPath} className={styles.timelineLine} />
+                  {chartPoints.map((point) => (
+                    <g key={`${point.label}-${point.value}`}>
+                      <circle cx={point.x} cy={point.y} r="4" className={styles.timelineDot} />
+                      <text x={point.x} y={chartHeight - 6} className={styles.timelineTick}>
+                        {point.label}
+                      </text>
+                    </g>
+                  ))}
+                </svg>
+              </div>
+            </>
           )}
         </section>
 
@@ -189,7 +286,7 @@ export default async function TrendsPage() {
               <p className={styles.sectionKicker}>Trending skills</p>
               <h2 className={styles.sectionTitle}>Signals from the skill stream</h2>
             </div>
-            <p className={styles.sectionMeta}>Based on the latest scrape vs baseline</p>
+            <p className={styles.sectionMeta}>Compared with earlier snapshots in the window</p>
           </div>
           <div className={styles.panelGrid}>
             <TrendList
@@ -242,6 +339,8 @@ export default async function TrendsPage() {
             />
           </div>
         </section>
+          </div>
+        </div>
       </div>
     </div>
   );

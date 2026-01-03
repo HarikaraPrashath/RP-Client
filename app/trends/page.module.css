@@ -144,6 +144,44 @@
   box-shadow: 0 16px 44px rgba(15, 23, 42, 0.08);
 }
 
+.explainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.explainerCard {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.explainerTitle {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.explainerList {
+  margin: 0;
+  padding-left: 18px;
+  color: #4b5563;
+  font-size: 13px;
+  display: grid;
+  gap: 6px;
+}
+
+.explainerText {
+  margin: 0;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .sectionHead {
   display: flex;
   align-items: flex-start;
@@ -178,6 +216,67 @@
   grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
   gap: 12px;
   align-items: end;
+}
+
+.timelineChart {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.timelineChartHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.timelineChartTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.timelineChartMeta {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.timelineSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.timelineGrid {
+  fill: transparent;
+  stroke: rgba(148, 163, 184, 0.25);
+  stroke-dasharray: 4 6;
+  rx: 12px;
+}
+
+.timelineLine {
+  fill: none;
+  stroke: #0f766e;
+  stroke-width: 3;
+  filter: drop-shadow(0 6px 10px rgba(16, 185, 129, 0.25));
+}
+
+.timelineDot {
+  fill: #f97316;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.timelineTick {
+  fill: #6b7280;
+  font-size: 11px;
+  text-anchor: middle;
 }
 
 .timelineBar {
@@ -299,6 +398,18 @@
   margin: 4px 0 0;
   font-size: 12px;
   color: #6b7280;
+}
+
+.panelMetaLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 10px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.panelMetaDivider {
+  color: #9ca3af;
 }
 
 .panelDelta {

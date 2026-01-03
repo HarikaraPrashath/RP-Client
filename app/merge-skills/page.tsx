@@ -1,4 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { authHeader } from "../../lib/auth";
 import styles from "../skills/page.module.css";
+import AppSider from "../../components/app-sider";
+import siderStyles from "../../components/app-sider.module.css";
 
 type RankedJob = {
   ref?: string;
@@ -102,7 +108,10 @@ const matchBuckets = (jobs: RankedJob[]) => {
 
 const loadProfileData = async (): Promise<ProfileData> => {
   try {
-    const res = await fetch(`${API_BASE}/profile`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/profile`, { cache: "no-store", headers: authHeader() });
+    if (res.status === 401) {
+      throw new Error("unauthorized");
+    }
     if (!res.ok) return { position: "", skills: [] };
     const doc = await res.json();
     const skills = Array.isArray(doc?.skills) ? doc.skills : [];
@@ -111,8 +120,8 @@ const loadProfileData = async (): Promise<ProfileData> => {
       position: position.trim(),
       skills: skills.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean),
     };
-  } catch {
-    return { position: "", skills: [] };
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -172,19 +181,58 @@ const BarChart = ({
   </div>
 );
 
-export default async function MergeSkillsPage() {
-  const profile = await loadProfileData();
+export default function MergeSkillsPage() {
+  const [profile, setProfile] = useState<ProfileData>({ position: "", skills: [] });
+  const [ranked, setRanked] = useState<RankedJob[]>([]);
+  const [refreshNote, setRefreshNote] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+    const loadData = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+      try {
+        const profileData = await loadProfileData();
+        if (ignore) return;
+        setProfile(profileData);
+
+        let note = "";
+        try {
+          note = await refreshFromProfile(profileData.position, profileData.skills);
+        } catch (error) {
+          console.error("Refresh from profile failed:", error);
+          note = "Auto-refresh failed (python/selenium); showing last saved data.";
+        }
+        if (ignore) return;
+        setRefreshNote(note);
+
+        const rankedData = await loadRanked();
+        if (ignore) return;
+        setRanked(rankedData);
+      } catch (error: any) {
+        if (!ignore) {
+          if (error?.message === "unauthorized") {
+            setLoadError("Sign in to load your profile data.");
+          } else {
+            setLoadError("Unable to load merge skills data.");
+          }
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadData();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   const searchKeyword = profile.position || "software engineer";
-  let refreshNote = "";
-
-  try {
-    refreshNote = await refreshFromProfile(searchKeyword, profile.skills);
-  } catch (error) {
-    console.error("Refresh from profile failed:", error);
-    refreshNote = "Auto-refresh failed (python/selenium); showing last saved data.";
-  }
-
-  const ranked = await loadRanked();
   const userSkills = profile.skills;
   const topSkills = summarizeSkills(ranked);
   const average = avgMatch(ranked);
@@ -203,7 +251,10 @@ export default async function MergeSkillsPage() {
   const lowestMatch = sortedByMatch[sortedByMatch.length - 1];
 
   return (
-    <div className={styles.page}>
+    <div className={siderStyles.siderLayout}>
+      <AppSider />
+      <div className={siderStyles.siderContent}>
+        <div className={styles.page}>
       <div className={styles.gradientOne} />
       <div className={styles.gradientTwo} />
       <div className={styles.container}>
@@ -220,6 +271,8 @@ export default async function MergeSkillsPage() {
               <span className={styles.glowChip}>Top skills: {topSkills.length}</span>
               <span className={styles.glowChip}>Gaps flagged: {topMissingSkills.length}</span>
               <span className={styles.glowChip}>Strong fits: {strongMatches}</span>
+              {isLoading ? <span className={styles.glowChip}>Loading data...</span> : null}
+              {loadError ? <span className={styles.glowChip}>{loadError}</span> : null}
               {refreshNote ? <span className={styles.glowChip}>{refreshNote}</span> : null}
             </div>
           </div>
@@ -437,6 +490,8 @@ export default async function MergeSkillsPage() {
             })
           )}
         </section>
+      </div>
+        </div>
       </div>
     </div>
   );

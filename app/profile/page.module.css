@@ -240,7 +240,8 @@
 .openToCard::after,
 .featuredCard::after,
 .topMatchCard::after,
-.allMatchesCard::after {
+.allMatchesCard::after,
+.trendsCard::after {
   content: "";
   position: absolute;
   width: 140px;
@@ -268,10 +269,15 @@
   --spot-color: rgba(244, 63, 94, 0.22);
 }
 
+.trendsCard {
+  --spot-color: rgba(99, 102, 241, 0.22);
+}
+
 .openToCard > *,
 .featuredCard > *,
 .topMatchCard > *,
-.allMatchesCard > * {
+.allMatchesCard > *,
+.trendsCard > * {
   position: relative;
   z-index: 1;
 }
