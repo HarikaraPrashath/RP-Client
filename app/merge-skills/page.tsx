@@ -21,6 +21,17 @@ type RankedJob = {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 type ProfileData = { position: string; skills: string[] };
+type CareerTimelineEntry = {
+  focus?: string;
+  opportunities?: number;
+  recommended_skills?: string[];
+};
+type AnalysisResponse = {
+  predictions?: {
+    recommendations?: string[];
+    career_timeline?: Record<string, CareerTimelineEntry>;
+  };
+};
 
 const calcAverageCount = (jobs: RankedJob[], key: "skills_found" | "missing") => {
   if (!jobs.length) return 0;
@@ -125,6 +136,23 @@ const loadProfileData = async (): Promise<ProfileData> => {
   }
 };
 
+const loadAnalysis = async (keyword: string): Promise<AnalysisResponse | null> => {
+  const cleanKeyword = keyword.trim();
+  if (!cleanKeyword) return null;
+  try {
+    const res = await fetch(`${API_BASE}/analyse`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeader() },
+      body: JSON.stringify({ keyword: cleanKeyword }),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as AnalysisResponse;
+  } catch {
+    return null;
+  }
+};
+
 const refreshFromProfile = async (keyword: string, userSkills: string[]) => {
   const cleanKeyword = keyword.trim() || "software engineer";
   try {
@@ -184,6 +212,7 @@ const BarChart = ({
 export default function MergeSkillsPage() {
   const [profile, setProfile] = useState<ProfileData>({ position: "", skills: [] });
   const [ranked, setRanked] = useState<RankedJob[]>([]);
+  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [refreshNote, setRefreshNote] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -211,6 +240,10 @@ export default function MergeSkillsPage() {
         const rankedData = await loadRanked();
         if (ignore) return;
         setRanked(rankedData);
+
+        const analysisData = await loadAnalysis(profileData.position);
+        if (ignore) return;
+        setAnalysis(analysisData);
       } catch (error: any) {
         if (!ignore) {
           if (error?.message === "unauthorized") {
@@ -249,6 +282,8 @@ export default function MergeSkillsPage() {
   );
   const bestMatch = sortedByMatch[0];
   const lowestMatch = sortedByMatch[sortedByMatch.length - 1];
+  const recommendations = analysis?.predictions?.recommendations ?? [];
+  const timelineEntries = Object.entries(analysis?.predictions?.career_timeline ?? {});
 
   return (
     <div className={siderStyles.siderLayout}>
@@ -418,6 +453,37 @@ export default function MergeSkillsPage() {
               </>
             ) : (
               <p className={styles.muted}>No ranked data yet.</p>
+            )}
+          </div>
+        </section>
+
+        <section className={styles.stats}>
+          <div className={styles.statCard}>
+            <p className={styles.statLabel}>Recommendations</p>
+            {recommendations.length === 0 ? (
+              <p className={styles.muted}>No recommendations yet.</p>
+            ) : (
+              <div className={styles.skillChips}>
+                {recommendations.slice(0, 6).map((rec) => (
+                  <span key={rec} className={styles.skillChipSoft}>
+                    {rec}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className={styles.statCard}>
+            <p className={styles.statLabel}>Career timeline</p>
+            {timelineEntries.length === 0 ? (
+              <p className={styles.muted}>No roadmap yet.</p>
+            ) : (
+              <div className={styles.skillChips}>
+                {timelineEntries.map(([key, data]) => (
+                  <span key={key} className={styles.skillChipSoft}>
+                    {key.replace("_", " ")}: {data.focus ?? "Focus"} ({data.opportunities ?? 0} jobs)
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         </section>
