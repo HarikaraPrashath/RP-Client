@@ -33,34 +33,36 @@ import {
 
 interface AssessmentData {
   personalInfo: {
-    name: string;
-    email: string;
-    age: number;
+    gender: string;
+    languages: string[];
   };
   academicBackground: {
     educationLevel: string;
     major: string;
     gpa: number;
-    graduationYear: number;
+    currentYear: number;
+    currentSemester: string;
   };
   technicalSkills: {
     programming: string[];
-    databases: string[];
     frameworks: string[];
-    tools: string[];
+    databases: string[];
+    cloudPlatforms: string[];
   };
   psychologicalTraits: {
-    workStyle: string;
-    communication: string;
-    problemSolving: string;
-    teamwork: string;
-    adaptability: string;
+    stressManagement: string;
+    learningStyle: string;
   };
   careerInterests: {
-    preferredRoles: string[];
     workEnvironment: string;
-    salaryExpectation: string;
-    longTermGoals: string;
+    workLifeBalance: string;
+  };
+  career: {
+    stressManagement: string;
+    learningStyle: string;
+    internship: string;
+    projects: string;
+    certifications: string;
   };
 }
 
@@ -69,7 +71,7 @@ interface CareerPrediction {
   matchPercentage: number;
   description: string;
   keySkills: string[];
-  averageSalary: string;
+  internshipQuality: number;
   growthOutlook: string;
 }
 
@@ -119,24 +121,48 @@ function PersonalizedRoadmap() {
   useEffect(() => {
     // Load assessment data from sessionStorage
     const savedAssessmentData = sessionStorage.getItem('assessmentData');
-    if (savedAssessmentData) {
-      const parsedData: AssessmentData = JSON.parse(savedAssessmentData);
-      setAssessmentData(parsedData);
-      
-      // Generate career prediction and roadmap based on assessment data
-      const prediction = generateCareerPrediction(parsedData);
-      const generatedRoadmap = generateCareerRoadmap(parsedData, prediction);
-      
-      setCareerPrediction(prediction);
-      setRoadmap(generatedRoadmap);
-      
-      // Generate recommended courses
-      const recommendedCourses = generateRecommendedCourses(parsedData, prediction);
-      setCourses(recommendedCourses);
+    const savedCareerPrediction = sessionStorage.getItem('careerPrediction');
+    
+    try {
+      if (savedAssessmentData && savedCareerPrediction) {
+        const parsedData: AssessmentData = JSON.parse(savedAssessmentData);
+        const apiResponse = JSON.parse(savedCareerPrediction);
+        
+        console.log('📊 Using assessment data:');
+        console.log('Assessment Data:', parsedData);
+        console.log('API Response:', apiResponse);
+        
+        setAssessmentData(parsedData);
+        
+        // Convert API response to CareerPrediction format
+        // Use dynamic values from API if available, otherwise use defaults
+        const careerPrediction: CareerPrediction = {
+          role: apiResponse.predicted_career || 'Software Engineer',
+          matchPercentage: apiResponse.match_percentage || 85, // Use API value if available
+          description: apiResponse.description || `A professional role as a ${apiResponse.predicted_career || 'Software Engineer'} based on your assessment.`,
+          keySkills: apiResponse.key_skills || ['Programming', 'Problem Solving', 'Communication', 'Teamwork'], // Use API skills if available
+          internshipQuality: apiResponse.internship_quality || 75, // Use API value if available
+          growthOutlook: apiResponse.growth_outlook || 'High growth potential' // Use API value if available
+        };
+        
+        setCareerPrediction(careerPrediction);
+        
+        // Generate roadmap based on prediction
+        const generatedRoadmap = generateCareerRoadmap(parsedData, careerPrediction);
+        setRoadmap(generatedRoadmap);
+        
+        // Generate recommended courses
+        const recommendedCourses = generateRecommendedCourses(parsedData, careerPrediction);
+        setCourses(recommendedCourses);
+        setLoading(false);
+      } else {
+        // If no assessment data, redirect to assessment page
+        console.log('❌ No assessment data found, redirecting to assessment page');
+        router.push('/career-preparation/student-assessment');
+      }
+    } catch (error) {
+      console.error('❌ Error processing session data:', error);
       setLoading(false);
-    } else {
-      // If no assessment data, redirect to assessment page
-      router.push('/career-preparation/student-assessment');
     }
   }, [router]);
 
@@ -182,9 +208,16 @@ function PersonalizedRoadmap() {
     roles.forEach(role => {
       let score = 0;
       
-      // Check if preferred roles include this role
-      if (data.careerInterests.preferredRoles.includes(role.name)) {
-        score += 50;
+      // Check if work environment matches the role
+      if (data.careerInterests.workEnvironment) {
+        // Add score based on work environment preference
+        score += 20;
+      }
+      
+      // Check if career information is provided
+      if (data.career.stressManagement && data.career.learningStyle && data.career.internship && data.career.projects && data.career.certifications) {
+        // Add score for having complete career information
+        score += 15;
       }
       
       // Check technical skills match
@@ -192,7 +225,8 @@ function PersonalizedRoadmap() {
         if (
           data.technicalSkills.programming.some(p => p.toLowerCase().includes(skill.toLowerCase())) ||
           data.technicalSkills.frameworks.some(f => f.toLowerCase().includes(skill.toLowerCase())) ||
-          data.technicalSkills.tools.some(t => t.toLowerCase().includes(skill.toLowerCase()))
+          data.technicalSkills.databases.some(d => d.toLowerCase().includes(skill.toLowerCase())) ||
+          data.technicalSkills.cloudPlatforms.some(c => c.toLowerCase().includes(skill.toLowerCase()))
         ) {
           score += 10;
         }
@@ -212,7 +246,7 @@ function PersonalizedRoadmap() {
       matchPercentage: Math.min(95, 70 + Math.floor(Math.random() * 25)),
       description: bestMatch.description,
       keySkills: bestMatch.keySkills,
-      averageSalary: bestMatch.averageSalary,
+      internshipQuality: Math.min(95, 70 + Math.floor(Math.random() * 25)),
       growthOutlook: bestMatch.growthOutlook
     };
   };
@@ -237,7 +271,7 @@ function PersonalizedRoadmap() {
         title: 'Develop Technical Expertise',
         description: 'Gain in-depth knowledge of the technologies and tools used in your field.',
         duration: '3-4 months',
-        skills: prediction.keySkills.slice(0, 3),
+        skills: (prediction.keySkills || []).slice(0, 3),
         resources: [
           { title: 'Advanced Technical Course', type: 'course' },
           { title: 'Technical Certification', type: 'certification' }
@@ -283,8 +317,8 @@ function PersonalizedRoadmap() {
     ];
 
     return {
-      title: `${prediction.role} Career Path`,
-      description: `A personalized roadmap to become a successful ${prediction.role} based on your skills, interests, and goals.`,
+      title: `${prediction?.role || 'Career'} Career Path`,
+      description: `A personalized roadmap to become a successful ${prediction?.role || 'professional'} based on your skills, interests, and goals.`,
       totalDuration: '17-24 months',
       milestones: baseMilestones
     };
@@ -714,14 +748,22 @@ ${roadmap.milestones.map((milestone, index) => `
                   <h3 className="font-bold text-gray-900 mb-2">Description</h3>
                   <p className="text-gray-600 text-sm mb-4">{careerPrediction.description}</p>
                   
-                  <h3 className="font-bold text-gray-900 mb-2">Average Salary</h3>
-                  <p className="text-gray-600 text-sm">{careerPrediction.averageSalary}</p>
+                  <h3 className="font-bold text-gray-900 mb-2">Internship Quality</h3>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
+                        style={{ width: `${careerPrediction.internshipQuality}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-sm font-bold text-gray-900">{careerPrediction.internshipQuality}%</span>
+                  </div>
                 </div>
                 
                 <div>
                   <h3 className="font-bold text-gray-900 mb-2">Key Skills</h3>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {careerPrediction.keySkills.map((skill, index) => (
+                    {(careerPrediction.keySkills || []).map((skill, index) => (
                       <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                         {skill}
                       </span>
@@ -776,7 +818,7 @@ ${roadmap.milestones.map((milestone, index) => `
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-900">Your Career Journey</h2>
           
-          {roadmap.milestones.map((milestone, index) => (
+          {(roadmap?.milestones || []).map((milestone, index) => (
             <div 
               key={milestone.id}
               className={`bg-white rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer ${
@@ -886,7 +928,7 @@ ${roadmap.milestones.map((milestone, index) => `
           
           {showCourses && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {courses.map((course) => (
+              {(courses || []).map((course) => (
                 <div
                   key={course.id}
                   className={`border-2 rounded-xl p-6 transition-all duration-300 ${

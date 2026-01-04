@@ -65,23 +65,23 @@ function CareerPreparation() {
 
   const roadmapFeatures = [
     {
-      title: 'Personalized Assessment',
-      description: 'Comprehensive evaluation of academic records, technical skills, and psychological traits.',
+      title: 'Skill Assessment',
+      description: 'Evaluation of your current skills to identify areas for growth and development.',
       icon: <FileText className="w-6 h-6" />
     },
     {
-      title: 'Dynamic Roadmaps',
-      description: 'Monthly milestones and practical tasks tailored to individual progress and goals.',
+      title: 'Internship Path',
+      description: 'Step-by-step guidance to prepare for and secure internship opportunities.',
       icon: <Calendar className="w-6 h-6" />
     },
     {
-      title: 'Continuous Monitoring',
-      description: 'Real-time performance tracking with adaptive feedback loops to ensure progress.',
+      title: 'Progress Tracking',
+      description: 'Monitor your readiness for internships with clear progress indicators.',
       icon: <TrendingUp className="w-6 h-6" />
     },
     {
-      title: 'Expert Validation',
-      description: 'Guidance from IT specialists and psychologists to ensure relevance and effectiveness.',
+      title: 'Career Guidance',
+      description: 'Expert advice to help you navigate your career path successfully.',
       icon: <Users className="w-6 h-6" />
     }
   ];
@@ -160,10 +160,10 @@ function CareerPreparation() {
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            AI-Powered Career Guidance System
+            Your Path to Career Success
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Machine learning-driven career guidance designed to assist IT students in navigating the complex job market through personalized roadmaps and continuous performance monitoring.
+            Step-by-step guidance to help you grow your skills and secure internship opportunities in the IT industry.
           </p>
         </div>
 
@@ -204,22 +204,22 @@ function CareerPreparation() {
                   <Brain className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Machine Learning Analysis</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Career Path Analysis</h2>
                   <p className="text-gray-600 mb-6">
-                    Our system analyzes your academic records, technical assessments, and psychological traits to categorize you into specific professional roles and generate personalized career roadmaps.
+                    Our system evaluates your skills, interests, and goals to create a personalized path that helps you grow professionally and secure internship opportunities.
                   </p>
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Multi-dimensional assessment of skills and traits</span>
+                      <span className="text-gray-700">Personalized skill development plan</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Data-backed career recommendations</span>
+                      <span className="text-gray-700">Internship readiness assessment</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Industry-aligned role categorization</span>
+                      <span className="text-gray-700">Industry-aligned career guidance</span>
                     </div>
                   </div>
                 </div>
@@ -233,22 +233,22 @@ function CareerPreparation() {
                   <Target className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Dynamic Personalized Roadmaps</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Internship-Focused Roadmaps</h2>
                   <p className="text-gray-600 mb-6">
-                    Receive monthly milestones and practical tasks tailored to your individual progress, ensuring you remain motivated and aligned with current industry expectations.
+                    Step-by-step guidance to build the skills and experience needed to secure competitive internship opportunities in your chosen field.
                   </p>
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Monthly achievable milestones</span>
+                      <span className="text-gray-700">Skill-building milestones</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Practical, hands-on tasks</span>
+                      <span className="text-gray-700">Internship preparation tasks</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Adaptive to your progress</span>
+                      <span className="text-gray-700">Personalized growth path</span>
                     </div>
                   </div>
                   <button
@@ -268,22 +268,22 @@ function CareerPreparation() {
                   <TrendingUp className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Continuous Performance Monitoring</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Internship Readiness Tracking</h2>
                   <p className="text-gray-600 mb-6">
-                    Our system provides real-time performance tracking with adaptive feedback loops to ensure you stay on track and achieve your career goals.
+                    Monitor your progress toward internship readiness with clear indicators of your preparedness for real-world industry experience.
                   </p>
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Real-time progress tracking</span>
+                      <span className="text-gray-700">Internship readiness score</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Adaptive feedback mechanisms</span>
+                      <span className="text-gray-700">Skill gap analysis</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Performance analytics and insights</span>
+                      <span className="text-gray-700">Personalized improvement recommendations</span>
                     </div>
                   </div>
                 </div>
@@ -366,33 +366,6 @@ function CareerPreparation() {
           </div>
         </div>
 
-        {/* Research Methodology */}
-        <div className="mt-12 bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Research Methodology</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Data Collection</h3>
-              <p className="text-gray-600">Comprehensive analysis of academic records, technical assessments, and psychological traits.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Brain className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">ML Analysis</h3>
-              <p className="text-gray-600">Advanced machine learning algorithms to categorize users into specific professional roles.</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Personalization</h3>
-              <p className="text-gray-600">Dynamic roadmaps with continuous monitoring and adaptive feedback loops.</p>
-            </div>
-          </div>
-        </div>
       </div>
       </div>
     </div>
