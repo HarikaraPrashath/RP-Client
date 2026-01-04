@@ -26,12 +26,6 @@ type CareerTimelineEntry = {
   opportunities?: number;
   recommended_skills?: string[];
 };
-type AnalysisResponse = {
-  predictions?: {
-    recommendations?: string[];
-    career_timeline?: Record<string, CareerTimelineEntry>;
-  };
-};
 
 const calcAverageCount = (jobs: RankedJob[], key: "skills_found" | "missing") => {
   if (!jobs.length) return 0;
@@ -99,6 +93,75 @@ const topMissing = (jobs: RankedJob[], limit = 8) => {
     .map(([skill, count]) => ({ skill, count }));
 };
 
+const buildRecommendations = (jobs: RankedJob[], skills: string[]) => {
+  const avg = avgMatch(jobs);
+  const highlyQualified = jobs.filter((j) => (j.match_percent ?? 0) >= 70).length;
+  const missing = topMissing(jobs, 3);
+  const recommendations: string[] = [];
+
+  if (avg >= 65) {
+    recommendations.push(
+      "You're well-positioned for many roles. Focus on applying to jobs with 70%+ match.",
+    );
+  } else if (avg >= 50) {
+    recommendations.push(
+      "You have a solid foundation. Learning a few key skills will improve your opportunities.",
+    );
+  } else {
+    recommendations.push(
+      "Focus on building foundational skills. Consider internships or entry-level positions.",
+    );
+  }
+
+  if (highlyQualified > 0) {
+    recommendations.push(`You qualify for ${highlyQualified} positions right now. Start applying.`);
+  }
+
+  if (missing.length) {
+    const skillsStr = missing.map((item) => item.skill).join(", ");
+    recommendations.push(`Priority skills to learn: ${skillsStr}`);
+  }
+
+  if (skills.length) {
+    recommendations.push("Highlight your existing skills and projects in applications.");
+  } else {
+    recommendations.push("Add skills to your profile to improve matching accuracy.");
+  }
+
+  return recommendations;
+};
+
+const buildCareerTimeline = (
+  jobs: RankedJob[],
+  missingSkills: { skill: string; count: number }[],
+): Record<string, CareerTimelineEntry> => {
+  const immediate = jobs.filter((j) => (j.match_percent ?? 0) >= 70).length;
+  const shortTerm = jobs.filter((j) => {
+    const pct = j.match_percent ?? 0;
+    return pct >= 50 && pct < 70;
+  }).length;
+  const longTerm = jobs.filter((j) => (j.match_percent ?? 0) < 50).length;
+  const skills = missingSkills.map((item) => item.skill);
+
+  return {
+    "0-3_months": {
+      focus: "Apply to immediate opportunities while learning 2-3 high-priority skills",
+      opportunities: immediate,
+      recommended_skills: skills.slice(0, 3),
+    },
+    "3-6_months": {
+      focus: "Expand skill set with medium-priority skills and apply to short-term opportunities",
+      opportunities: shortTerm,
+      recommended_skills: skills.slice(0, 3),
+    },
+    "6-12_months": {
+      focus: "Master advanced skills to qualify for long-term opportunities",
+      opportunities: longTerm,
+      recommended_skills: skills.slice(0, 3),
+    },
+  };
+};
+
 const matchBuckets = (jobs: RankedJob[]) => {
   const ranges = [
     { label: "0-19%", min: 0, max: 19 },
@@ -133,23 +196,6 @@ const loadProfileData = async (): Promise<ProfileData> => {
     };
   } catch (error) {
     throw error;
-  }
-};
-
-const loadAnalysis = async (keyword: string): Promise<AnalysisResponse | null> => {
-  const cleanKeyword = keyword.trim();
-  if (!cleanKeyword) return null;
-  try {
-    const res = await fetch(`${API_BASE}/analyse`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...authHeader() },
-      body: JSON.stringify({ keyword: cleanKeyword }),
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as AnalysisResponse;
-  } catch {
-    return null;
   }
 };
 
@@ -212,7 +258,6 @@ const BarChart = ({
 export default function MergeSkillsPage() {
   const [profile, setProfile] = useState<ProfileData>({ position: "", skills: [] });
   const [ranked, setRanked] = useState<RankedJob[]>([]);
-  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [refreshNote, setRefreshNote] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -240,10 +285,6 @@ export default function MergeSkillsPage() {
         const rankedData = await loadRanked();
         if (ignore) return;
         setRanked(rankedData);
-
-        const analysisData = await loadAnalysis(profileData.position);
-        if (ignore) return;
-        setAnalysis(analysisData);
       } catch (error: any) {
         if (!ignore) {
           if (error?.message === "unauthorized") {
@@ -282,12 +323,12 @@ export default function MergeSkillsPage() {
   );
   const bestMatch = sortedByMatch[0];
   const lowestMatch = sortedByMatch[sortedByMatch.length - 1];
-  const recommendations = analysis?.predictions?.recommendations ?? [];
-  const timelineEntries = Object.entries(analysis?.predictions?.career_timeline ?? {});
+  const recommendations = buildRecommendations(ranked, profile.skills);
+  const timelineEntries = Object.entries(buildCareerTimeline(ranked, topMissingSkills));
 
   return (
     <div className={siderStyles.siderLayout}>
-      <AppSider />
+      <AppSider variant="light" />
       <div className={siderStyles.siderContent}>
         <div className={styles.page}>
       <div className={styles.gradientOne} />
@@ -458,30 +499,40 @@ export default function MergeSkillsPage() {
         </section>
 
         <section className={styles.stats}>
-          <div className={styles.statCard}>
-            <p className={styles.statLabel}>Recommendations</p>
+          <div className={styles.darkPanel}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionKicker}>Recommendations</p>
+            </div>
             {recommendations.length === 0 ? (
               <p className={styles.muted}>No recommendations yet.</p>
             ) : (
-              <div className={styles.skillChips}>
+              <div className={styles.recommendationList}>
                 {recommendations.slice(0, 6).map((rec) => (
-                  <span key={rec} className={styles.skillChipSoft}>
+                  <div key={rec} className={styles.recommendationItem}>
                     {rec}
-                  </span>
+                  </div>
                 ))}
               </div>
             )}
           </div>
-          <div className={styles.statCard}>
-            <p className={styles.statLabel}>Career timeline</p>
+        </section>
+
+        <section className={styles.stats}>
+          <div className={styles.darkPanel}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionKicker}>Roadmap</p>
+              <p className={styles.sectionTitle}>Career timeline</p>
+            </div>
             {timelineEntries.length === 0 ? (
               <p className={styles.muted}>No roadmap yet.</p>
             ) : (
-              <div className={styles.skillChips}>
+              <div className={styles.timelineGrid}>
                 {timelineEntries.map(([key, data]) => (
-                  <span key={key} className={styles.skillChipSoft}>
-                    {key.replace("_", " ")}: {data.focus ?? "Focus"} ({data.opportunities ?? 0} jobs)
-                  </span>
+                  <div key={key} className={styles.timelineCard}>
+                    <p className={styles.timelineLabel}>{key.replace("_", " ")}</p>
+                    <p className={styles.timelineBody}>{data.focus ?? "Focus"}</p>
+                    <p className={styles.timelineMeta}>Opportunities: {data.opportunities ?? 0}</p>
+                  </div>
                 ))}
               </div>
             )}

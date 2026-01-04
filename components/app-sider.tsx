@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import styles from "./app-sider.module.css";
 
@@ -33,15 +34,28 @@ const isActiveRoute = (pathname: string | null, href: string) => {
   return pathname === href || pathname.startsWith(`${href}/`);
 };
 
-export default function AppSider() {
+export default function AppSider({ variant }: { variant?: "light" }) {
   const pathname = usePathname();
+  const variantClass = variant === "light" ? styles.siderLight : "";
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <aside className={styles.sider} aria-label="Section navigation">
+    <aside
+      className={`${styles.sider} ${variantClass} ${collapsed ? styles.siderCollapsed : ""}`}
+      aria-label="Section navigation"
+    >
       <div className={styles.brand}>
         <span className={styles.brandTitle}>Career hub</span>
         <span className={styles.brandTag}>Focused tools</span>
       </div>
+      <button
+        type="button"
+        className={styles.collapseButton}
+        onClick={() => setCollapsed((prev) => !prev)}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        {collapsed ? "»" : "«"}
+      </button>
       <nav className={styles.nav}>
         {navItems.map((item) => {
           const active = isActiveRoute(pathname, item.href);
