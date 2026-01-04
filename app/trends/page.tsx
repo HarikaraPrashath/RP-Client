@@ -129,8 +129,8 @@ export default async function TrendsPage() {
   const keyword = lastEntry?.keyword ? String(lastEntry.keyword) : "Not set";
   const jobCount = lastEntry?.jobCount ?? 0;
   const chartWidth = 600;
-  const chartHeight = 180;
-  const chartPadding = 24;
+  const chartHeight = 140;
+  const chartPadding = 20;
   const chartPoints =
     historySlice.length === 0
       ? []
@@ -158,10 +158,24 @@ export default async function TrendsPage() {
       : `${chartPath} L${chartPoints[chartPoints.length - 1].x},${
           chartHeight - chartPadding
         } L${chartPoints[0].x},${chartHeight - chartPadding} Z`;
+  const windowSkillCounts = historySlice.reduce<Record<string, number>>((acc, entry) => {
+    const skills = entry.skillCounts || {};
+    Object.entries(skills).forEach(([term, count]) => {
+      const key = term.trim().toLowerCase();
+      if (!key) return;
+      acc[key] = (acc[key] ?? 0) + (typeof count === "number" ? count : 0);
+    });
+    return acc;
+  }, {});
+  const topWindowSkills = Object.entries(windowSkillCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([term, count]) => ({ term, count }));
+  const maxWindowSkill = Math.max(1, ...topWindowSkills.map((item) => item.count));
 
   return (
     <div className={siderStyles.siderLayout}>
-      <AppSider />
+      <AppSider variant="light" />
       <div className={siderStyles.siderContent}>
         <div className={styles.page}>
           <div className={styles.glowOne} />
@@ -194,24 +208,6 @@ export default async function TrendsPage() {
           </div>
         </header>
 
-        <section className={styles.explainer}>
-          <div className={styles.explainerCard}>
-            <p className={styles.explainerTitle}>How to read this page</p>
-            <ul className={styles.explainerList}>
-              <li>Each snapshot is one scrape run with its own job count.</li>
-              <li>The timeline bars show relative volume per snapshot.</li>
-              <li>Trending sections compare the latest snapshot to earlier ones in the window.</li>
-            </ul>
-          </div>
-          <div className={styles.explainerCard}>
-            <p className={styles.explainerTitle}>Change labels</p>
-            <p className={styles.explainerText}>
-              <strong>Current</strong> is the latest count, <strong>Baseline</strong> is the earlier
-              reference, and the % shows how much it moved.
-            </p>
-          </div>
-        </section>
-
         <section className={styles.timeline}>
           <div className={styles.sectionHead}>
             <div>
@@ -229,17 +225,6 @@ export default async function TrendsPage() {
             </div>
           ) : (
             <>
-              <div className={styles.timelineBars}>
-                {historySlice.map((entry) => {
-                  const height = Math.max(8, (entry.jobCount ?? 0) / maxJobs * 100);
-                  return (
-                    <div key={entry.ranAt} className={styles.timelineBar}>
-                      <div className={styles.timelineFill} style={{ height: `${height}%` }} />
-                      <span className={styles.timelineLabel}>{formatDate(entry.ranAt)}</span>
-                    </div>
-                  );
-                })}
-              </div>
               <div className={styles.timelineChart}>
                 <div className={styles.timelineChartHead}>
                   <p className={styles.timelineChartTitle}>Job count trend</p>
@@ -275,6 +260,42 @@ export default async function TrendsPage() {
                     </g>
                   ))}
                 </svg>
+              </div>
+              <div className={styles.timelineSkills}>
+                <div className={styles.timelineSkillsHead}>
+                  <p className={styles.timelineSkillsTitle}>Highly available skills</p>
+                  <p className={styles.timelineSkillsMeta}>Most frequent in this window</p>
+                </div>
+                {topWindowSkills.length === 0 ? (
+                  <p className={styles.timelineSkillsEmpty}>No skill data yet.</p>
+                ) : (
+                  <>
+                    <div className={styles.timelineSkillsChart}>
+                      {topWindowSkills.map((item) => {
+                        const width = (item.count / maxWindowSkill) * 100;
+                        return (
+                          <div key={item.term} className={styles.timelineSkillRow}>
+                            <span className={styles.timelineSkillName}>{item.term}</span>
+                            <div className={styles.timelineSkillBarTrack}>
+                              <div
+                                className={styles.timelineSkillBarFill}
+                                style={{ width: `${width}%` }}
+                              />
+                            </div>
+                            <span className={styles.timelineSkillValue}>{item.count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className={styles.timelineSkillChips}>
+                      {topWindowSkills.map((item) => (
+                        <span key={item.term} className={styles.timelineSkillChip}>
+                          {item.term} <span className={styles.timelineSkillCount}>{item.count}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}

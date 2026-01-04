@@ -12,7 +12,7 @@ export const setAuthToken = (token: string) => {
   }
 };
 
-export const authHeader = () => {
+export const authHeader = (): Record<string, string> => {
   const token = getAuthToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 };

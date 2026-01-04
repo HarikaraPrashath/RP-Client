@@ -44,7 +44,7 @@ const loadRanked = async (): Promise<RankedJob[]> => {
   }
 };
 
-const summarizeSkills = (jobs: RankedJob[]) => {
+const summarizeSkills = (jobs: RankedJob[]): { skill: string; count: number }[] => {
   const counts = new Map<string, number>();
   jobs.forEach((job) => {
     (job.skills_found ?? []).forEach((skill) => {
@@ -74,7 +74,9 @@ const coveragePercent = (jobs: RankedJob[]) => {
 
 const uniqueSkillCount = (jobs: RankedJob[]) => {
   const set = new Set<string>();
-  jobs.forEach((job) => (job.skills_found ?? []).forEach((s) => set.add(s.toLowerCase().trim())));
+  jobs.forEach((job) =>
+    (job.skills_found ?? []).forEach((s: string) => set.add(s.toLowerCase().trim()))
+  );
   return set.size;
 };
 
@@ -192,7 +194,7 @@ const loadProfileData = async (): Promise<ProfileData> => {
     const position = typeof doc?.basics?.position === "string" ? doc.basics.position : "";
     return {
       position: position.trim(),
-      skills: skills.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean),
+      skills: skills.map((s: unknown) => (typeof s === "string" ? s.trim() : "")).filter(Boolean),
     };
   } catch (error) {
     throw error;
@@ -331,10 +333,20 @@ export default function MergeSkillsPage() {
       <AppSider variant="light" />
       <div className={siderStyles.siderContent}>
         <div className={styles.page}>
-      <div className={styles.gradientOne} />
-      <div className={styles.gradientTwo} />
-      <div className={styles.container}>
-        <header className={styles.hero}>
+          <div className={styles.gradientOne} />
+          <div className={styles.gradientTwo} />
+          <div className={styles.container}>
+            {isLoading ? (
+              <div className={styles.skeletonPage}>
+                <div className={`${styles.skeletonCard} ${styles.skeletonHero}`} />
+                <div className={`${styles.skeletonCard} ${styles.skeletonRowBlock}`} />
+                <div className={`${styles.skeletonCard} ${styles.skeletonRowBlock}`} />
+                <div className={`${styles.skeletonCard} ${styles.skeletonRowBlock}`} />
+                <div className={`${styles.skeletonCard} ${styles.skeletonListRow}`} />
+              </div>
+            ) : (
+              <>
+                <header className={styles.hero}>
           <div className={styles.heroText}>
             <p className={styles.kicker}>Skill radar</p>
             <h1 className={styles.title}>Skill story from your scraped jobs</h1>
@@ -347,7 +359,6 @@ export default function MergeSkillsPage() {
               <span className={styles.glowChip}>Top skills: {topSkills.length}</span>
               <span className={styles.glowChip}>Gaps flagged: {topMissingSkills.length}</span>
               <span className={styles.glowChip}>Strong fits: {strongMatches}</span>
-              {isLoading ? <span className={styles.glowChip}>Loading data...</span> : null}
               {loadError ? <span className={styles.glowChip}>{loadError}</span> : null}
               {refreshNote ? <span className={styles.glowChip}>{refreshNote}</span> : null}
             </div>
@@ -372,9 +383,9 @@ export default function MergeSkillsPage() {
               </div>
             </div>
           </div>
-        </header>
+                </header>
 
-        <section className={styles.stats}>
+                <section className={styles.stats}>
           <div className={styles.statCard}>
             <p className={styles.statLabel}>Your skills</p>
             {userSkills.length === 0 ? (
@@ -389,9 +400,9 @@ export default function MergeSkillsPage() {
               </div>
             )}
           </div>
-        </section>
+                </section>
 
-        <section className={styles.stats}>
+                <section className={styles.stats}>
           <div className={styles.statCard}>
             <p className={styles.statLabel}>Jobs with skills</p>
             <p className={styles.statValue}>{withAnySkills}</p>
@@ -415,9 +426,9 @@ export default function MergeSkillsPage() {
             <p className={styles.statValue}>{avgMissing.toFixed(1)}</p>
             <p className={styles.statHint}>Gaps to focus on</p>
           </div>
-        </section>
+                </section>
 
-        <section className={styles.chartsRow}>
+                <section className={styles.chartsRow}>
           <div className={styles.chartCard}>
             <div className={styles.cardHead}>
               <p className={styles.cardTitle}>Match distribution</p>
@@ -452,9 +463,9 @@ export default function MergeSkillsPage() {
               )}
             </div>
           </div>
-        </section>
+                </section>
 
-        <section className={styles.highlightRow}>
+                <section className={styles.highlightRow}>
           <div className={styles.highlightCard}>
             <p className={styles.cardTitle}>Best match</p>
             {bestMatch ? (
@@ -496,9 +507,9 @@ export default function MergeSkillsPage() {
               <p className={styles.muted}>No ranked data yet.</p>
             )}
           </div>
-        </section>
+                </section>
 
-        <section className={styles.stats}>
+                <section className={styles.stats}>
           <div className={styles.darkPanel}>
             <div className={styles.sectionHeader}>
               <p className={styles.sectionKicker}>Recommendations</p>
@@ -515,9 +526,9 @@ export default function MergeSkillsPage() {
               </div>
             )}
           </div>
-        </section>
+                </section>
 
-        <section className={styles.stats}>
+                <section className={styles.stats}>
           <div className={styles.darkPanel}>
             <div className={styles.sectionHeader}>
               <p className={styles.sectionKicker}>Roadmap</p>
@@ -537,9 +548,9 @@ export default function MergeSkillsPage() {
               </div>
             )}
           </div>
-        </section>
+                </section>
 
-        <section className={styles.list}>
+                <section className={styles.list}>
           {ranked.length === 0 ? (
             <div className={styles.empty}>
               <p>No ranked data found.</p>
@@ -606,8 +617,10 @@ export default function MergeSkillsPage() {
               );
             })
           )}
-        </section>
-      </div>
+                </section>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

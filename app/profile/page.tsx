@@ -749,7 +749,7 @@ export default function ProfilePage() {
 
   return (
     <div className={siderStyles.siderLayout}>
-      <AppSider />
+      <AppSider variant="light" />
       <div className={siderStyles.siderContent}>
         <div className={styles.page}>
       <div className={styles.container}>
