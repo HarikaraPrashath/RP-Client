@@ -261,8 +261,12 @@ function PersonalizedRoadmap() {
         duration: '2-3 months',
         skills: ['Core Programming', 'Computer Science Fundamentals', 'Problem Solving'],
         resources: [
-          { title: 'Introduction to Computer Science', type: 'course' },
-          { title: 'Programming Fundamentals Project', type: 'project' }
+          { title: 'Harvard CS50: Introduction to Computer Science', type: 'course' },
+          { title: 'Python for Everybody by University of Michigan', type: 'course' },
+          { title: 'The Complete Web Developer Bootcamp', type: 'course' },
+          { title: 'Build a Simple Calculator Project', type: 'project' },
+          { title: 'Computer Science Essentials by edX', type: 'certification' },
+          { title: 'Programming Fundamentals Article Series', type: 'article' }
         ],
         completed: false
       },
@@ -273,8 +277,12 @@ function PersonalizedRoadmap() {
         duration: '3-4 months',
         skills: (prediction.keySkills || []).slice(0, 3),
         resources: [
-          { title: 'Advanced Technical Course', type: 'course' },
-          { title: 'Technical Certification', type: 'certification' }
+          { title: 'Advanced Data Structures and Algorithms', type: 'course' },
+          { title: 'Database Design and Management', type: 'course' },
+          { title: 'Cloud Computing Fundamentals', type: 'course' },
+          { title: 'Build a Full-Stack Application', type: 'project' },
+          { title: 'AWS Certified Developer Associate', type: 'certification' },
+          { title: 'Tech Industry Trends Report', type: 'article' }
         ],
         completed: false
       },
@@ -285,8 +293,12 @@ function PersonalizedRoadmap() {
         duration: '4-6 months',
         skills: ['Project Management', 'Team Collaboration', 'Real-world Problem Solving'],
         resources: [
-          { title: 'Capstone Project', type: 'project' },
-          { title: 'Internship or Freelance Work', type: 'project' }
+          { title: 'Capstone Project: Build a Complete System', type: 'project' },
+          { title: 'Open Source Contribution Guide', type: 'course' },
+          { title: 'Agile Project Management', type: 'course' },
+          { title: 'Internship Preparation Workshop', type: 'course' },
+          { title: 'Freelance Platform Setup Guide', type: 'article' },
+          { title: 'Team Collaboration Tools Mastery', type: 'certification' }
         ],
         completed: false
       },
@@ -297,8 +309,12 @@ function PersonalizedRoadmap() {
         duration: '6-8 months',
         skills: ['Specialized Technologies', 'Advanced Techniques', 'Industry Best Practices'],
         resources: [
-          { title: 'Specialization Course', type: 'course' },
-          { title: 'Industry Conference', type: 'article' }
+          { title: 'Advanced Machine Learning Specialization', type: 'course' },
+          { title: 'Cybersecurity Professional Certificate', type: 'certification' },
+          { title: 'AI Engineering Masterclass', type: 'course' },
+          { title: 'Software Architecture Patterns', type: 'course' },
+          { title: 'Industry Conference Proceedings', type: 'article' },
+          { title: 'Build a Specialized Tech Project', type: 'project' }
         ],
         completed: false
       },
@@ -309,8 +325,12 @@ function PersonalizedRoadmap() {
         duration: '2-3 months',
         skills: ['Resume Building', 'Interview Skills', 'Professional Networking'],
         resources: [
-          { title: 'Career Development Workshop', type: 'course' },
-          { title: 'Professional Certification', type: 'certification' }
+          { title: 'Technical Interview Preparation', type: 'course' },
+          { title: 'Professional Resume Building Workshop', type: 'course' },
+          { title: 'Networking for Tech Professionals', type: 'course' },
+          { title: 'Personal Branding for Developers', type: 'course' },
+          { title: 'Industry-Recognized Certification', type: 'certification' },
+          { title: 'Job Search Strategies in Tech', type: 'article' }
         ],
         completed: false
       }
@@ -334,6 +354,7 @@ function PersonalizedRoadmap() {
         duration: '4 weeks',
         difficulty: 'Beginner',
         category: 'Fundamentals',
+        link: 'https://www.edx.org/course/introduction-computer-science-harvardx-cs50x',
         completed: false
       },
       {
@@ -343,6 +364,7 @@ function PersonalizedRoadmap() {
         duration: '6 weeks',
         difficulty: 'Beginner',
         category: 'Programming',
+        link: 'https://www.coursera.org/learn/python-for-everybody',
         completed: false
       },
       {
@@ -352,6 +374,7 @@ function PersonalizedRoadmap() {
         duration: '8 weeks',
         difficulty: 'Intermediate',
         category: 'Computer Science',
+        link: 'https://www.coursera.org/learn/data-structures',
         completed: false
       },
       {
@@ -361,6 +384,7 @@ function PersonalizedRoadmap() {
         duration: '10 weeks',
         difficulty: 'Beginner',
         category: 'Web Development',
+        link: 'https://www.udemy.com/course/the-complete-web-developer-in-2020/',
         completed: false
       },
       {
@@ -370,6 +394,7 @@ function PersonalizedRoadmap() {
         duration: '6 weeks',
         difficulty: 'Intermediate',
         category: 'Databases',
+        link: 'https://www.coursera.org/learn/databases',
         completed: false
       }
     ];
@@ -384,6 +409,7 @@ function PersonalizedRoadmap() {
           duration: '8 weeks',
           difficulty: 'Intermediate',
           category: 'Data Science',
+          link: 'https://www.coursera.org/learn/statistics-with-python',
           completed: false
         },
         {
@@ -393,6 +419,7 @@ function PersonalizedRoadmap() {
           duration: '12 weeks',
           difficulty: 'Advanced',
           category: 'Machine Learning',
+          link: 'https://www.coursera.org/learn/machine-learning',
           completed: false
         }
       );
@@ -405,6 +432,7 @@ function PersonalizedRoadmap() {
           duration: '8 weeks',
           difficulty: 'Intermediate',
           category: 'Cybersecurity',
+          link: 'https://www.coursera.org/learn/introduction-cyber-security',
           completed: false
         },
         {
@@ -414,6 +442,7 @@ function PersonalizedRoadmap() {
           duration: '10 weeks',
           difficulty: 'Advanced',
           category: 'Cybersecurity',
+          link: 'https://www.coursera.org/learn/network-security',
           completed: false
         }
       );
@@ -426,6 +455,7 @@ function PersonalizedRoadmap() {
           duration: '10 weeks',
           difficulty: 'Intermediate',
           category: 'Artificial Intelligence',
+          link: 'https://www.coursera.org/learn/artificial-intelligence',
           completed: false
         },
         {
@@ -435,6 +465,7 @@ function PersonalizedRoadmap() {
           duration: '12 weeks',
           difficulty: 'Advanced',
           category: 'Deep Learning',
+          link: 'https://www.coursera.org/learn/neural-networks-deep-learning',
           completed: false
         }
       );
@@ -447,6 +478,7 @@ function PersonalizedRoadmap() {
           duration: '8 weeks',
           difficulty: 'Intermediate',
           category: 'Software Engineering',
+          link: 'https://www.coursera.org/learn/software-design',
           completed: false
         },
         {
@@ -456,6 +488,7 @@ function PersonalizedRoadmap() {
           duration: '10 weeks',
           difficulty: 'Advanced',
           category: 'Software Engineering',
+          link: 'https://www.coursera.org/learn/system-design',
           completed: false
         }
       );
@@ -493,39 +526,132 @@ function PersonalizedRoadmap() {
   const downloadRoadmap = () => {
     if (!roadmap || !careerPrediction) return;
     
-    // Create Notion-friendly content
-    const notionContent = {
-      title: `${careerPrediction.role} Career Roadmap`,
-      content: `
-## Personalized Career Roadmap
-
-### Career: ${careerPrediction.role}
-- **Match:** ${careerPrediction.matchPercentage}%
-- **Total Duration:** ${roadmap.totalDuration}
-
-### Description
-${roadmap.description}
-
-### Milestones
-${roadmap.milestones.map((milestone, index) => `
-#### ${index + 1}. ${milestone.title} (${milestone.duration})
-- **Description:** ${milestone.description}
-- **Skills:** ${milestone.skills.join(', ')}
-- **Resources:** ${milestone.resources.map(r => r.title).join(', ')}
-- **Status:** ${milestone.completed ? 'Completed' : 'Pending'}
-`).join('\n')}
-
----
-*Generated by AI-Powered Career Guidance System*
-      `
-    };
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
     
-    // Create a URL-encoded version for Notion
-    const encodedContent = encodeURIComponent(notionContent.content);
-    const notionUrl = `https://www.notion.so/new?title=${encodeURIComponent(notionContent.title)}&body=${encodedContent}`;
+    // Create HTML content for the PDF
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>${careerPrediction.role} Career Roadmap</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        h1 {
+          color: #2563eb;
+          border-bottom: 2px solid #2563eb;
+          padding-bottom: 10px;
+        }
+        h2 {
+          color: #1d4ed8;
+          margin-top: 30px;
+        }
+        h3 {
+          color: #1e40af;
+          margin-top: 20px;
+        }
+        .milestone {
+          border-left: 3px solid #2563eb;
+          padding-left: 15px;
+          margin: 20px 0;
+        }
+        .skills {
+          background-color: #f0f9ff;
+          padding: 10px;
+          border-radius: 5px;
+          margin: 10px 0;
+        }
+        .match-percentage {
+          display: inline-block;
+          background-color: #2563eb;
+          color: white;
+          padding: 5px 10px;
+          border-radius: 20px;
+          font-weight: bold;
+        }
+        .progress-bar {
+          width: 100%;
+          height: 20px;
+          background-color: #e5e7eb;
+          border-radius: 10px;
+          margin: 10px 0;
+        }
+        .progress-fill {
+          height: 100%;
+          background-color: #2563eb;
+          border-radius: 10px;
+          width: ${careerPrediction.matchPercentage}%;
+        }
+        .footer {
+          margin-top: 50px;
+          font-size: 12px;
+          color: #6b7280;
+          text-align: center;
+        }
+        @media print {
+          body { margin: 0; padding: 15px; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <h1>${careerPrediction.role} Career Roadmap</h1>
+      
+      <h2>Personalized Career Roadmap</h2>
+      
+      <div class="match-percentage">Match: ${careerPrediction.matchPercentage}%</div>
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+      
+      <p><strong>Total Duration:</strong> ${roadmap.totalDuration}</p>
+      
+      <h2>Description</h2>
+      <p>${roadmap.description}</p>
+      
+      <h2>Key Skills</h2>
+      <div class="skills">
+        ${careerPrediction.keySkills.map(skill => `<span>${skill}</span>`).join(' • ')}
+      </div>
+      
+      <h2>Career Details</h2>
+      <p><strong>Growth Outlook:</strong> ${careerPrediction.growthOutlook}</p>
+      <p><strong>Internship Quality:</strong> ${careerPrediction.internshipQuality}%</p>
+      
+      <h2>Career Milestones</h2>
+      ${roadmap.milestones.map((milestone, index) => `
+        <div class="milestone">
+          <h3>${index + 1}. ${milestone.title} (${milestone.duration})</h3>
+          <p><strong>Description:</strong> ${milestone.description}</p>
+          <p><strong>Skills:</strong> ${milestone.skills.join(', ')}</p>
+          <p><strong>Resources:</strong> ${milestone.resources.map(r => r.title).join(', ')}</p>
+          <p><strong>Status:</strong> ${milestone.completed ? 'Completed' : 'Pending'}</p>
+        </div>
+      `).join('')}
+      
+      <div class="footer">
+        *Generated by AI-Powered Career Guidance System*
+      </div>
+      
+      <div class="no-print" style="margin-top: 30px; text-align: center;">
+        <button onclick="window.print()" style="background-color: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">Download as PDF</button>
+        <p style="margin-top: 10px; font-size: 14px; color: #6b7280;">Click the button above and select "Save as PDF" in the print dialog</p>
+      </div>
+    </body>
+    </html>
+    `;
     
-    // Open in Notion
-    window.open(notionUrl, '_blank');
+    // Write the HTML content to the new window
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
   };
 
   const shareRoadmap = () => {
@@ -896,8 +1022,22 @@ ${roadmap.milestones.map((milestone, index) => `
                               <h5 className="font-medium text-gray-900">{resource.title}</h5>
                               <p className="text-xs text-gray-600 capitalize">{resource.type}</p>
                             </div>
-                            <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                              Start <Play className="w-3 h-3" />
+                            <button
+                              onClick={() => {
+                                // Open appropriate website based on resource type
+                                if (resource.type === 'course') {
+                                  window.open('https://www.coursera.org', '_blank');
+                                } else if (resource.type === 'project') {
+                                  window.open('https://github.com', '_blank');
+                                } else if (resource.type === 'certification') {
+                                  window.open('https://www.coursera.org/professional-certificates', '_blank');
+                                } else {
+                                  window.open('https://medium.com', '_blank');
+                                }
+                              }}
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                            >
+                              Learn More <ArrowRight className="w-3 h-3" />
                             </button>
                           </div>
                         ))}
@@ -979,7 +1119,10 @@ ${roadmap.milestones.map((milestone, index) => `
                     <span className="text-sm font-medium text-gray-700">
                       {course.completed ? 'Course Completed!' : 'Start Learning'}
                     </span>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
+                    <button
+                      onClick={() => course.link && window.open(course.link, '_blank')}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                    >
                       Start Course <ArrowRight className="w-3 h-3" />
                     </button>
                   </div>
@@ -989,7 +1132,7 @@ ${roadmap.milestones.map((milestone, index) => `
           )}
           
           {/* Roadmap.sh Recommendation */}
-          <div className="mt-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
+          <div className="mt-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold mb-2">Need More Learning Resources?</h3>
@@ -1015,7 +1158,15 @@ ${roadmap.milestones.map((milestone, index) => `
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <button
-              onClick={() => setShowCourses(true)}
+              onClick={() => {
+                setShowCourses(true);
+                // Open the first course if available
+                if (courses.length > 0 && courses[0].link) {
+                  window.open(courses[0].link, '_blank');
+                } else {
+                  window.open('https://www.coursera.org', '_blank');
+                }
+              }}
               className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
             >
               Start First Course <ArrowRight className="w-4 h-4" />

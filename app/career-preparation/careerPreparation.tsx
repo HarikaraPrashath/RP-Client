@@ -52,7 +52,7 @@ function CareerPreparation() {
       title: 'Web Development',
       description: 'Build and maintain websites and web applications for various platforms and devices.',
       icon: <Zap className="w-6 h-6" />,
-      color: 'from-purple-500 to-pink-600'
+      color: 'from-blue-500 to-indigo-600'
     },
     {
       id: 'ai-engineering',
@@ -229,7 +229,7 @@ function CareerPreparation() {
             {/* Personalized Roadmaps */}
             <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
               <div className="flex items-start gap-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Target className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
@@ -253,7 +253,7 @@ function CareerPreparation() {
                   </div>
                   <button
                     onClick={handleTryService}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2"
                   >
                     Start Assessment <ArrowRight className="w-5 h-5" />
                   </button>
