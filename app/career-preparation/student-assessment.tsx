@@ -438,9 +438,9 @@ function StudentAssessment() {
       
       // Handle array-based skills
       const currentSkills = prev.technicalSkills[category] as string[];
-        const updatedSkills = currentSkills.includes(skill)
-          ? currentSkills.filter((s: string) => s !== skill)
-          : [...currentSkills, skill];
+      const updatedSkills = currentSkills.includes(skill)
+        ? currentSkills.filter(s => s !== skill)
+        : [...currentSkills, skill];
       
       return {
         ...prev,
