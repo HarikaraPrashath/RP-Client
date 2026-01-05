@@ -1,4 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { authHeader } from "../../lib/auth";
 import styles from "../skills/page.module.css";
+import AppSider from "../../components/app-sider";
+import siderStyles from "../../components/app-sider.module.css";
 
 type RankedJob = {
   ref?: string;
@@ -15,6 +21,11 @@ type RankedJob = {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 type ProfileData = { position: string; skills: string[] };
+type CareerTimelineEntry = {
+  focus?: string;
+  opportunities?: number;
+  recommended_skills?: string[];
+};
 
 const calcAverageCount = (jobs: RankedJob[], key: "skills_found" | "missing") => {
   if (!jobs.length) return 0;
@@ -33,7 +44,7 @@ const loadRanked = async (): Promise<RankedJob[]> => {
   }
 };
 
-const summarizeSkills = (jobs: RankedJob[]) => {
+const summarizeSkills = (jobs: RankedJob[]): { skill: string; count: number }[] => {
   const counts = new Map<string, number>();
   jobs.forEach((job) => {
     (job.skills_found ?? []).forEach((skill) => {
@@ -63,7 +74,9 @@ const coveragePercent = (jobs: RankedJob[]) => {
 
 const uniqueSkillCount = (jobs: RankedJob[]) => {
   const set = new Set<string>();
-  jobs.forEach((job) => (job.skills_found ?? []).forEach((s) => set.add(s.toLowerCase().trim())));
+  jobs.forEach((job) =>
+    (job.skills_found ?? []).forEach((s: string) => set.add(s.toLowerCase().trim()))
+  );
   return set.size;
 };
 
@@ -80,6 +93,75 @@ const topMissing = (jobs: RankedJob[], limit = 8) => {
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
     .map(([skill, count]) => ({ skill, count }));
+};
+
+const buildRecommendations = (jobs: RankedJob[], skills: string[]) => {
+  const avg = avgMatch(jobs);
+  const highlyQualified = jobs.filter((j) => (j.match_percent ?? 0) >= 70).length;
+  const missing = topMissing(jobs, 3);
+  const recommendations: string[] = [];
+
+  if (avg >= 65) {
+    recommendations.push(
+      "You're well-positioned for many roles. Focus on applying to jobs with 70%+ match.",
+    );
+  } else if (avg >= 50) {
+    recommendations.push(
+      "You have a solid foundation. Learning a few key skills will improve your opportunities.",
+    );
+  } else {
+    recommendations.push(
+      "Focus on building foundational skills. Consider internships or entry-level positions.",
+    );
+  }
+
+  if (highlyQualified > 0) {
+    recommendations.push(`You qualify for ${highlyQualified} positions right now. Start applying.`);
+  }
+
+  if (missing.length) {
+    const skillsStr = missing.map((item) => item.skill).join(", ");
+    recommendations.push(`Priority skills to learn: ${skillsStr}`);
+  }
+
+  if (skills.length) {
+    recommendations.push("Highlight your existing skills and projects in applications.");
+  } else {
+    recommendations.push("Add skills to your profile to improve matching accuracy.");
+  }
+
+  return recommendations;
+};
+
+const buildCareerTimeline = (
+  jobs: RankedJob[],
+  missingSkills: { skill: string; count: number }[],
+): Record<string, CareerTimelineEntry> => {
+  const immediate = jobs.filter((j) => (j.match_percent ?? 0) >= 70).length;
+  const shortTerm = jobs.filter((j) => {
+    const pct = j.match_percent ?? 0;
+    return pct >= 50 && pct < 70;
+  }).length;
+  const longTerm = jobs.filter((j) => (j.match_percent ?? 0) < 50).length;
+  const skills = missingSkills.map((item) => item.skill);
+
+  return {
+    "0-3_months": {
+      focus: "Apply to immediate opportunities while learning 2-3 high-priority skills",
+      opportunities: immediate,
+      recommended_skills: skills.slice(0, 3),
+    },
+    "3-6_months": {
+      focus: "Expand skill set with medium-priority skills and apply to short-term opportunities",
+      opportunities: shortTerm,
+      recommended_skills: skills.slice(0, 3),
+    },
+    "6-12_months": {
+      focus: "Master advanced skills to qualify for long-term opportunities",
+      opportunities: longTerm,
+      recommended_skills: skills.slice(0, 3),
+    },
+  };
 };
 
 const matchBuckets = (jobs: RankedJob[]) => {
@@ -102,17 +184,20 @@ const matchBuckets = (jobs: RankedJob[]) => {
 
 const loadProfileData = async (): Promise<ProfileData> => {
   try {
-    const res = await fetch(`${API_BASE}/profile`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/profile`, { cache: "no-store", headers: authHeader() });
+    if (res.status === 401) {
+      throw new Error("unauthorized");
+    }
     if (!res.ok) return { position: "", skills: [] };
     const doc = await res.json();
     const skills = Array.isArray(doc?.skills) ? doc.skills : [];
     const position = typeof doc?.basics?.position === "string" ? doc.basics.position : "";
     return {
       position: position.trim(),
-      skills: skills.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean),
+      skills: skills.map((s: unknown) => (typeof s === "string" ? s.trim() : "")).filter(Boolean),
     };
-  } catch {
-    return { position: "", skills: [] };
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -172,19 +257,58 @@ const BarChart = ({
   </div>
 );
 
-export default async function MergeSkillsPage() {
-  const profile = await loadProfileData();
+export default function MergeSkillsPage() {
+  const [profile, setProfile] = useState<ProfileData>({ position: "", skills: [] });
+  const [ranked, setRanked] = useState<RankedJob[]>([]);
+  const [refreshNote, setRefreshNote] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+    const loadData = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+      try {
+        const profileData = await loadProfileData();
+        if (ignore) return;
+        setProfile(profileData);
+
+        let note = "";
+        try {
+          note = await refreshFromProfile(profileData.position, profileData.skills);
+        } catch (error) {
+          console.error("Refresh from profile failed:", error);
+          note = "Auto-refresh failed (python/selenium); showing last saved data.";
+        }
+        if (ignore) return;
+        setRefreshNote(note);
+
+        const rankedData = await loadRanked();
+        if (ignore) return;
+        setRanked(rankedData);
+      } catch (error: any) {
+        if (!ignore) {
+          if (error?.message === "unauthorized") {
+            setLoadError("Sign in to load your profile data.");
+          } else {
+            setLoadError("Unable to load merge skills data.");
+          }
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadData();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   const searchKeyword = profile.position || "software engineer";
-  let refreshNote = "";
-
-  try {
-    refreshNote = await refreshFromProfile(searchKeyword, profile.skills);
-  } catch (error) {
-    console.error("Refresh from profile failed:", error);
-    refreshNote = "Auto-refresh failed (python/selenium); showing last saved data.";
-  }
-
-  const ranked = await loadRanked();
   const userSkills = profile.skills;
   const topSkills = summarizeSkills(ranked);
   const average = avgMatch(ranked);
@@ -201,13 +325,28 @@ export default async function MergeSkillsPage() {
   );
   const bestMatch = sortedByMatch[0];
   const lowestMatch = sortedByMatch[sortedByMatch.length - 1];
+  const recommendations = buildRecommendations(ranked, profile.skills);
+  const timelineEntries = Object.entries(buildCareerTimeline(ranked, topMissingSkills));
 
   return (
-    <div className={styles.page}>
-      <div className={styles.gradientOne} />
-      <div className={styles.gradientTwo} />
-      <div className={styles.container}>
-        <header className={styles.hero}>
+    <div className={siderStyles.siderLayout}>
+      <AppSider variant="light" />
+      <div className={siderStyles.siderContent}>
+        <div className={styles.page}>
+          <div className={styles.gradientOne} />
+          <div className={styles.gradientTwo} />
+          <div className={styles.container}>
+            {isLoading ? (
+              <div className={styles.skeletonPage}>
+                <div className={`${styles.skeletonCard} ${styles.skeletonHero}`} />
+                <div className={`${styles.skeletonCard} ${styles.skeletonRowBlock}`} />
+                <div className={`${styles.skeletonCard} ${styles.skeletonRowBlock}`} />
+                <div className={`${styles.skeletonCard} ${styles.skeletonRowBlock}`} />
+                <div className={`${styles.skeletonCard} ${styles.skeletonListRow}`} />
+              </div>
+            ) : (
+              <>
+                <header className={styles.hero}>
           <div className={styles.heroText}>
             <p className={styles.kicker}>Skill radar</p>
             <h1 className={styles.title}>Skill story from your scraped jobs</h1>
@@ -220,6 +359,7 @@ export default async function MergeSkillsPage() {
               <span className={styles.glowChip}>Top skills: {topSkills.length}</span>
               <span className={styles.glowChip}>Gaps flagged: {topMissingSkills.length}</span>
               <span className={styles.glowChip}>Strong fits: {strongMatches}</span>
+              {loadError ? <span className={styles.glowChip}>{loadError}</span> : null}
               {refreshNote ? <span className={styles.glowChip}>{refreshNote}</span> : null}
             </div>
           </div>
@@ -243,9 +383,9 @@ export default async function MergeSkillsPage() {
               </div>
             </div>
           </div>
-        </header>
+                </header>
 
-        <section className={styles.stats}>
+                <section className={styles.stats}>
           <div className={styles.statCard}>
             <p className={styles.statLabel}>Your skills</p>
             {userSkills.length === 0 ? (
@@ -260,9 +400,9 @@ export default async function MergeSkillsPage() {
               </div>
             )}
           </div>
-        </section>
+                </section>
 
-        <section className={styles.stats}>
+                <section className={styles.stats}>
           <div className={styles.statCard}>
             <p className={styles.statLabel}>Jobs with skills</p>
             <p className={styles.statValue}>{withAnySkills}</p>
@@ -286,9 +426,9 @@ export default async function MergeSkillsPage() {
             <p className={styles.statValue}>{avgMissing.toFixed(1)}</p>
             <p className={styles.statHint}>Gaps to focus on</p>
           </div>
-        </section>
+                </section>
 
-        <section className={styles.chartsRow}>
+                <section className={styles.chartsRow}>
           <div className={styles.chartCard}>
             <div className={styles.cardHead}>
               <p className={styles.cardTitle}>Match distribution</p>
@@ -323,9 +463,9 @@ export default async function MergeSkillsPage() {
               )}
             </div>
           </div>
-        </section>
+                </section>
 
-        <section className={styles.highlightRow}>
+                <section className={styles.highlightRow}>
           <div className={styles.highlightCard}>
             <p className={styles.cardTitle}>Best match</p>
             {bestMatch ? (
@@ -367,9 +507,50 @@ export default async function MergeSkillsPage() {
               <p className={styles.muted}>No ranked data yet.</p>
             )}
           </div>
-        </section>
+                </section>
 
-        <section className={styles.list}>
+                <section className={styles.stats}>
+          <div className={styles.darkPanel}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionKicker}>Recommendations</p>
+            </div>
+            {recommendations.length === 0 ? (
+              <p className={styles.muted}>No recommendations yet.</p>
+            ) : (
+              <div className={styles.recommendationList}>
+                {recommendations.slice(0, 6).map((rec) => (
+                  <div key={rec} className={styles.recommendationItem}>
+                    {rec}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+                </section>
+
+                <section className={styles.stats}>
+          <div className={styles.darkPanel}>
+            <div className={styles.sectionHeader}>
+              <p className={styles.sectionKicker}>Roadmap</p>
+              <p className={styles.sectionTitle}>Career timeline</p>
+            </div>
+            {timelineEntries.length === 0 ? (
+              <p className={styles.muted}>No roadmap yet.</p>
+            ) : (
+              <div className={styles.timelineGrid}>
+                {timelineEntries.map(([key, data]) => (
+                  <div key={key} className={styles.timelineCard}>
+                    <p className={styles.timelineLabel}>{key.replace("_", " ")}</p>
+                    <p className={styles.timelineBody}>{data.focus ?? "Focus"}</p>
+                    <p className={styles.timelineMeta}>Opportunities: {data.opportunities ?? 0}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+                </section>
+
+                <section className={styles.list}>
           {ranked.length === 0 ? (
             <div className={styles.empty}>
               <p>No ranked data found.</p>
@@ -436,7 +617,11 @@ export default async function MergeSkillsPage() {
               );
             })
           )}
-        </section>
+                </section>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

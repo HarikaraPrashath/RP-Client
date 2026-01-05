@@ -11,9 +11,12 @@ import {
   Collapse,
   Descriptions,
   Divider,
+  Form,
   Empty,
   Image,
   Layout,
+  Modal,
+  Input,
   Row,
   Space,
   Tag,
@@ -23,15 +26,16 @@ import {
 } from "antd";
 import {
   CheckCircleFilled,
-  CopyOutlined,
-  DownloadOutlined,
   InboxOutlined,
   SaveOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { authHeader } from "../../lib/auth";
 import styles from "./page.module.css";
+import AppSider from "../../components/app-sider";
+import siderStyles from "../../components/app-sider.module.css";
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -355,8 +359,10 @@ export default function Profile() {
   const [parsed, setParsed] = useState<ParsedCv | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "done">("idle");
-  const [showJson, setShowJson] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [preparingSave, setPreparingSave] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmPayload, setConfirmPayload] = useState<ProfilePayload | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
   const router = useRouter();
 
@@ -396,7 +402,6 @@ export default function Profile() {
     setParsed(null);
     setApiError(null);
     setStatus("idle");
-    setShowJson(true);
   };
 
   const clearFile = () => {
@@ -448,47 +453,29 @@ export default function Profile() {
       }
       setParsed(data);
       setStatus("done");
-      setShowJson(true);
     } catch (err: any) {
       setStatus("error");
       setApiError(err?.message || "Failed to parse CV");
     }
   };
 
-  const copyJson = async () => {
-    if (!parsed) return;
-    try {
-      await navigator.clipboard.writeText(JSON.stringify(parsed, null, 2));
-      messageApi.success("Copied to clipboard");
-    } catch (err) {
-      messageApi.error("Failed to copy");
-    }
-  };
-
-  const downloadJson = () => {
-    if (!parsed) return;
-    const blob = new Blob([JSON.stringify(parsed, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${parsed.name ? parsed.name.replace(/\s+/g, "_").toLowerCase() : "cv_extracter"}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const useSampleData = () => {
     setParsed(sampleParsed);
     setStatus("done");
-    setShowJson(true);
   };
 
-  const saveToProfile = async () => {
+  const prepareSave = async () => {
     if (!parsed) return;
-    setSavingProfile(true);
+    setPreparingSave(true);
     try {
       let existingProfile: Partial<ProfilePayload> | null = null;
       try {
-        const existingRes = await fetch(`${API_BASE}/profile`);
+        const existingRes = await fetch(`${API_BASE}/profile`, {
+          headers: authHeader(),
+        });
+        if (existingRes.status === 401) {
+          throw new Error("Sign in to load your profile.");
+        }
         if (existingRes.ok) {
           existingProfile = (await existingRes.json()) as Partial<ProfilePayload>;
         }
@@ -497,17 +484,34 @@ export default function Profile() {
       }
 
       const payload = buildProfileFromParsed(parsed, existingProfile);
+      setConfirmPayload(payload);
+      setConfirmOpen(true);
+    } catch (err: any) {
+      messageApi.error(err?.message || "Unable to save profile.");
+    } finally {
+      setPreparingSave(false);
+    }
+  };
+
+  const confirmSave = async () => {
+    if (!confirmPayload) return;
+    setSavingProfile(true);
+    try {
       const res = await fetch(`${API_BASE}/profile`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify(confirmPayload),
       });
 
       if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error("Sign in to save your profile.");
+        }
         throw new Error("Failed to save profile");
       }
 
       messageApi.success("Saved to profile.");
+      setConfirmOpen(false);
       router.push("/profile");
     } catch (err: any) {
       messageApi.error(err?.message || "Unable to save profile.");
@@ -535,11 +539,14 @@ export default function Profile() {
     : [];
 
   return (
-    <div className={styles.page}>
-      {contextHolder}
-      <Layout className={styles.layout}>
-        <Content className={styles.content}>
-          <Card className={styles.hero}>
+    <div className={siderStyles.siderLayout}>
+      <AppSider variant="light" />
+      <div className={siderStyles.siderContent}>
+        <div className={styles.page}>
+          {contextHolder}
+          <Layout className={styles.layout}>
+            <Content className={styles.content}>
+              <Card className={styles.hero}>
             <Space direction="vertical" size={8}>
               <Text className={styles.kicker}>CV parsing</Text>
               <Title level={2} className={styles.heroTitle}>
@@ -625,9 +632,6 @@ export default function Profile() {
                       <Text className={styles.step}>Step 2</Text>
                       <Text strong>Parsed CV</Text>
                     </Space>
-                    <Button onClick={() => setShowJson((value) => !value)} disabled={!parsed}>
-                      {showJson ? "Hide JSON" : "Show JSON"}
-                    </Button>
                   </div>
                   <Space direction="vertical" size="large" className={styles.resultsStack}>
                     {(apiError || status === "loading") && (
@@ -643,25 +647,11 @@ export default function Profile() {
                       <Space direction="vertical" size="large">
                         <div className={styles.resultHeader}>
                           <Space wrap>
-                            {parsed.meta?.method && (
-                              <Tag color="blue">Method: {parsed.meta.method}</Tag>
-                            )}
-                            {parsed.meta?.quality?.char_count && (
-                              <Tag color="cyan">Characters: {parsed.meta.quality.char_count}</Tag>
-                            )}
-                          </Space>
-                          <Space wrap>
-                            <Button icon={<CopyOutlined />} onClick={copyJson}>
-                              Copy JSON
-                            </Button>
-                            <Button icon={<DownloadOutlined />} onClick={downloadJson}>
-                              Download JSON
-                            </Button>
                             <Button
                               type="primary"
                               icon={<SaveOutlined />}
-                              onClick={saveToProfile}
-                              loading={savingProfile}
+                              onClick={prepareSave}
+                              loading={preparingSave || savingProfile}
                             >
                               Save to profile
                             </Button>
@@ -780,9 +770,6 @@ export default function Profile() {
                           <Descriptions.Item label="Method">
                             {parsed.meta?.method || "Unknown"}
                           </Descriptions.Item>
-                          <Descriptions.Item label="Characters">
-                            {parsed.meta?.quality?.char_count ?? "N/A"}
-                          </Descriptions.Item>
                           <Descriptions.Item label="Lines">
                             {parsed.meta?.quality?.line_count ?? "N/A"}
                           </Descriptions.Item>
@@ -802,11 +789,6 @@ export default function Profile() {
                           </div>
                         )}
 
-                        {showJson && (
-                          <pre className={styles.jsonBox}>
-                            {JSON.stringify(parsed, null, 2)}
-                          </pre>
-                        )}
                       </Space>
                     ) : (
                     <Empty
@@ -818,8 +800,159 @@ export default function Profile() {
               </Col>
             </Row>
           </Card>
-        </Content>
-      </Layout>
+            </Content>
+          </Layout>
+        </div>
+      </div>
+      <Modal
+        open={confirmOpen}
+        title="Confirm profile details"
+        onOk={confirmSave}
+        onCancel={() => setConfirmOpen(false)}
+        okText="Save profile"
+        confirmLoading={savingProfile}
+      >
+        <Form layout="vertical">
+          <Form.Item label="First name">
+            <Input
+              value={confirmPayload?.basics.firstName || ""}
+              onChange={(event) =>
+                setConfirmPayload((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        basics: { ...prev.basics, firstName: event.target.value },
+                      }
+                    : prev
+                )
+              }
+            />
+          </Form.Item>
+          <Form.Item label="Last name">
+            <Input
+              value={confirmPayload?.basics.lastName || ""}
+              onChange={(event) =>
+                setConfirmPayload((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        basics: { ...prev.basics, lastName: event.target.value },
+                      }
+                    : prev
+                )
+              }
+            />
+          </Form.Item>
+          <Form.Item label="Headline">
+            <Input
+              value={confirmPayload?.basics.headline || ""}
+              onChange={(event) =>
+                setConfirmPayload((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        basics: { ...prev.basics, headline: event.target.value },
+                      }
+                    : prev
+                )
+              }
+            />
+          </Form.Item>
+          <Form.Item label="Position">
+            <Input
+              value={confirmPayload?.basics.position || ""}
+              onChange={(event) =>
+                setConfirmPayload((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        basics: { ...prev.basics, position: event.target.value },
+                      }
+                    : prev
+                )
+              }
+            />
+          </Form.Item>
+          <Form.Item label="Email">
+            <Input
+              value={confirmPayload?.basics.contactEmail || ""}
+              onChange={(event) =>
+                setConfirmPayload((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        basics: { ...prev.basics, contactEmail: event.target.value },
+                      }
+                    : prev
+                )
+              }
+            />
+          </Form.Item>
+          <Form.Item label="Skills (comma-separated)">
+            <Input.TextArea
+              value={(confirmPayload?.skills || []).join(", ")}
+              rows={2}
+              onChange={(event) =>
+                setConfirmPayload((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        skills: event.target.value
+                          .split(",")
+                          .map((value) => value.trim())
+                          .filter(Boolean),
+                      }
+                    : prev
+                )
+              }
+            />
+          </Form.Item>
+          <Form.Item label="Projects (one per line)">
+            <Input.TextArea
+              value={(confirmPayload?.projects || []).join("\n")}
+              rows={2}
+              onChange={(event) =>
+                setConfirmPayload((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        projects: event.target.value
+                          .split("\n")
+                          .map((value) => value.trim())
+                          .filter(Boolean),
+                      }
+                    : prev
+                )
+              }
+            />
+          </Form.Item>
+          <Form.Item label="Certifications (one per line)">
+            <Input.TextArea
+              value={(confirmPayload?.certifications || []).join("\n")}
+              rows={2}
+              onChange={(event) =>
+                setConfirmPayload((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        certifications: event.target.value
+                          .split("\n")
+                          .map((value) => value.trim())
+                          .filter(Boolean),
+                      }
+                    : prev
+                )
+              }
+            />
+          </Form.Item>
+          <Form.Item label="Experience entries (count)">
+            <Input value={(confirmPayload?.experiences || []).length} readOnly />
+          </Form.Item>
+          <Form.Item label="Education entries (count)">
+            <Input value={(confirmPayload?.educationItems || []).length} readOnly />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

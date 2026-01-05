@@ -31,7 +31,7 @@ const loadRanked = async (): Promise<RankedJob[]> => {
   }
 };
 
-const summarizeSkills = (jobs: RankedJob[]) => {
+const summarizeSkills = (jobs: RankedJob[]): { skill: string; count: number }[] => {
   const counts = new Map<string, number>();
   jobs.forEach((job) => {
     (job.skills_found ?? []).forEach((skill) => {
@@ -61,7 +61,9 @@ const coveragePercent = (jobs: RankedJob[]) => {
 
 const uniqueSkillCount = (jobs: RankedJob[]) => {
   const set = new Set<string>();
-  jobs.forEach((job) => (job.skills_found ?? []).forEach((s) => set.add(s.toLowerCase().trim())));
+  jobs.forEach((job) =>
+    (job.skills_found ?? []).forEach((s: string) => set.add(s.toLowerCase().trim()))
+  );
   return set.size;
 };
 

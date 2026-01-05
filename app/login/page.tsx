@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { setAuthToken } from "../../lib/auth";
 import styles from "./page.module.css";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -54,15 +55,16 @@ export default function LoginPage() {
         body: JSON.stringify({ email: email.trim(), password, remember }),
       });
 
+      const data = await response.json().catch(() => null);
       if (!response.ok) {
-        const data = await response.json().catch(() => null);
         setErrors((prev) => ({
           ...prev,
-          form: data?.message || "Sign in failed. Check your credentials and try again.",
+          form: data?.detail || "Sign in failed. Check your credentials and try again.",
         }));
         return;
       }
 
+      setAuthToken(data?.token || "");
       router.push("/profile");
     } catch {
       setErrors((prev) => ({
