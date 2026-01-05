@@ -40,14 +40,16 @@ interface Message {
   timestamp: string;
 }
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL) + "/predict";
+const API_URL =
+  (process.env.NEXT_PUBLIC_API_URL) + "/predict";
+console.log("Api public",API_URL)
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: "bot",
-      text: '👋 Welcome to CareerPath AI!\nI\'ll help you discover your ideal career based on your skills, personality, and interests.\n\nType **"start"** when you\'re ready to begin.',
+      text: 'Hi, welcome to future Career prediction bot 👋\nIf you need to start bot type "Start".',
       timestamp: new Date().toLocaleTimeString(),
     },
   ]);
@@ -55,8 +57,6 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [step, setStep] = useState<Step>("welcome");
-  const [currentQuestionNumber, setCurrentQuestionNumber] = useState(1);
-  const [progress, setProgress] = useState(0);
 
   // store answers
   const [softSkills, setSoftSkills] = useState("");
@@ -86,19 +86,6 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  useEffect(() => {
-    // Update progress based on current step
-    const totalSteps = 17; // Total questions/steps
-    const stepOrder: Step[] = [
-      "welcome", "softSkills", "techSkills", "semester", "gpa", "english",
-      "oceanO", "oceanC", "oceanE", "oceanA", "oceanN",
-      "riaR", "riaI", "riaA", "riaS", "riaE", "riaC"
-    ];
-    const currentIndex = stepOrder.indexOf(step);
-    const newProgress = currentIndex >= 0 ? Math.round((currentIndex / totalSteps) * 100) : 0;
-    setProgress(newProgress);
-  }, [step]);
-
   const addBotMessage = (text: string) => {
     setMessages((prev) => [
       ...prev,
@@ -123,10 +110,29 @@ export default function Home() {
     return n;
   };
 
+  const ratingGuide5 =
+    "* Rating (1–5)\n" +
+    "1️⃣ Do not like it at all\n" +
+    "2️⃣ Like it a little\n" +
+    "3️⃣ Neutral\n" +
+    "4️⃣ Like it\n" +
+    "5️⃣ Like it very much\n";
+
+  const ratingGuide10 =
+    "⭐ Rating (1–10)\n" +
+    "1️⃣ Do not like it at all\n" +
+    "2️⃣ Like it very little\n" +
+    "3️⃣ Like it a little\n" +
+    "4️⃣ Slightly like it\n" +
+    "5️⃣ Neutral\n" +
+    "6️⃣ Somewhat like it\n" +
+    "7️⃣ Like it\n" +
+    "8️⃣ Like it a lot\n" +
+    "9️⃣ Like it very much\n" +
+    "🔟 Like it extremely\n";
+
   const resetAll = () => {
     setStep("welcome");
-    setCurrentQuestionNumber(1);
-    setProgress(0);
     setSoftSkills("");
     setTechSkills("");
     setSemester("");
@@ -167,16 +173,13 @@ export default function Home() {
 
     // welcome
     if (step === "welcome") {
-      if (lower === "start" || lower === '"start"') {
+      if (lower === "start") {
         setStep("softSkills");
-        setCurrentQuestionNumber(1);
         addBotMessage(
-          "🚀 **Let's begin your career assessment!**\n\n" +
-          "📝 **Question 1 of 17: Soft Skills**\n" +
-          "List your top soft skills ( communication, teamwork, leadership, etc.)"
+          "Great! 🎯\n1) Please enter at least 3 soft skills, separated by commas.\nFor example: communication, teamwork, leadership."
         );
       } else {
-        addBotMessage('Type **"start"** when you\'re ready to begin your assessment.');
+        addBotMessage('To begin, please type "Start".');
       }
       return;
     }
@@ -184,11 +187,8 @@ export default function Home() {
     if (step === "softSkills") {
       setSoftSkills(userText);
       setStep("techSkills");
-      setCurrentQuestionNumber(2);
       addBotMessage(
-        "✅ **Soft skills recorded!**\n\n" +
-        "🛠️ **Question 2 of 17: Technical Skills**\n" +
-        "List your technical skills (Python, Java, React, etc.)"
+        "Nice! 🙌\n2) Now tell me your technical skills (e.g., Python, Java, React).\nPlease list them separated by commas."
       );
       return;
     }
@@ -196,11 +196,8 @@ export default function Home() {
     if (step === "techSkills") {
       setTechSkills(userText);
       setStep("semester");
-      setCurrentQuestionNumber(3);
       addBotMessage(
-        "✅ **Technical skills recorded!**\n\n" +
-        "📚 **Question 3 of 17: Current Semester**\n" +
-        "What semester are you currently in? (e.g., 2Y1S,1Y2S)"
+        "Got it! 📚\n3) What is your current semester? (e.g., 2Y1S, 1Y2S)"
       );
       return;
     }
@@ -208,46 +205,33 @@ export default function Home() {
     if (step === "semester") {
       setSemester(userText);
       setStep("gpa");
-      setCurrentQuestionNumber(4);
-      addBotMessage(
-        "✅ **Semester recorded!**\n\n" +
-        "🎓 **Question 4 of 17: GPA**\n" +
-        "What is your current GPA? (0.0 - 4.0 scale)"
-      );
+      addBotMessage("Thanks! 🎓\n4) What is your current GPA? (e.g., 3.5)");
       return;
     }
 
     if (step === "gpa") {
       const gpaValue = parseFloat(userText);
-      if (Number.isNaN(gpaValue) || gpaValue < 0 || gpaValue > 4) {
-        addBotMessage("Please enter a valid GPA between 0.0 and 4.0.");
+      if (Number.isNaN(gpaValue)) {
+        addBotMessage("Please enter a valid GPA as a number, e.g., 3.5.");
         return;
       }
       setGpa(gpaValue);
       setStep("english");
-      setCurrentQuestionNumber(5);
-      addBotMessage(
-        "✅ **GPA recorded!**\n\n" +
-        "🌐 **Question 5 of 17: English Proficiency**\n" +
-        "Enter your English score (0 - 100 scale)"
-      );
+      addBotMessage("Great! ✅\n5) What is your English score? (e.g., 75)");
       return;
     }
 
     if (step === "english") {
       const eng = parseFloat(userText);
-      if (Number.isNaN(eng) || eng < 0 || eng > 100) {
-        addBotMessage("Please enter a valid English score between 0 and 100.");
+      if (Number.isNaN(eng)) {
+        addBotMessage("Please enter a valid English score as a number, e.g., 75.");
         return;
       }
       setEnglishScore(eng);
       setStep("oceanO");
-      setCurrentQuestionNumber(6);
       addBotMessage(
-        "✅ **English score recorded!**\n\n" +
-        "🧠 **Question 6 of 17: Personality Assessment**\n\n" +
-        "**Rate 1-5: Openness to Experience**\n" +
-        "Do you enjoy exploring new technologies and experimenting with creative ideas while working on a project?\n\n"
+        `Thanks! ✅\nNow answer these 5 questions using a rating.\n\n${ratingGuide5}\n` +
+        "Q1) Do you enjoy exploring new technologies and experimenting with creative ideas while working on a project?"
       );
       return;
     }
@@ -255,76 +239,49 @@ export default function Home() {
     // OCEAN
     if (step === "oceanO") {
       const r = parseRating1to5(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 5.");
+      if (r === null) return addBotMessage(`Enter 1–5.\n\n${ratingGuide5}`);
       setOceanO(r);
       setStep("oceanC");
-      setCurrentQuestionNumber(7);
-      addBotMessage(
-        `✅ **Openness: ${r}/5**\n\n` +
-        "**Question 7 of 17: Conscientiousness**\n" +
-        "**Rate 1-5: Openness to Experience**\n" +
-        "Do you always finish your assignments on time and double-check them for accuracy?\n\n"
-      );
+      addBotMessage(`${ratingGuide5}\nQ2) Do you always finish your assignments on time and double-check them for accuracy?`);
       return;
     }
 
     if (step === "oceanC") {
       const r = parseRating1to5(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 5.");
+      if (r === null) return addBotMessage(`Enter 1–5.\n\n${ratingGuide5}`);
       setOceanC(r);
       setStep("oceanE");
-      setCurrentQuestionNumber(8);
-      addBotMessage(
-        `✅ **Conscientiousness: ${r}/5**\n\n` +
-        "**Question 8 of 17: Extraversion**\n" +
-        "**Rate 1-5: Openness to Experience**\n" +
-        "Do you feel energized when you work with others in group projects?\n\n"
-      );
+      addBotMessage(`${ratingGuide5}\nQ3) Do you feel energized when you work with others in group projects?`);
       return;
     }
 
     if (step === "oceanE") {
       const r = parseRating1to5(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 5.");
+      if (r === null) return addBotMessage(`Enter 1–5.\n\n${ratingGuide5}`);
       setOceanE(r);
       setStep("oceanA");
-      setCurrentQuestionNumber(9);
-      addBotMessage(
-        `✅ **Extraversion: ${r}/5**\n\n` +
-        "**Question 9 of 17: Agreeableness**\n" +
-        "**Rate 1-5: Openness to Experience**\n" +
-        "Do you prefer working in a cooperative team rather than competing individually?\n\n"
-      );
+      addBotMessage(`${ratingGuide5}\nQ4) Do you prefer working in a cooperative team rather than competing individually?`);
       return;
     }
 
     if (step === "oceanA") {
       const r = parseRating1to5(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 5.");
+      if (r === null) return addBotMessage(`Enter 1–5.\n\n${ratingGuide5}`);
       setOceanA(r);
       setStep("oceanN");
-      setCurrentQuestionNumber(10);
-      addBotMessage(
-        `✅ **Agreeableness: ${r}/5**\n\n` +
-        "**Question 10 of 17: Neuroticism**\n" +
-        "**Rate 1-5: Openness to Experience**\n" +
-        "Do you easily get stressed or anxious before exams or project deadlines?\n\n"
-      );
+      addBotMessage(`${ratingGuide5}\nQ5) Do you easily get stressed or anxious before exams or project deadlines?`);
       return;
     }
 
     if (step === "oceanN") {
       const r = parseRating1to5(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 5.");
+      if (r === null) return addBotMessage(`Enter 1–5.\n\n${ratingGuide5}`);
       setOceanN(r);
+
       setStep("riaR");
-      setCurrentQuestionNumber(11);
       addBotMessage(
-        `✅ **Neuroticism: ${r}/5**\n\n` +
-        "🎯 **Personality assessment complete!**\n\n" +
-        "**Question 11 of 17: RIASEC - Realistic**\n" +
-        "**Rate your interest in hands-on, practical work (1-10)**:\n\n" +
-        "Do you enjoy practical work such as assembling hardware or configuring devices?\n"
+        `Great! ✅ Now answer these 6 interest questions using ⭐ rating.\n\n${ratingGuide10}\n` +
+        "Q6) Do you enjoy practical work such as assembling hardware or configuring devices?"
       );
       return;
     }
@@ -332,93 +289,62 @@ export default function Home() {
     // RIASEC
     if (step === "riaR") {
       const r = parseRating1to10(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 10.");
+      if (r === null) return addBotMessage(`Enter 1–10.\n\n${ratingGuide10}`);
       setRiaR(r);
       setStep("riaI");
-      setCurrentQuestionNumber(12);
-      addBotMessage(
-        `✅ **Realistic: ${r}/10**\n\n` +
-        "**Question 12 of 17: Investigative**\n" +
-        "**Rate your interest in analytical thinking (1-10)**:\n\n" +
-        "Do you like solving analytical problems, debugging code, or doing research on new tech?\n"
-      );
+      addBotMessage(`${ratingGuide10}\nQ7) Do you like solving analytical problems, debugging code, or doing research on new tech?`);
       return;
     }
 
     if (step === "riaI") {
       const r = parseRating1to10(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 10.");
+      if (r === null) return addBotMessage(`Enter 1–10.\n\n${ratingGuide10}`);
       setRiaI(r);
       setStep("riaA");
-      setCurrentQuestionNumber(13);
-      addBotMessage(
-        `✅ **Investigative: ${r}/10**\n\n` +
-        "**Question 13 of 17: Artistic**\n" +
-        "**Rate your interest in creative expression (1-10)**:\n\n" +
-        "Do you enjoy designing user interfaces, graphics, or creating something visually appealing?\n"
-      );
+      addBotMessage(`${ratingGuide10}\nQ8) Do you enjoy designing user interfaces, graphics, or creating something visually appealing?`);
       return;
     }
 
     if (step === "riaA") {
       const r = parseRating1to10(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 10.");
+      if (r === null) return addBotMessage(`Enter 1–10.\n\n${ratingGuide10}`);
       setRiaArt(r);
       setStep("riaS");
-      setCurrentQuestionNumber(14);
-      addBotMessage(
-        `✅ **Artistic: ${r}/10**\n\n` +
-        "**Question 14 of 17: Social**\n" +
-        "**Rate your interest in helping others (1-10)**:\n\n" +
-        " Do you like helping friends understand complex technical concepts?\n"
-      );
+      addBotMessage(`${ratingGuide10}\nQ9) Do you like helping friends understand complex technical concepts?`);
       return;
     }
 
     if (step === "riaS") {
       const r = parseRating1to10(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 10.");
+      if (r === null) return addBotMessage(`Enter 1–10.\n\n${ratingGuide10}`);
       setRiaS(r);
       setStep("riaE");
-      setCurrentQuestionNumber(15);
-      addBotMessage(
-        `✅ **Social: ${r}/10**\n\n` +
-        "**Question 15 of 17: Enterprising**\n" +
-        "**Rate your interest in leadership (1-10)**:\n\n" +
-        "Do you enjoy taking leadership roles and guiding a team toward project goals?\n"
-      );
+      addBotMessage(`${ratingGuide10}\nQ10) Do you enjoy taking leadership roles and guiding a team toward project goals?`);
       return;
     }
 
     if (step === "riaE") {
       const r = parseRating1to10(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 10.");
+      if (r === null) return addBotMessage(`Enter 1–10.\n\n${ratingGuide10}`);
       setRiaE(r);
       setStep("riaC");
-      setCurrentQuestionNumber(16);
-      addBotMessage(
-        `✅ **Enterprising: ${r}/10**\n\n` +
-        "**Question 16 of 17: Conventional**\n" +
-        "**Rate your interest in organized tasks (1-10)**:\n\n" +
-        "Do you prefer structured tasks like organizing data, documentation, or reports?\n"
-      );
+      addBotMessage(`${ratingGuide10}\nQ11) Do you prefer structured tasks like organizing data, documentation, or reports?`);
       return;
     }
 
     if (step === "riaC") {
       const r = parseRating1to10(userText);
-      if (r === null) return addBotMessage("Please enter a number between 1 and 10.");
+      if (r === null) return addBotMessage(`Enter 1–10.\n\n${ratingGuide10}`);
       setRiaC(r);
-      setCurrentQuestionNumber(17);
 
       setIsThinking(true);
 
-      // Payload matching backend requirements
+      // EXACT payload keys that your FastAPI expects
       const payload = {
         Soft_Skills: softSkills,
         Key_Skils: techSkills,
         Current_semester: semester,
-        Learning_Style: "Visual", // Default value as per backend
+        Learning_Style: "Unknown",
 
         GPA: gpa ?? 0,
         English_score: englishScore ?? 0,
@@ -438,8 +364,8 @@ export default function Home() {
       };
 
       try {
-        addBotMessage("✅ **All questions answered!**\n\n🤔 Analyzing your profile...");
-
+        addBotMessage("Awesome! 🔍 Let me analyze your profile and predict a suitable career path...");
+        console.log("Payload",payload)
         const res = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -449,8 +375,7 @@ export default function Home() {
         if (!res.ok) throw new Error("Network response was not ok");
 
         const data = await res.json();
-        const top1 = data.top_1_prediction;
-        const top3 = data.top_3_predictions;
+        const career = data.predicted_career ?? "Unknown";
 
         addBotMessage(
           `🎉 **Career Prediction Complete!**\n\n` +
@@ -485,10 +410,7 @@ export default function Home() {
         resetAll();
       } catch (error) {
         console.error(error);
-        addBotMessage(
-          "❌ **Service Temporarily Unavailable**\n" +
-          "Our prediction engine is currently updating. Please try again in a few minutes."
-        );
+        addBotMessage("Sorry, something went wrong while predicting your career. Please try again later.");
         resetAll();
       } finally {
         setIsThinking(false);
@@ -498,134 +420,96 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-6 flex items-center justify-center font-sans">
-      <div className="w-full max-w-6xl h-[90vh] bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-blue-200/30 flex flex-col overflow-hidden border border-slate-200">
-        {/* Enhanced Header */}
-        <header className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center text-white shadow-lg">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white tracking-tight">CareerPath AI</h1>
-                <p className="text-sm text-blue-100/80 font-medium">Intelligent Career Assessment</p>
-              </div>
+    <main className="min-h-screen bg-gradient-to-l from-blue-400 via-blue-500 to-blue-800 flex items-center justify-center px-4 py-6">
+      <div className="w-full max-w-6xl h-[90vh] bg-white/90 border border-blue-200 rounded-3xl shadow-2xl backdrop-blur-xl flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="flex items-center justify-between px-6 py-4 border-b border-blue-200 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#2A5AA6] to-[#4AA2E4] flex items-center justify-center text-white font-semibold shadow-lg shadow-blue-300/40">
+              AI
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <div className="h-3 w-3 rounded-full bg-emerald-400 animate-pulse"></div>
-                <div className="h-3 w-3 rounded-full bg-emerald-400 animate-pulse absolute inset-0 opacity-50"></div>
-              </div>
-              <span className="text-sm font-medium text-white">Live Assessment</span>
+            <div>
+              <h1 className="text-[#192A68] font-semibold text-lg">
+                Future Career Bot
+              </h1>
+              <p className="text-xs text-blue-700/70">Career prediction assistant</p>
             </div>
           </div>
-
-          {/* Progress Bar */}
-          <div className="mt-3">
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-white font-medium">Progress</span>
-              <span className="text-white font-semibold">{currentQuestionNumber}/17 • {progress}%</span>
-            </div>
-            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 transition-all duration-500 ease-out"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-emerald-700">Online</span>
           </div>
         </header>
 
-        {/* Chat Area */}
-        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-6 bg-gradient-to-b from-slate-50/50 to-white">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-6 md:px-10 py-5 space-y-4 scrollbar-thin scrollbar-thumb-blue-300/60 scrollbar-track-transparent">
           {messages.map((msg) => {
             const isUser = msg.sender === "user";
 
             return (
               <div
                 key={msg.id}
-                className={`flex ${isUser ? "justify-end" : "justify-start"} animate-fade-in`}
+                className={`flex items-end gap-3 ${isUser ? "justify-end" : "justify-start"
+                  }`}
               >
                 {!isUser && (
-                  <div className="shrink-0 mr-3 mt-1">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-700 to-blue-600 flex items-center justify-center text-white shadow-md">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
+                  <div className="shrink-0">
+                    <div className="w-10 h-10 rounded-2xl bg-white border border-blue-200 shadow-sm overflow-hidden">
+                      <img
+                        src="/logo.png"
+                        alt="Bot"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </div>
                 )}
 
-                <div className={`max-w-[85%] ${isUser ? "order-2" : "order-1"}`}>
+                <div
+                  className={`max-w-[85%] md:max-w-[70%] ${isUser ? "order-1" : ""
+                    }`}
+                >
                   <div
-                    className={`
-                      relative rounded-2xl px-5 py-4 leading-relaxed whitespace-pre-wrap
-                      shadow-sm border
-                      ${isUser
-                        ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-500/30 rounded-br-md"
-                        : "bg-white text-slate-800 border-slate-200 rounded-bl-md"
-                      }
-                    `}
+                    className={[
+                      "relative rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap",
+                      "shadow-sm border",
+                      isUser
+                        ? "bg-blue-800 text-white border-blue-500"
+                        : "bg-white text-blue-800 border-blue-800",
+                      isUser ? "rounded-br-md" : "rounded-bl-md",
+                    ].join(" ")}
                   >
-                    {/* Message triangle */}
-                    <div className={`
-                      absolute top-4 w-3 h-3 transform rotate-45
-                      ${isUser
-                        ? "-right-1 bg-gradient-to-r from-blue-600 to-blue-700 border-r border-b border-blue-500/30"
-                        : "-left-1 bg-white border-l border-t border-slate-200"
-                      }
-                    `}></div>
+                    <span
+                      className={[
+                        "absolute bottom-2 h-3 w-3 rotate-45",
+                        isUser
+                          ? "-right-1 bg-[#2A5AA6] border-r border-b border-blue-300"
+                          : "-left-1 bg-white border-l border-b border-blue-200",
+                      ].join(" ")}
+                    />
 
-                    <div className="space-y-2">
-                      {msg.text.split('\n').map((line, idx) => {
-                        if (line.startsWith('## ')) {
-                          return <h2 key={idx} className={`text-lg font-bold ${isUser ? 'text-white' : 'text-blue-700'} mt-2`}>{line.replace('## ', '')}</h2>;
-                        }
-                        if (line.startsWith('• ')) {
-                          return <div key={idx} className="flex items-start">
-                            <span className={`mr-2 ${isUser ? 'text-blue-200' : 'text-blue-500'}`}>•</span>
-                            <span className={isUser ? 'text-blue-100' : 'text-slate-700'}>{line.slice(2)}</span>
-                          </div>;
-                        }
-                        if (line.includes('**') && line.includes('**')) {
-                          const parts = line.split('**');
-                          return <p key={idx} className={`font-normal ${isUser ? 'text-blue-100' : 'text-slate-700'}`}>
-                            {parts.map((part, i) =>
-                              i % 2 === 1 ?
-                                <strong key={i} className={`font-bold ${isUser ? 'text-white' : 'text-slate-900'}`}>{part}</strong> :
-                                <span key={i}>{part}</span>
-                            )}
-                          </p>;
-                        }
-                        if (line.startsWith('1️⃣') || line.startsWith('2️⃣') || line.startsWith('3️⃣') || line.startsWith('4️⃣') || line.startsWith('5️⃣')) {
-                          return <div key={idx} className="flex items-center space-x-2">
-                            <span className={isUser ? 'text-blue-200' : 'text-blue-600'}>{line.charAt(0)}</span>
-                            <span className={isUser ? 'text-blue-100' : 'text-slate-700'}>{line.slice(2)}</span>
-                          </div>;
-                        }
-                        return <p key={idx} className={`font-normal ${isUser ? 'text-blue-100' : 'text-slate-700'}`}>{line}</p>;
-                      })}
-                    </div>
+                    <p>{msg.text}</p>
 
-                    <div className="mt-3 flex items-center justify-end gap-2 pt-2 border-t border-opacity-20">
-                      <span className={`text-xs ${isUser ? 'text-blue-200/70' : 'text-slate-500'}`}>
-                        {isUser ? "You" : "Career Advisor"}
+                    <div className="mt-2 flex items-center justify-end gap-2">
+                      <span
+                        className={`text-[10px] ${isUser ? "text-blue-100/80" : "text-blue-700/60"
+                          }`}
+                      >
+                        {isUser ? "You" : "Career Bot"}
                       </span>
-                      <span className={`text-xs ${isUser ? 'text-blue-200/50' : 'text-slate-400'}`}>
-                        {msg.timestamp}
+                      <span
+                        className={`text-[10px] ${isUser ? "text-blue-100/70" : "text-blue-700/50"
+                          }`}
+                      >
+                        • {msg.timestamp}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {isUser && (
-                  <div className="shrink-0 ml-3 mt-1 order-1">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center text-blue-700 shadow-md">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                      </svg>
+                  <div className="shrink-0 order-2">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-200 to-blue-100 border border-blue-200 shadow-sm flex items-center justify-center text-[#192A68] font-semibold">
+                      U
                     </div>
                   </div>
                 )}
@@ -633,28 +517,19 @@ export default function Home() {
             );
           })}
 
-          {/* Thinking Indicator */}
           {isThinking && (
-            <div className="flex items-start animate-fade-in">
-              <div className="shrink-0 mr-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-700 to-blue-600 flex items-center justify-center text-white shadow-md">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                </div>
+            <div className="flex items-end gap-3 justify-start">
+              <div className="w-10 h-10 rounded-2xl bg-white border border-blue-200 shadow-sm overflow-hidden">
+                <img src="/robot.png" alt="Bot" className="w-full h-full object-cover" />
               </div>
-              <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-md px-5 py-4 shadow-sm">
-                <div className="flex items-center gap-4">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
-                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse delay-150"></div>
-                    <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse delay-300"></div>
-                  </div>
-                  <div>
-                    <span className="text-sm font-semibold text-slate-800">Processing your assessment</span>
-                    <p className="text-xs text-slate-500 mt-0.5">Analyzing responses and predicting career path...</p>
-                  </div>
-                </div>
+
+              <div className="bg-white border border-blue-200 text-slate-700 px-4 py-3 rounded-2xl rounded-bl-md text-sm flex items-center gap-3 shadow-sm">
+                <span className="relative flex h-2 w-10 items-center justify-between">
+                  <span className="h-2 w-2 rounded-full bg-[#2A5AA6] animate-bounce" />
+                  <span className="h-2 w-2 rounded-full bg-[#4AA2E4] animate-bounce delay-150" />
+                  <span className="h-2 w-2 rounded-full bg-blue-300 animate-bounce delay-300" />
+                </span>
+                <span className="text-blue-800/70">Thinking…</span>
               </div>
             </div>
           )}
@@ -662,71 +537,28 @@ export default function Home() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Enhanced Input Area */}
-        <form onSubmit={handleSubmit} className="border-t border-slate-100 bg-gradient-to-t from-white to-slate-50/50 px-4 py-3">
-          <div className="flex items-center gap-3">
+        {/* Input */}
+        <form onSubmit={handleSubmit} className="border-t border-blue-200 bg-white/70 px-4 py-3">
+          <div className="flex items-center gap-2">
             <input
-              className="flex-1 rounded-xl bg-white border border-slate-200 px-4 py-3.5 text-base text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all font-medium shadow-sm"
-              placeholder={
-                step === "welcome"
-                  ? 'Type "start" to begin your career assessment...'
-                  : step === "oceanO" || step === "oceanC" || step === "oceanE" || step === "oceanA" || step === "oceanN"
-                    ? `Enter rating 1-5 for Question ${currentQuestionNumber}...`
-                    : step === "riaR" || step === "riaI" || step === "riaA" || step === "riaS" || step === "riaE" || step === "riaC"
-                      ? `Enter rating 1-10 for Question ${currentQuestionNumber}...`
-                      : `Answer Question ${currentQuestionNumber}...`
-              }
+              className="flex-1 rounded-2xl bg-white border border-blue-200 px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/70 focus:border-transparent"
+              placeholder='Type your message here (e.g., "Start")...'
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              disabled={isThinking}
             />
             <button
               type="submit"
               disabled={!input.trim() || isThinking}
-              className="inline-flex items-center justify-center rounded-xl px-6 py-3.5 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30 active:scale-[0.98]"
+              className="inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-medium bg-[#2A5AA6] text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#1f4f96] transition-colors shadow-lg shadow-blue-300/40"
             >
-              <span className="mr-2 font-bold">Send</span>
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+              <span className="mr-1">Send</span>
+              <svg className="w-4 h-4 -rotate-45" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M3.172 16.828a.75.75 0 0 0 .79.182l12-4.5a.75.75 0 0 0 0-1.39l-12-4.5A.75.75 0 0 0 2.25 7.25L5.9 10 9 10.75a.25.25 0 0 1 0 .5L5.9 12 2.25 14.75a.75.75 0 0 0-.078 2.078z" />
               </svg>
             </button>
           </div>
-          <div className="mt-2 text-xs text-slate-500 text-center font-medium">
-            {step === "oceanO" || step === "oceanC" || step === "oceanE" || step === "oceanA" || step === "oceanN"
-              ? "Rating scale: 1 (Lowest) to 5 (Highest)"
-              : step === "riaR" || step === "riaI" || step === "riaA" || step === "riaS" || step === "riaE" || step === "riaC"
-                ? "Rating scale: 1 (Lowest) to 10 (Highest)"
-                : "Press Enter to send your response"}
-          </div>
         </form>
       </div>
-
-      <style jsx global>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.25s ease-out;
-        }
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-        body {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-      `}</style>
     </main>
   );
 }

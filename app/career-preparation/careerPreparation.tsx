@@ -1,216 +1,372 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import {
-  Briefcase,
+  Brain,
   Target,
   BookOpen,
   Users,
   ArrowRight,
   CheckCircle,
   Star,
-  Clock
+  Clock,
+  BarChart3,
+  TrendingUp,
+  Shield,
+  Zap,
+  Lightbulb,
+  Award,
+  UserCheck,
+  FileText,
+  Calendar,
+  LayoutDashboard,
+  ChevronRight,
+  Home
 } from 'lucide-react';
 
 function CareerPreparation() {
   const router = useRouter();
+  const pathname = usePathname();
+  const [selectedRole, setSelectedRole] = useState('data-science');
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const careerRoles = [
+    {
+      id: 'data-science',
+      title: 'Data Science',
+      description: 'Analyze complex data sets and extract meaningful insights to drive business decisions.',
+      icon: <BarChart3 className="w-6 h-6" />,
+      color: 'from-blue-500 to-indigo-600'
+    },
+    {
+      id: 'cybersecurity',
+      title: 'Cybersecurity',
+      description: 'Protect systems, networks, and programs from digital attacks and unauthorized access.',
+      icon: <Shield className="w-6 h-6" />,
+      color: 'from-green-500 to-teal-600'
+    },
+    {
+      id: 'web-development',
+      title: 'Web Development',
+      description: 'Build and maintain websites and web applications for various platforms and devices.',
+      icon: <Zap className="w-6 h-6" />,
+      color: 'from-blue-500 to-indigo-600'
+    },
+    {
+      id: 'ai-engineering',
+      title: 'AI Engineering',
+      description: 'Design, develop, and implement artificial intelligence models and systems.',
+      icon: <Brain className="w-6 h-6" />,
+      color: 'from-orange-500 to-red-600'
+    }
+  ];
+
+  const roadmapFeatures = [
+    {
+      title: 'Skill Assessment',
+      description: 'Evaluation of your current skills to identify areas for growth and development.',
+      icon: <FileText className="w-6 h-6" />
+    },
+    {
+      title: 'Internship Path',
+      description: 'Step-by-step guidance to prepare for and secure internship opportunities.',
+      icon: <Calendar className="w-6 h-6" />
+    },
+    {
+      title: 'Progress Tracking',
+      description: 'Monitor your readiness for internships with clear progress indicators.',
+      icon: <TrendingUp className="w-6 h-6" />
+    },
+    {
+      title: 'Career Guidance',
+      description: 'Expert advice to help you navigate your career path successfully.',
+      icon: <Users className="w-6 h-6" />
+    }
+  ];
 
   const handleTryService = () => {
-    router.push('/personalized-roadmap');
+    router.push('/career-preparation/student-assessment');
   };
 
+  const sidebarItems = [
+    { id: 'dashboard', name: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/career-preparation' },
+    { id: 'assessment', name: 'Student Assessment', icon: <FileText className="w-5 h-5" />, href: '/career-preparation/student-assessment' },
+    { id: 'roadmap', name: 'Personalized Roadmap', icon: <Target className="w-5 h-5" />, href: '/career-preparation/personalized-roadmap' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex">
+      {/* Sidebar */}
+      <div className="w-64 bg-white shadow-lg flex-shrink-0 hidden md:block">
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <Brain className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h2 className="font-bold text-lg text-gray-900">Career Prep</h2>
+              <p className="text-xs text-gray-500">AI Guidance System</p>
+            </div>
+          </div>
+        </div>
+        
+        <nav className="p-4">
+          <div className="space-y-1">
+            {sidebarItems.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  pathname === item.href || (item.id === 'dashboard' && pathname === '/career-preparation')
+                    ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <div className={`${pathname === item.href || (item.id === 'dashboard' && pathname === '/career-preparation') ? 'text-blue-700' : 'text-gray-500'}`}>
+                  {item.icon}
+                </div>
+                <span className="font-medium">{item.name}</span>
+                {pathname === item.href || (item.id === 'dashboard' && pathname === '/career-preparation') ? (
+                  <ChevronRight className="w-4 h-4 ml-auto text-blue-700" />
+                ) : null}
+              </Link>
+            ))}
+          </div>
+          
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <Link
+              href="/"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              <Home className="w-5 h-5 text-gray-500" />
+              <span className="font-medium">Back to Home</span>
+            </Link>
+          </div>
+        </nav>
+      </div>
+      
+      {/* Mobile menu button */}
+      <div className="md:hidden fixed bottom-4 right-4 z-10">
+        <button className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white">
+          <LayoutDashboard className="w-6 h-6" />
+        </button>
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex-1 p-4 md:p-8 overflow-auto">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-12 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Career Preparation Hub
+            Your Path to Career Success
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl">
-            Master interview techniques, resume building, and professional skills with our comprehensive preparation tools.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Step-by-step guidance to help you grow your skills and secure internship opportunities in the IT industry.
           </p>
+        </div>
+
+        {/* Career Role Selection */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Choose Your Career Path</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {careerRoles.map((role) => (
+              <div
+                key={role.id}
+                className={`bg-white rounded-2xl p-6 border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                  selectedRole === role.id 
+                    ? 'border-blue-500 shadow-lg' 
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setSelectedRole(role.id)}
+              >
+                <div className={`w-12 h-12 bg-gradient-to-br ${role.color} rounded-xl flex items-center justify-center mb-4`}>
+                  <div className="text-white">
+                    {role.icon}
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{role.title}</h3>
+                <p className="text-sm text-gray-600">{role.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Services */}
+          {/* Left Column - System Features */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Interview Coaching */}
+            {/* System Overview */}
             <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
               <div className="flex items-start gap-6">
                 <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="w-7 h-7 text-white" />
+                  <Brain className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Interview Coaching</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Career Path Analysis</h2>
                   <p className="text-gray-600 mb-6">
-                    Practice with AI-powered mock interviews, get real-time feedback, and master the art of answering tough questions.
+                    Our system evaluates your skills, interests, and goals to create a personalized path that helps you grow professionally and secure internship opportunities.
                   </p>
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Technical & behavioral questions</span>
+                      <span className="text-gray-700">Personalized skill development plan</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Real-time feedback & scoring</span>
+                      <span className="text-gray-700">Internship readiness assessment</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Industry-specific scenarios</span>
+                      <span className="text-gray-700">Industry-aligned career guidance</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Personalized Roadmaps */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+              <div className="flex items-start gap-6">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Target className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Internship-Focused Roadmaps</h2>
+                  <p className="text-gray-600 mb-6">
+                    Step-by-step guidance to build the skills and experience needed to secure competitive internship opportunities in your chosen field.
+                  </p>
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-gray-700">Skill-building milestones</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-gray-700">Internship preparation tasks</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                      <span className="text-gray-700">Personalized growth path</span>
                     </div>
                   </div>
                   <button
                     onClick={handleTryService}
                     className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2"
                   >
-                    Start Interview Practice <ArrowRight className="w-5 h-5" />
+                    Start Assessment <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Resume Optimization */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
-              <div className="flex items-start gap-6">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Target className="w-7 h-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Resume Optimization</h2>
-                  <p className="text-gray-600 mb-6">
-                    Build a standout resume with our AI-powered tools, ATS optimization, and expert templates.
-                  </p>
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">ATS-friendly formatting</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Keyword optimization</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Professional templates</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleTryService}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2"
-                  >
-                    Optimize Your Resume <ArrowRight className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Skill Development */}
+            {/* Continuous Monitoring */}
             <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
               <div className="flex items-start gap-6">
                 <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="w-7 h-7 text-white" />
+                  <TrendingUp className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Skill Development</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3">Internship Readiness Tracking</h2>
                   <p className="text-gray-600 mb-6">
-                    Access curated courses, practice challenges, and personalized learning paths to enhance your professional skills.
+                    Monitor your progress toward internship readiness with clear indicators of your preparedness for real-world industry experience.
                   </p>
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Personalized learning paths</span>
+                      <span className="text-gray-700">Internship readiness score</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Hands-on projects</span>
+                      <span className="text-gray-700">Skill gap analysis</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-700">Progress tracking</span>
+                      <span className="text-gray-700">Personalized improvement recommendations</span>
                     </div>
                   </div>
-                  <button
-                    onClick={handleTryService}
-                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300 flex items-center gap-2"
-                  >
-                    Develop Your Skills <ArrowRight className="w-5 h-5" />
-                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column - Stats & Testimonials */}
+          {/* Right Column - Features & CTA */}
           <div className="space-y-8">
-            {/* Success Stats */}
+            {/* Key Features */}
             <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Success Metrics</h3>
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-600">Interview Success</span>
-                    <span className="font-bold text-gray-900">87%</span>
+              <h3 className="text-xl font-bold text-gray-900 mb-6">System Features</h3>
+              <div className="space-y-4">
+                {roadmapFeatures.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="text-white">
+                        {feature.icon}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 mb-1">{feature.title}</h4>
+                      <p className="text-sm text-gray-600">{feature.description}</p>
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" style={{ width: '87%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-600">Resume Response Rate</span>
-                    <span className="font-bold text-gray-900">92%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-purple-500 to-pink-600 h-2 rounded-full" style={{ width: '92%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-600">Skill Improvement</span>
-                    <span className="font-bold text-gray-900">95%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-gradient-to-r from-green-500 to-teal-600 h-2 rounded-full" style={{ width: '95%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Testimonial */}
-            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Success Story</h3>
-              <div className="flex items-center gap-3 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                 ))}
               </div>
-              <p className="text-gray-600 mb-4 italic">
-                "The interview coaching was game-changing. I landed my dream job at a FAANG company within 3 months of using this platform."
-              </p>
-              <div>
-                <p className="font-bold text-gray-900">Sarah Mitchell</p>
-                <p className="text-sm text-gray-600">Product Manager at Tech Innovations Inc</p>
+            </div>
+
+            {/* Ethical Framework */}
+            <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Ethical Framework</h3>
+              <div className="flex items-start gap-3 mb-4">
+                <Shield className="w-10 h-10 text-green-500 flex-shrink-0" />
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-1">Responsible Data Handling</h4>
+                  <p className="text-sm text-gray-600">
+                    We prioritize ethical data handling and privacy protection throughout your career journey.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <UserCheck className="w-10 h-10 text-blue-500 flex-shrink-0" />
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-1">Expert Validation</h4>
+                  <p className="text-sm text-gray-600">
+                    All recommendations are validated by IT specialists and psychologists for relevance.
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Quick Start */}
+            {/* Success Metrics */}
             <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-8 text-white">
-              <h3 className="text-xl font-bold mb-4">Ready to Start?</h3>
+              <h3 className="text-xl font-bold mb-4">Bridging the Gap</h3>
               <p className="mb-6 text-blue-100">
-                Get personalized career preparation with our AI-powered roadmap.
+                Our comprehensive framework bridges the gap between educational preparation and employment by providing a data-backed, structured journey toward professional success.
               </p>
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center gap-2">
+                  <Award className="w-5 h-5 text-yellow-300" />
+                  <span className="text-sm">Industry-aligned skill development</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-yellow-300" />
+                  <span className="text-sm">Personalized career insights</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-yellow-300" />
+                  <span className="text-sm">Expert-validated guidance</span>
+                </div>
+              </div>
               <button
                 onClick={handleTryService}
                 className="w-full px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-all duration-300 flex items-center justify-center gap-2"
               >
-                Get Personalized Roadmap <ArrowRight className="w-5 h-5" />
+                Start Assessment <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </div>
         </div>
+
+      </div>
       </div>
     </div>
   );
