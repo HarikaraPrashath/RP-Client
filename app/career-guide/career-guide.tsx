@@ -377,8 +377,35 @@ export default function Home() {
         const data = await res.json();
         const career = data.predicted_career ?? "Unknown";
 
-        addBotMessage(`Based on your profile, a suitable career path for you is: ${career}.`);
-        addBotMessage('If you want to try again with different skills, type "Start".');
+        addBotMessage(
+          `🎉 **Career Prediction Complete!**\n\n` +
+          `🏆 **Best Model Prediction:**\n` +
+          `## ${top1}\n\n` +
+
+          `📌 **Top-3 Suggested Careers:**\n` +
+          `${top3.map((c: string, i: number) => `${i + 1}. ${c}`).join("\n")}\n\n` +
+
+          `💡 **This recommendation is based on your skills, personality (OCEAN), and interests (RIASEC).**\n\n` +
+
+          `✅ **Why this fits you (${top1}):**\n` +
+          `• **Recommended GPA:** 3.0+\n` +
+          `• **Key technical skills:** Python, Java, SQL, Spring Boot, Machine Learning\n` +
+          `• **Tools & Technologies:** Git, MySQL, Jupyter, Power BI / Tableau\n` +
+          `• **Soft skills expected:** Communication, Teamwork, Time Management\n\n` +
+
+          `🚀 **Next Steps to Succeed:**\n` +
+          `• Build **1–2 real-world projects** related to ${top1}\n` +
+          `• Create a **GitHub portfolio** with clean documentation\n` +
+          `• Practice problem-solving & system fundamentals\n` +
+          `• Apply for internships or junior roles aligned with this path`
+        );
+
+
+
+        addBotMessage(
+          `🔄 **Take another assessment?**\n` +
+          `Type **"start"** to begin again with different responses.`
+        );
 
         resetAll();
       } catch (error) {
