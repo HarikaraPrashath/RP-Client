@@ -291,17 +291,17 @@ export default function Home() {
           0%, 100% { transform: translateX(-50%) translateY(0); }
           50% { transform: translateX(-50%) translateY(-20px); }
         }
-        
+
         @keyframes orbit-right {
           0%, 100% { transform: translateY(-50%) translateX(0); }
           50% { transform: translateY(-50%) translateX(20px); }
         }
-        
+
         @keyframes orbit-bottom {
           0%, 100% { transform: translateX(-50%) translateY(0); }
           50% { transform: translateX(-50%) translateY(20px); }
         }
-        
+
         @keyframes orbit-left {
           0%, 100% { transform: translateY(-50%) translateX(0); }
           50% { transform: translateY(-50%) translateX(-20px); }
@@ -486,7 +486,7 @@ export default function Home() {
                 </div>
 
                 <Link
-                  href="/"
+                  href="/personality-prediction"
                   className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
                 >
                   Try Service
