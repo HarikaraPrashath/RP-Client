@@ -189,11 +189,6 @@ export default async function TrendsPage() {
               Each scrape saves a snapshot of job postings. Compare snapshots to spot the skills
               and roles gaining momentum or fading out.
             </p>
-            <div className={styles.heroChips}>
-              <span className={styles.heroChip}>Snapshots collected: {summary.snapshotCount}</span>
-              <span className={styles.heroChip}>Lookback window: {summary.windowDays} days</span>
-              <span className={styles.heroChip}>Most recent: {formatDate(summary.latestAt)}</span>
-            </div>
           </div>
           <div className={styles.heroPanel}>
             <div>
