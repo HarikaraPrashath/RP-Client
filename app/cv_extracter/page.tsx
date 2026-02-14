@@ -144,6 +144,10 @@ const emptyProfile: ProfilePayload = {
 
 const cleanText = (value?: string | null) => (typeof value === "string" ? value.trim() : "");
 
+const EMAIL_RE = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/;
+const URL_RE = /\bhttps?:\/\/[^\s]+|\bwww\.[^\s]+|\b(?:github|linkedin)\.com\/[^\s]+/i;
+const PHONE_RE = /(\+?\d[\d\s\-\(\)\.]{7,}\d)/;
+
 const limitText = (value: string, max = 800) => {
   if (!value) return "";
   if (value.length <= max) return value;
@@ -185,6 +189,50 @@ const parseSkillsText = (text: string) =>
     .split(/\n|,|;|\u2022/)
     .map((skill) => skill.trim())
     .filter(Boolean);
+
+const normalizeSkillToken = (value: string) => {
+  let cleaned = value.trim();
+  if (!cleaned) return "";
+  const colonIndex = cleaned.indexOf(":");
+  if (colonIndex > 0 && colonIndex < 24) {
+    cleaned = cleaned.slice(colonIndex + 1).trim();
+  }
+  cleaned = cleaned.replace(/^[\s•*-]+/, "");
+  cleaned = cleaned.replace(/[.,]+$/g, "");
+  return cleaned.trim();
+};
+
+const isLikelySkill = (value: string) => {
+  if (!value) return false;
+  if (EMAIL_RE.test(value)) return false;
+  if (URL_RE.test(value)) return false;
+  if (PHONE_RE.test(value)) return false;
+  if (/^cid:\d+/i.test(value)) return false;
+  if (/^expected\s*\d{4}$/i.test(value)) return false;
+  if (/^(?:19|20)\d{2}$/.test(value)) return false;
+  if (/^(?:\d{4}|\d{1,2}\/\d{4})(?:\s*[-–]\s*\d{4})?$/.test(value)) return false;
+  if (/^(?:\d+|\d+\.\d+)$/.test(value)) return false;
+  return value.length <= 80;
+};
+
+const cleanSkills = (skills: string[]) =>
+  skills.map(normalizeSkillToken).filter(isLikelySkill);
+
+const mergeSkills = (primary: string[], secondary: string[]) => {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  const add = (skill: string) => {
+    const trimmed = skill.trim();
+    if (!trimmed) return;
+    const key = trimmed.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(trimmed);
+  };
+  primary.forEach(add);
+  secondary.forEach(add);
+  return result;
+};
 
 const isUrlContinuation = (value: string) =>
   /^[?&]|^m=|^t=/i.test(value.trim());
@@ -308,8 +356,9 @@ const buildProfileFromParsed = (
   const certificationsText = cleanText(
     parsed.sections?.certifications || parsed.sections?.certification
   );
-  const parsedSkills = Array.isArray(parsed.skills) ? parsed.skills : [];
-  const skillsFromText = skillsText ? parseSkillsText(skillsText) : [];
+  const parsedSkills = cleanSkills(Array.isArray(parsed.skills) ? parsed.skills : []);
+  const skillsFromText = skillsText ? cleanSkills(parseSkillsText(skillsText)) : [];
+  const mergedSkills = mergeSkills(parsedSkills, skillsFromText);
   const contactEmail = parsed.contacts?.emails?.[0] || "";
 
   const nextBasics: Basics = {
@@ -327,12 +376,7 @@ const buildProfileFromParsed = (
 
   const nextExperiences = experienceText ? buildExperiences(experienceText) : base.experiences;
   const nextEducation = educationText ? buildEducationItems(educationText) : base.educationItems;
-  const nextSkills =
-    parsedSkills.length > 0
-      ? parsedSkills
-      : skillsFromText.length > 0
-        ? skillsFromText
-        : base.skills;
+  const nextSkills = mergedSkills.length > 0 ? mergedSkills : base.skills;
   const nextProjects = projectsText ? parseSectionList(projectsText) : base.projects;
   const nextCertifications = certificationsText
     ? parseSectionList(certificationsText)
@@ -365,6 +409,14 @@ export default function Profile() {
   const [confirmPayload, setConfirmPayload] = useState<ProfilePayload | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
   const router = useRouter();
+
+  const displaySkills = useMemo(() => {
+    if (!parsed) return [];
+    const parsedSkills = cleanSkills(Array.isArray(parsed.skills) ? parsed.skills : []);
+    const skillsText = cleanText(parsed.sections?.skills);
+    const skillsFromText = skillsText ? cleanSkills(parseSkillsText(skillsText)) : [];
+    return mergeSkills(parsedSkills, skillsFromText);
+  }, [parsed]);
 
   const sampleParsed = {
     name: "Jane Developer",
@@ -704,8 +756,8 @@ export default function Profile() {
                             <Card size="small" className={styles.summaryCard}>
                               <div className={styles.summaryLabel}>Skills</div>
                               <div className={styles.skillTags}>
-                                {(parsed.skills || []).length
-                                  ? (parsed.skills || []).slice(0, 18).map((skill: string) => (
+                                {displaySkills.length
+                                  ? displaySkills.slice(0, 18).map((skill) => (
                                       <Tag key={skill}>{skill}</Tag>
                                     ))
                                   : "None detected"}

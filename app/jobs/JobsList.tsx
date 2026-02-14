@@ -4,7 +4,7 @@ import "@ant-design/v5-patch-for-react-19";
 import "antd/dist/reset.css";
 import Link from "next/link";
 import { Button, Modal } from "antd";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import styles from "./page.module.css";
 import type { JobView } from "./types";
 
@@ -15,9 +15,9 @@ type ModalState = {
 
 export default function JobsList({ jobs, apiBase }: { jobs: JobView[]; apiBase: string }) {
   const [modalState, setModalState] = useState<ModalState>({ open: false, job: null });
-
-  const imageAds = jobs.filter((job) => job.imageFile);
-  const textAds = jobs.filter((job) => !job.imageFile);
+  const [query, setQuery] = useState("");
+  const [minMatch, setMinMatch] = useState(0);
+  const [adType, setAdType] = useState<"all" | "image" | "text">("all");
 
   const openModal = (job: JobView) => {
     setModalState({ open: true, job });
@@ -27,20 +27,50 @@ export default function JobsList({ jobs, apiBase }: { jobs: JobView[]; apiBase: 
     setModalState({ open: false, job: null });
   };
 
-  const renderChips = (items: string[], className?: string) => {
+  const renderChips = (items: string[], className?: string, max = 7) => {
     if (!items || items.length === 0) {
       return <span className={styles.muted}>None</span>;
     }
+    const shown = items.slice(0, max);
+    const extra = items.length - shown.length;
     return (
       <div className={styles.chipRow}>
-        {items.map((item, itemIndex) => (
+        {shown.map((item, itemIndex) => (
           <span key={`${item}-${itemIndex}`} className={className ?? styles.chip}>
             {item}
           </span>
         ))}
+        {extra > 0 ? <span className={styles.chipMore}>+{extra} more</span> : null}
       </div>
     );
   };
+
+  const ranked = useMemo(() => {
+    return [...jobs].sort((a, b) => (b.matchPercent ?? -1) - (a.matchPercent ?? -1));
+  }, [jobs]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return ranked.filter((job) => {
+      const score = job.matchPercent ?? 0;
+      const typeMatch =
+        adType === "all" ? true : adType === "image" ? Boolean(job.imageFile) : !job.imageFile;
+      if (!typeMatch || score < minMatch) return false;
+      if (!q) return true;
+      const haystack = [job.position, job.employer, ...(job.skillsFound ?? [])]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [ranked, query, minMatch, adType]);
+
+  const withScore = ranked.filter((job) => typeof job.matchPercent === "number");
+  const avgMatch =
+    withScore.length > 0
+      ? Math.round(
+          withScore.reduce((sum, job) => sum + (job.matchPercent ?? 0), 0) / withScore.length
+        )
+      : 0;
 
   const renderList = (items: JobView[]) => (
     <div className={styles.list}>
@@ -48,10 +78,23 @@ export default function JobsList({ jobs, apiBase }: { jobs: JobView[]; apiBase: 
         <article key={`${job.ref ?? "job"}-${index}`} className={styles.card}>
           <div className={styles.cardHeader}>
             <div>
+              <p className={styles.refText}>{job.ref ?? "No ref"}</p>
               <h2 className={styles.jobTitle}>{job.position ?? "Untitled role"}</h2>
               <p className={styles.employer}>{job.employer ?? "Unknown employer"}</p>
             </div>
-            <span className={styles.refBadge}>{job.ref ?? "No ref"}</span>
+            <div className={styles.scoreBox}>
+              <strong>
+                {typeof job.matchPercent === "number" ? `${Math.round(job.matchPercent)}%` : "--"}
+              </strong>
+              <span>match</span>
+            </div>
+          </div>
+
+          <div className={styles.progressTrack}>
+            <div
+              className={styles.progressFill}
+              style={{ width: `${Math.max(0, Math.min(100, job.matchPercent ?? 0))}%` }}
+            />
           </div>
 
           {job.imageFile ? (
@@ -74,24 +117,16 @@ export default function JobsList({ jobs, apiBase }: { jobs: JobView[]; apiBase: 
 
           <section className={styles.skillsBlock}>
             <div className={styles.skillRow}>
-              <span className={styles.skillLabel}>Match</span>
-              <span className={styles.skillValue}>
-                {typeof job.matchPercent === "number"
-                  ? `${job.matchPercent.toFixed(0)}%`
-                  : "Not scored"}
-              </span>
-            </div>
-            <div className={styles.skillRow}>
               <span className={styles.skillLabel}>Extracted skills</span>
               {renderChips(job.skillsFound ?? [], styles.chipFound)}
             </div>
             <div className={styles.skillRow}>
               <span className={styles.skillLabel}>Missing skills</span>
-              {renderChips(job.missingSkills ?? [], styles.chipMissing)}
+              {renderChips(job.missingSkills ?? [], styles.chipMissing, 5)}
             </div>
             <div className={styles.skillRow}>
               <span className={styles.skillLabel}>Overlap</span>
-              {renderChips(job.overlapSkills ?? [], styles.chipOverlap)}
+              {renderChips(job.overlapSkills ?? [], styles.chipOverlap, 5)}
             </div>
           </section>
 
@@ -106,7 +141,7 @@ export default function JobsList({ jobs, apiBase }: { jobs: JobView[]; apiBase: 
 
             {job.files && job.files.length > 0 ? (
               <div className={styles.files}>
-                {job.files.map((file) => (
+                {job.files.slice(0, 1).map((file) => (
                   <a
                     key={file}
                     className={styles.fileLink}
@@ -117,6 +152,9 @@ export default function JobsList({ jobs, apiBase }: { jobs: JobView[]; apiBase: 
                     {file}
                   </a>
                 ))}
+                {job.files.length > 1 ? (
+                  <span className={styles.muted}>+{job.files.length - 1} more file(s)</span>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -137,24 +175,53 @@ export default function JobsList({ jobs, apiBase }: { jobs: JobView[]; apiBase: 
         </section>
       ) : (
         <>
-          <section className={styles.sectionBlock}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Text ads</h2>
-              <p className={styles.sectionHint}>
-                {textAds.length} {textAds.length === 1 ? "item" : "items"}
-              </p>
+          <section className={styles.toolbar}>
+            <div className={styles.metricPill}>
+              <strong>{jobs.length}</strong>
+              <span>Total jobs</span>
             </div>
-            {textAds.length === 0 ? <p className={styles.muted}>No text ads available.</p> : renderList(textAds)}
+            <div className={styles.metricPill}>
+              <strong>{avgMatch}%</strong>
+              <span>Avg match</span>
+            </div>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className={styles.searchInput}
+              placeholder="Search title, company, skill..."
+              aria-label="Search jobs"
+            />
+            <select
+              className={styles.select}
+              value={minMatch}
+              onChange={(e) => setMinMatch(Number(e.target.value))}
+              aria-label="Minimum match"
+            >
+              <option value={0}>All scores</option>
+              <option value={40}>40%+</option>
+              <option value={60}>60%+</option>
+              <option value={75}>75%+</option>
+            </select>
+            <select
+              className={styles.select}
+              value={adType}
+              onChange={(e) => setAdType(e.target.value as "all" | "image" | "text")}
+              aria-label="Ad type"
+            >
+              <option value="all">All ads</option>
+              <option value="text">Text only</option>
+              <option value="image">Image only</option>
+            </select>
           </section>
 
           <section className={styles.sectionBlock}>
             <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Image ads</h2>
+              <h2 className={styles.sectionTitle}>Ranked jobs</h2>
               <p className={styles.sectionHint}>
-                {imageAds.length} {imageAds.length === 1 ? "item" : "items"}
+                {filtered.length} {filtered.length === 1 ? "result" : "results"}
               </p>
             </div>
-            {imageAds.length === 0 ? <p className={styles.muted}>No image ads available.</p> : renderList(imageAds)}
+            {filtered.length === 0 ? <p className={styles.muted}>No jobs match these filters.</p> : renderList(filtered)}
           </section>
         </>
       )}
