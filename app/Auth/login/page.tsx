@@ -2,58 +2,38 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, type FormEvent } from "react";
-import { setAuthToken } from "../../lib/auth";
+import { useState, type FormEvent } from "react";
+import { setAuthToken } from "../../../lib/auth";
 import styles from "./page.module.css";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-type SignupErrors = {
+type LoginErrors = {
   email?: string;
   password?: string;
-  confirmPassword?: string;
   form?: string;
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function SignupPage() {
+export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<SignupErrors>({});
+  const [remember, setRemember] = useState(false);
+  const [errors, setErrors] = useState<LoginErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const passwordRules = useMemo(
-    () => [
-      { label: "At least 8 characters", passes: password.length >= 8 },
-      { label: "One uppercase letter", passes: /[A-Z]/.test(password) },
-      { label: "One lowercase letter", passes: /[a-z]/.test(password) },
-      { label: "One number", passes: /\d/.test(password) },
-    ],
-    [password]
-  );
-
   const validate = () => {
-    const nextErrors: SignupErrors = {};
+    const nextErrors: LoginErrors = {};
     if (!email.trim()) {
       nextErrors.email = "Email is required.";
     } else if (!emailPattern.test(email.trim())) {
       nextErrors.email = "Enter a valid email address.";
     }
 
-    const passwordIssues = passwordRules.filter((rule) => !rule.passes);
     if (!password) {
       nextErrors.password = "Password is required.";
-    } else if (passwordIssues.length > 0) {
-      nextErrors.password = "Password does not meet all requirements.";
-    }
-
-    if (!confirmPassword) {
-      nextErrors.confirmPassword = "Please confirm your password.";
-    } else if (password && confirmPassword !== password) {
-      nextErrors.confirmPassword = "Passwords do not match.";
     }
 
     return nextErrors;
@@ -69,27 +49,23 @@ export default function SignupPage() {
     setErrors((prev) => ({ ...prev, form: undefined }));
 
     try {
-      const response = await fetch(`${API_BASE}/auth/signup`, {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-          confirmPassword,
-        }),
+        body: JSON.stringify({ email: email.trim(), password, remember }),
       });
 
       const data = await response.json().catch(() => null);
       if (!response.ok) {
         setErrors((prev) => ({
           ...prev,
-          form: data?.detail || "Sign up failed. Please review your details.",
+          form: data?.detail || "Sign in failed. Check your credentials and try again.",
         }));
         return;
       }
 
       setAuthToken(data?.token || "");
-      router.push("/profile");
+      router.push("/career-market/profile");
     } catch {
       setErrors((prev) => ({
         ...prev,
@@ -105,28 +81,28 @@ export default function SignupPage() {
       <div className={styles.container}>
         <div className={styles.authGrid}>
           <section className={styles.infoCard}>
-            <p className={styles.kicker}>Get started</p>
-            <h1 className={styles.title}>Create your CV_extracter account</h1>
+            <p className={styles.kicker}>CV_extracter</p>
+            <h1 className={styles.title}>Welcome back</h1>
             <p className={styles.lead}>
-              Set up a workspace in seconds and organize every resume into a clean profile.
+              Sign in to continue building structured profiles from every new resume you receive.
             </p>
             <div className={styles.infoList}>
               <div className={styles.infoItem}>
-                <span className={styles.infoTitle}>Upload once</span>
+                <span className={styles.infoTitle}>Fast parsing</span>
                 <span className={styles.infoText}>
-                  Bring in your CV and let the system extract the details.
+                  Upload a CV and review the extracted sections in minutes.
                 </span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoTitle}>Review quickly</span>
+                <span className={styles.infoTitle}>Profile ready</span>
                 <span className={styles.infoText}>
-                  Validate experience, skills, and education in one view.
+                  Keep your headline, experience, and skills synchronized.
                 </span>
               </div>
               <div className={styles.infoItem}>
-                <span className={styles.infoTitle}>Stay updated</span>
+                <span className={styles.infoTitle}>Secure workspace</span>
                 <span className={styles.infoText}>
-                  Keep your profile fresh with every new document you add.
+                  Save drafts and return to them anytime from your dashboard.
                 </span>
               </div>
             </div>
@@ -134,8 +110,8 @@ export default function SignupPage() {
 
           <section className={styles.formCard}>
             <div className={styles.formHeader}>
-              <h2>Sign up</h2>
-              <p>Use your email to create a new account.</p>
+              <h2>Sign in</h2>
+              <p>Use the email connected to your CV_extracter account.</p>
             </div>
             <form className={styles.form} onSubmit={handleSubmit}>
               <label className={styles.field}>
@@ -157,50 +133,36 @@ export default function SignupPage() {
                   className={`${styles.input} ${errors.password ? styles.inputError : ""}`}
                   type="password"
                   name="password"
-                  autoComplete="new-password"
-                  placeholder="Create a password"
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                 />
                 {errors.password && <span className={styles.errorText}>{errors.password}</span>}
               </label>
-              <div className={styles.rules}>
-                {passwordRules.map((rule) => (
-                  <div
-                    key={rule.label}
-                    className={`${styles.ruleItem} ${rule.passes ? styles.ruleMet : ""}`}
-                  >
-                    {rule.label}
-                  </div>
-                ))}
+              <div className={styles.formRow}>
+                <label className={styles.checkbox}>
+                  <input
+                    type="checkbox"
+                    name="remember"
+                    checked={remember}
+                    onChange={(event) => setRemember(event.target.checked)}
+                  />
+                  Remember me
+                </label>
+                <Link className={styles.linkBtn} href="/Auth/forgot-password">
+                  Forgot password?
+                </Link>
               </div>
-              <label className={styles.field}>
-                <span className={styles.label}>Confirm password</span>
-                <input
-                  className={`${styles.input} ${errors.confirmPassword ? styles.inputError : ""}`}
-                  type="password"
-                  name="confirmPassword"
-                  autoComplete="new-password"
-                  placeholder="Re-enter your password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                />
-                {errors.confirmPassword && (
-                  <span className={styles.errorText}>{errors.confirmPassword}</span>
-                )}
-              </label>
               {errors.form && <p className={styles.formError}>{errors.form}</p>}
               <button className={styles.primaryBtn} type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating account..." : "Create account"}
+                {isSubmitting ? "Signing in..." : "Sign in"}
               </button>
             </form>
-            <p className={styles.legal}>
-              By continuing you agree to our terms of service and privacy policy.
-            </p>
             <div className={styles.formFooter}>
-              <span>Already have an account?</span>
-              <Link className={styles.link} href="/login">
-                Sign in
+              <span>New here?</span>
+              <Link className={styles.link} href="/Auth/signup">
+                Create an account
               </Link>
             </div>
           </section>

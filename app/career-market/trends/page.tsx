@@ -1,6 +1,6 @@
-import styles from "./page.module.css";
-import AppSider from "../../components/app-sider";
-import siderStyles from "../../components/app-sider.module.css";
+﻿import styles from "./page.module.css";
+import AppSider from "../../../components/market/app-sider";
+import siderStyles from "../../../components/market/app-sider.module.css";
 
 type TrendItem = {
   term: string;
@@ -104,7 +104,7 @@ const TrendList = ({
                 {typeof item.baseline === "number" ? (
                   <>
                     {" "}
-                    <span className={styles.panelMetaDivider}>·</span>{" "}
+                    <span className={styles.panelMetaDivider}>Â·</span>{" "}
                     <span className={styles.panelMetaLabel}>Baseline</span> {item.baseline}
                   </>
                 ) : null}
@@ -361,3 +361,4 @@ export default async function TrendsPage() {
     </div>
   );
 }
+

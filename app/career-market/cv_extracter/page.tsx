@@ -32,10 +32,10 @@ import {
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { authHeader } from "../../lib/auth";
+import { authHeader } from "../../../lib/auth";
 import styles from "./page.module.css";
-import AppSider from "../../components/app-sider";
-import siderStyles from "../../components/app-sider.module.css";
+import AppSider from "../../../components/market/app-sider";
+import siderStyles from "../../../components/market/app-sider.module.css";
 
 const { Content } = Layout;
 const { Title, Paragraph, Text } = Typography;
@@ -564,7 +564,7 @@ export default function Profile() {
 
       messageApi.success("Saved to profile.");
       setConfirmOpen(false);
-      router.push("/profile");
+      router.push("/career-market/profile");
     } catch (err: any) {
       messageApi.error(err?.message || "Unable to save profile.");
     } finally {
@@ -1008,3 +1008,4 @@ export default function Profile() {
     </div>
   );
 }
+

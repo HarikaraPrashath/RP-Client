@@ -227,7 +227,7 @@ export default function JobsList({ jobs, apiBase }: { jobs: JobView[]; apiBase: 
       )}
 
       <div className={styles.actions}>
-        <Link href="/profile" className={styles.cta}>
+        <Link href="/career-market/profile" className={styles.cta}>
           Go to Profile
         </Link>
       </div>

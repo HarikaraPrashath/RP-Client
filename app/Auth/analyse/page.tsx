@@ -3,7 +3,7 @@
 import { Button, Form, Input, message } from "antd"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { authHeader } from "../../lib/auth"
+import { authHeader } from "../../../lib/auth"
 
 const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
