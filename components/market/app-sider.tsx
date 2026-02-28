@@ -8,22 +8,22 @@ import styles from "./app-sider.module.css";
 
 const navItems = [
   {
-    href: "/profile",
+    href: "/career-market/profile",
     label: "Profile",
     description: "Your career profile",
   },
   {
-    href: "/merge-skills",
+    href: "/career-market/merge-skills",
     label: "Merge skills",
     description: "Skills match summary",
   },
   {
-    href: "/trends",
+    href: "/career-market/trends",
     label: "Trends",
     description: "Market pulse",
   },
   {
-    href: "/cv_extracter",
+    href: "/career-market/cv_extracter",
     label: "CV extracter",
     description: "Parse and save CV",
   },

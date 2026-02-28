@@ -1,0 +1,401 @@
+.container {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --ink: #0f172a;
+  --muted: #5b6476;
+  --line: #dce3ee;
+  --cyan: #16c2d5;
+  --blue: #4263eb;
+  --pink: #ea5db3;
+  width: min(1560px, 96%);
+  margin: 0 auto;
+  padding: 1.25rem 0 2rem;
+}
+
+.header {
+  margin-bottom: 1rem;
+}
+
+.title {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.8rem;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+}
+
+.listIntro {
+  margin: 1rem 0 2rem;
+  color: #334155;
+}
+
+.inlineCode {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.92rem;
+  background: #e9edf5;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: auto auto minmax(220px, 1fr) auto auto;
+  gap: 0.65rem;
+  align-items: center;
+  margin: 0.75rem 0 1rem;
+}
+
+.metricPill {
+  background: #eef2f9;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.metricPill strong {
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.metricPill span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.searchInput,
+.select {
+  height: 2.35rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0 0.75rem;
+  color: var(--ink);
+}
+
+.searchInput:focus,
+.select:focus {
+  outline: 2px solid #bfdbfe;
+  outline-offset: 1px;
+}
+
+.sectionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0.2rem 0 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+
+.sectionHint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.list {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.95rem;
+  background: var(--card);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.refText {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  letter-spacing: 0.05em;
+}
+
+.jobTitle {
+  margin: 0.12rem 0 0.15rem;
+  font-size: 1.08rem;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.employer {
+  margin: 0;
+  color: #334155;
+}
+
+.scoreBox {
+  min-width: 5.2rem;
+  border: 1px solid #bfd3fb;
+  background: linear-gradient(180deg, #eff4ff 0%, #dbeafe 100%);
+  border-radius: 12px;
+  padding: 0.42rem 0.55rem;
+  text-align: center;
+}
+
+.scoreBox strong {
+  display: block;
+  color: #0f172a;
+  font-size: 1.12rem;
+  line-height: 1.1;
+}
+
+.scoreBox span {
+  display: block;
+  margin-top: 0.1rem;
+  color: #475569;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 8px;
+  background: #e6ebf4;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--cyan) 0%, var(--blue) 55%, var(--pink) 100%);
+}
+
+.imagePreview {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.textSnippet {
+  margin: 0;
+  color: #1e293b;
+  line-height: 1.45;
+  font-size: 0.95rem;
+}
+
+.extractedActionRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.skillsBlock {
+  display: grid;
+  gap: 0.52rem;
+  padding-top: 0.1rem;
+}
+
+.skillRow {
+  display: grid;
+  grid-template-columns: 7.2rem 1fr;
+  gap: 0.45rem;
+  align-items: start;
+}
+
+.skillLabel {
+  font-size: 0.86rem;
+  color: #475569;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip,
+.chipFound,
+.chipMissing,
+.chipOverlap,
+.chipMore {
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.79rem;
+  border: 1px solid transparent;
+}
+
+.chip {
+  background: #e5e7eb;
+  color: #334155;
+}
+
+.chipFound {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #14532d;
+}
+
+.chipMissing {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.chipOverlap {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+}
+
+.chipMore {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.cardFooter {
+  margin-top: 0.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.link {
+  color: #1d4ed8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.files {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.fileLink {
+  background: #eef2f7;
+  color: #0f172a;
+  text-decoration: none;
+  padding: 0.3rem 0.55rem;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileLink:hover {
+  background: #e2e8f0;
+}
+
+.muted {
+  color: #64748b;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cta {
+  background: #0f172a;
+  color: #fff;
+  padding: 0.5rem 0.78rem;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.modalMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.modalEmployer {
+  font-weight: 600;
+}
+
+.modalRef {
+  background: #0f172a;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.75rem;
+}
+
+.modalText {
+  margin: 0;
+  color: #0f172a;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 1400px) {
+  .list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1080px) {
+  .toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .searchInput {
+    grid-column: 1 / -1;
+  }
+
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .container {
+    width: min(100%, 94%);
+  }
+
+  .list {
+    grid-template-columns: 1fr;
+  }
+
+  .skillRow {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}

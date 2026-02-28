@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
             </button>
           </form>
           <div className={styles.footer}>
-            <Link className={styles.link} href="/login">
+            <Link className={styles.link} href="/Auth/login">
               Back to sign in
             </Link>
           </div>

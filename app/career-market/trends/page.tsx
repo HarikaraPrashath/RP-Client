@@ -1,6 +1,6 @@
-import styles from "./page.module.css";
-import AppSider from "../../components/app-sider";
-import siderStyles from "../../components/app-sider.module.css";
+﻿import styles from "./page.module.css";
+import AppSider from "../../../components/market/app-sider";
+import siderStyles from "../../../components/market/app-sider.module.css";
 
 type TrendItem = {
   term: string;
@@ -104,7 +104,7 @@ const TrendList = ({
                 {typeof item.baseline === "number" ? (
                   <>
                     {" "}
-                    <span className={styles.panelMetaDivider}>·</span>{" "}
+                    <span className={styles.panelMetaDivider}>Â·</span>{" "}
                     <span className={styles.panelMetaLabel}>Baseline</span> {item.baseline}
                   </>
                 ) : null}
@@ -189,11 +189,6 @@ export default async function TrendsPage() {
               Each scrape saves a snapshot of job postings. Compare snapshots to spot the skills
               and roles gaining momentum or fading out.
             </p>
-            <div className={styles.heroChips}>
-              <span className={styles.heroChip}>Snapshots collected: {summary.snapshotCount}</span>
-              <span className={styles.heroChip}>Lookback window: {summary.windowDays} days</span>
-              <span className={styles.heroChip}>Most recent: {formatDate(summary.latestAt)}</span>
-            </div>
           </div>
           <div className={styles.heroPanel}>
             <div>
@@ -366,3 +361,4 @@ export default async function TrendsPage() {
     </div>
   );
 }
+

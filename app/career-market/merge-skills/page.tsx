@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import { authHeader } from "../../lib/auth";
+import { authHeader } from "../../../lib/auth";
 import styles from "../skills/page.module.css";
-import AppSider from "../../components/app-sider";
-import siderStyles from "../../components/app-sider.module.css";
+import AppSider from "../../../components/market/app-sider";
+import siderStyles from "../../../components/market/app-sider.module.css";
 
 type RankedJob = {
   ref?: string;
@@ -471,7 +471,7 @@ export default function MergeSkillsPage() {
             {bestMatch ? (
               <>
                 <p className={styles.highlightRole}>
-                  {bestMatch.position ?? "Untitled role"} <span>→ {bestMatch.match_percent}%</span>
+                  {bestMatch.position ?? "Untitled role"} <span>â†’ {bestMatch.match_percent}%</span>
                 </p>
                 <p className={styles.employer}>{bestMatch.employer ?? "Unknown employer"}</p>
                 <div className={styles.chips}>
@@ -492,7 +492,7 @@ export default function MergeSkillsPage() {
               <>
                 <p className={styles.highlightRole}>
                   {lowestMatch.position ?? "Untitled role"}{" "}
-                  <span>→ {lowestMatch.match_percent ?? 0}%</span>
+                  <span>â†’ {lowestMatch.match_percent ?? 0}%</span>
                 </p>
                 <p className={styles.employer}>{lowestMatch.employer ?? "Unknown employer"}</p>
                 <div className={styles.chips}>
@@ -626,3 +626,4 @@ export default function MergeSkillsPage() {
     </div>
   );
 }
+
