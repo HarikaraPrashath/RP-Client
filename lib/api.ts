@@ -6,3 +6,6 @@ export const apiUrl = (path: string): string => {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return `${apiBase}${normalized}`;
 };
+
+// Re-export the API wrapper implemented in api-r.ts
+export * from './api-r';
