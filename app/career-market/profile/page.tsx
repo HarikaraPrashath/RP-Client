@@ -7,10 +7,10 @@ import { Checkbox, Input, Modal } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { authHeader } from "../../lib/auth";
+import { authHeader } from "../../../lib/auth";
 import styles from "./page.module.css";
-import AppSider from "../../components/app-sider";
-import siderStyles from "../../components/app-sider.module.css";
+import AppSider from "../../../components/market/app-sider";
+import siderStyles from "../../../components/market/app-sider.module.css";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -455,7 +455,7 @@ export default function ProfilePage() {
           headers: authHeader(),
         });
         if (res.status === 401) {
-          router.push("/login");
+          router.push("/Auth/login");
           return;
         }
         if (!res.ok) return;
@@ -761,7 +761,7 @@ export default function ProfilePage() {
               pre-fill these sections in seconds.
             </p>
           </div>
-          <Link href="/cv_extracter" className={styles.noticeButton}>
+          <Link href="/career-market/cv_extracter" className={styles.noticeButton}>
             Go to CV_extracter
           </Link>
         </section>
@@ -1392,7 +1392,7 @@ export default function ProfilePage() {
                     </a>
                   )}
                   {!cvLoading && !cvError && !cvFile && (
-                    <Link className={styles.featureLink} href="/cv_extracter">
+                    <Link className={styles.featureLink} href="/career-market/cv_extracter">
                       Upload CV
                     </Link>
                   )}
@@ -1439,7 +1439,7 @@ export default function ProfilePage() {
               <p className={styles.cardBody}>
                 Compare your skills against live job demand and see your gap analysis.
               </p>
-              <Link className={`${styles.featureLink} ${styles.skillInsightsCta}`} href="/merge-skills">
+              <Link className={`${styles.featureLink} ${styles.skillInsightsCta}`} href="/career-market/merge-skills">
                 Open merge-skills
               </Link>
             </section>
@@ -1451,7 +1451,7 @@ export default function ProfilePage() {
               <p className={styles.cardBody}>
                 View job and skill trends over time to spot opportunities.
               </p>
-              <Link className={styles.featureLink} href="/trends">
+              <Link className={styles.featureLink} href="/career-market/trends">
                 Open trends
               </Link>
             </section>
@@ -1673,3 +1673,4 @@ export default function ProfilePage() {
     </div>
   );
 }
+
