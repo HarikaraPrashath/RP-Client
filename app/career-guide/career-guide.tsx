@@ -285,29 +285,29 @@ export default function Home() {
       return;
     }
 
-    if (step === "softSkills") {
-      setSoftSkills(userText);
-      setStep("techSkills");
-      setCurrentQuestionNumber((n) => n + 1);
-      addBotMessage(
-        "✅ **Soft skills recorded!**\n\n" +
-        "🛠️ **Next:** List your technical skills (Python, Java, React, etc.)"
-      );
-      return;
-    }
+  if (step === "softSkills") {
+  setSoftSkills(userText);
+  setStep("techSkills");
+  setCurrentQuestionNumber((n) => n + 1);
+  addBotMessage(
+    "✅ **Soft skills recorded!**\n\n" +
+    "🛠️ **Next:** List your technical skills (Python, Java, React, etc.)"
+  );
+  return;
+}
 
     if (step === "techSkills") {
-      setTechSkills(userText);
-      setStep("english");
-      setCurrentQuestionNumber((n) => n + 1);
-      addBotMessage(
-        "✅ **Technical skills recorded!**\n\n" +
-        "🌐 **Next:** Enter your English score (0 - 100)"
-      );
-      return;
-    }
+  setTechSkills(userText);
+  setStep("english");
+  setCurrentQuestionNumber((n) => n + 1);
+  addBotMessage(
+    "✅ **Technical skills recorded!**\n\n" +
+    "🌐 **Next:** Enter your English score (0 - 100)"
+  );
+  return;
+}
 
-    if (step === "semester") {
+    if (step === "semester" ) {
       const semObj = parseSemesterCode(userText);
       if (!semObj) {
         addBotMessage("Please enter semester like **2Y2S** or **1Y1S**.");
@@ -333,7 +333,7 @@ export default function Home() {
       setGpa(gpaValue);
 
       const semObj = parseSemesterCode(semester);
-
+   
       // strictly: if year > 2 OR (year==2 && sem==2 is NOT over)
       const over = semObj ? (semObj.year > 2) : false;
 
@@ -419,6 +419,7 @@ export default function Home() {
       setOceanE(r);
       setStep("oceanA");
       setCurrentQuestionNumber(9);
+      setCurrentQuestionNumber(10);
       addBotMessage(
         `✅ **Agreeableness: ${r}/5**\n\n` +
         "**Question 10 of 17: Neuroticism**\n" +
@@ -432,6 +433,7 @@ export default function Home() {
       if (r === null) return addBotMessage("Please enter a number between 1 and 5.");
       setOceanA(r);
       setStep("oceanN");
+      setCurrentQuestionNumber(10);
       addBotMessage(
         `✅ **Agreeableness: ${r}/5**\n\n` +
         "**Question 10 of 17: Neuroticism**\n" +
@@ -556,108 +558,103 @@ export default function Home() {
         Riasec_Social: riaS ?? 0,
         Riasec_Enterprising: riaE ?? 0,
         Riasec_Conventional: r,
-
-        Is_Sliit_Student: isSliitStudent ?? false,
-        Specialization: specialization ?? "",
       };
 
-     try {
-  addBotMessage("✅ **All questions answered!**\n\n🤔 Analyzing your profile...");
-  console.log("Payload", payload);
+      try {
+        addBotMessage("✅ **All questions answered!**\n\n🤔 Analyzing your profile...");
+        console.log("Payload", payload)
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+        if (!res.ok) throw new Error("Network response was not ok");
 
-  if (!res.ok) throw new Error("Network response was not ok");
+        const data = await res.json();
+        const top1 = data.top_1_prediction;
+        const top3 = data.top_3_predictions;
 
-  // ✅ Read backend response
-  const data = await res.json();
+        // INSERT HERE (guidance block)
+        let guidance = "";
 
-  const top1: string = data.top_1_prediction;
-  const top3: string[] = data.top_3_predictions ?? [];
+        if (isSliitStudent) {
+          const semObj = parseSemesterCode(semester);
+          const g = gpa ?? 0;
 
-  // ✅ 1) LLM guidance text (Groq)
-  let guidance: string = (data.guidance ?? "").trim();
+          const specNorm = specialization.trim().toUpperCase();
 
-  // Convert "•" bullets to markdown "-" bullets (if Groq returns them)
-  guidance = guidance.replace(/^\s*•\s+/gm, "- ");
+          const expectedSpecs = ROLE_TO_SPECIALIZATIONS[top1] ?? [];
+          const match =
+            expectedSpecs.length > 0 &&
+            expectedSpecs.some((s) => specNorm.includes(s.toUpperCase()));
 
-  // ✅ 2) dynamic suggestions from backend
-  const dyn = data.dynamic_suggestions;
 
-  // ✅ Render dynamic suggestions into markdown
-  let dynBlock = "";
-  if (dyn) {
-    const title = dyn.title ? `### ${dyn.title}\n` : "";
+          //choice the best guidance based on semester and gpa (for students), and specialization alignment (for over 2Y2S)
+          if (semObj && semObj.year > 2) {
+            if (match) {
+              guidance =
+                "✅ **Sliit Check:** You’re in a good path.\n" +
+                `Your specialization **(${specialization})** matches your predicted role **(${top1})**.`;
+            } else {
+              guidance =
+                "⚠️ **Sliit Check:** Your predicted role and specialization look different.\n" +
+                `Predicted role: **${top1}**\n` +
+                `Your specialization: **${specialization}**\n\n` +
+                "✅ Suggestion: Either align projects/skills toward your predicted role, or consider adjusting specialization (if possible).";
+            }
+          } else {
+            if (g >= 3.0) {
+              guidance =
+                "✅ **Sliit Check:** GPA is strong (3.0+).\n" +
+                `Based on your profile, you can target **${top1}**.\n` +
+                (expectedSpecs.length
+                  ? `Recommended specializations to support this role: **${expectedSpecs.join(", ")}**`
+                  : "Recommended: pick a specialization that matches your top career direction and start building projects.");
+            } else {
+              guidance =
+                "⚠️ **Sliit Check:** GPA is below 3.0.\n" +
+                "You can still succeed, but you should improve your fundamentals + projects.\n\n" +
+                "✅ Action plan:\n" +
+                "• Improve core subjects + coding practice\n" +
+                "• Build 1–2 solid projects\n" +
+                `• Slowly move toward **${top1}** skill requirements`;
+            }
+          }
+        } else {
+          guidance =
+            "✅ **Career Guidance (Non-student):**\n" +
+            "Focus on building a portfolio + real skills.\n" +
+            `Your best-fit direction is **${top1}** — start with one project and a roadmap for it.`;
+        }
 
-    const bullets =
-      Array.isArray(dyn.bullets) && dyn.bullets.length
-        ? dyn.bullets.map((b: string) => `- ${b}`).join("\n")
-        : "";
+        // ✅ THEN your final message uses guidance
+        addBotMessage(
+          `🎉 **Career Prediction Complete!**\n\n` +
+          `🏆 **Best Model Prediction:**\n` +
+          `## ${top1}\n\n` +
+          `📌 **Top-3 Suggested Careers:**\n` +
+          `${top3.map((c: string, i: number) => `${i + 1}. ${c}`).join("\n")}\n\n` +
+          `${guidance}\n\n` +
+          `💡 **Next step:** Build 1 project + upload to GitHub.`
+        );
 
-    // ✅ Modules advice (only for SLIIT)
-    const modulesBlock =
-      dyn.audience === "sliit" && Array.isArray(dyn.modules) && dyn.modules.length
-        ? `\n\n#### SLIIT Modules Focus\n` +
-          dyn.modules.map((m: string) => `- ${m}`).join("\n")
-        : "";
 
-    // ✅ show specialization only if user entered it
-    const spec = (dyn.specialization ?? "").trim();
-    const specLine =
-      dyn.audience === "sliit" && spec.length > 0
-        ? `\n**Specialization:** ${spec}`
-        : "";
-
-    // ✅ show match only if specialization exists
-    const matchLine =
-      dyn.audience === "sliit" && spec.length > 0
-        ? `\n**Specialization and prediction match:** ${dyn.specialization_matches_top1 ? "Yes" : "No"}`
-        : "";
-
-    // ✅ meta always for sliit (semester + gpa band)
-    const meta =
-      dyn.audience === "sliit"
-        ? `\n\n---\n\n**Semester:** ${dyn.semester ?? "-"}\n**GPA band:** ${dyn.gpa_band ?? "-"}${specLine}${matchLine}`
-        : "";
-
-    dynBlock = `${title}${bullets}${modulesBlock}${meta}`.trim();
-  }
-
-  // ✅ 3) Combine guidance + dynamic suggestions
-  const finalGuidance = [guidance, dynBlock].filter(Boolean).join("\n\n---\n\n");
-
-  // ✅ Final message
-  addBotMessage(
-    `🎉 **Career Prediction Complete!**\n\n` +
-      `🏆 **Best Model Prediction:**\n` +
-      `## ${top1}\n\n` +
-      `📌 **Top-3 Suggested Careers:**\n` +
-      `${top3.map((c: string, i: number) => `${i + 1}. ${c}`).join("\n")}\n\n` +
-      `${finalGuidance}\n\n` +
-      `💡 **Next step:** Build 1 project + upload to GitHub.`
-  );
-
-  addBotMessage(
-    `🔄 **Take another assessment?**\n` +
-      `Type **"start"** to begin again with different responses.`
-  );
-
-  resetAll();
-} catch (error) {
-  console.error(error);
-  addBotMessage(
-    "❌ **Service Temporarily Unavailable**\n" +
-      "Our prediction engine is currently updating. Please try again in a few minutes."
-  );
-  resetAll();
-} finally {
-  setIsThinking(false);
-}
-return;
+        addBotMessage(
+          `🔄 **Take another assessment?**\n` +
+          `Type **"start"** to begin again with different responses.`
+        );
+        resetAll();
+      } catch (error) {
+        console.error(error);
+        addBotMessage(
+          "❌ **Service Temporarily Unavailable**\n" +
+          "Our prediction engine is currently updating. Please try again in a few minutes."
+        ); resetAll();
+      } finally {
+        setIsThinking(false);
+      }
+      return;
     }
   };
 
