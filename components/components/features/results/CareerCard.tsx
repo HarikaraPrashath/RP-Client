@@ -4,9 +4,8 @@ import {
     Layers, Cpu, Globe, Search, BookOpen,
     CheckCircle2, Settings, PenTool, Layout, Activity, ChevronDown
 } from 'lucide-react';
-import { cn } from "@/lib/utils";
-import motionShim, { AnimatePresence } from '@/lib/motion';
-const motion = motionShim;
+import { cn } from "@/lib/utils-r";
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { PersonalityTraits } from '@/types';
 
@@ -59,7 +58,7 @@ const CircularProgress = ({ value, isPrimary }: { value: number, isPrimary: bool
                     cy="24"
                 />
                 <motion.circle
-                    className={isPrimary ? "text-indigo-600" : "text-indigo-500"}
+                    className={isPrimary ? "text-primary" : "text-primary/70"}
                     strokeWidth="4"
                     strokeDasharray={circumference}
                     strokeDashoffset={strokeDashoffset}
@@ -111,13 +110,13 @@ export default function CareerCard({
 
     if (variant === 'compact') {
         return (
-            <div className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-indigo-200 transition-colors shadow-sm">
+            <div className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-primary/20 transition-colors shadow-sm">
                 <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
                     {getCareerIcon(career)}
                 </div>
                 <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-bold text-gray-900 truncate">{career}</h4>
-                    <p className="text-xs text-indigo-500 font-bold">{Math.round(confidence * 100)}% Match</p>
+                    <p className="text-xs text-primary font-bold">{Math.round(confidence * 100)}% Match</p>
                 </div>
             </div>
         );
@@ -126,11 +125,11 @@ export default function CareerCard({
     return (
         <div className={cn(
             "rounded-xl border bg-white p-5 transition-all duration-300 hover:shadow-md shadow-sm overflow-hidden relative group",
-            isPrimary ? "border-indigo-200 ring-1 ring-indigo-50" : "border-gray-100"
+            isPrimary ? "border-primary/20 ring-1 ring-primary/5" : "border-gray-100"
         )}>
             {isPrimary && (
                 <div className="absolute top-0 right-0 z-20">
-                    <div className="bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-bl-lg rounded-tr-xl uppercase tracking-wider shadow-sm">
+                    <div className="bg-primary text-white text-xs font-bold px-3 py-1.5 rounded-bl-lg rounded-tr-xl uppercase tracking-wider shadow-sm">
                         Best Fit
                     </div>
                 </div>
@@ -139,7 +138,7 @@ export default function CareerCard({
             <div className="flex items-start gap-4 mb-4 relative z-10">
                 <div className={cn(
                     "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                    isPrimary ? "bg-indigo-600 text-white" : "bg-indigo-50 text-indigo-600"
+                    isPrimary ? "bg-primary text-white" : "bg-primary/10 text-primary"
                 )}>
                     {getCareerIcon(career)}
                 </div>
@@ -174,7 +173,7 @@ export default function CareerCard({
                     onClick={() => setIsExpanded(!isExpanded)}
                     aria-label={`Toggle Why This Match for ${career}`}
                     aria-expanded={isExpanded}
-                    className="w-full flex items-center justify-between text-sm font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 rounded-lg p-3 transition-colors border border-indigo-100/50"
+                    className="w-full flex items-center justify-between text-sm font-bold text-primary bg-primary/5 hover:bg-primary/10 rounded-lg p-3 transition-colors border border-primary/10"
                 >
                     <span>Why This Match?</span>
                     <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
@@ -192,7 +191,7 @@ export default function CareerCard({
                             className="overflow-hidden"
                         >
                             <div className="pt-3 pb-1 space-y-4 text-sm text-gray-600 border-t border-gray-50">
-                                <p className="leading-relaxed relative pl-3 before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:bg-indigo-200 before:rounded-full">
+                                <p className="leading-relaxed relative pl-3 before:absolute before:inset-y-1 before:left-0 before:w-0.5 before:bg-blue-200 before:rounded-full">
                                     {getDynamicJustification()}
                                 </p>
 

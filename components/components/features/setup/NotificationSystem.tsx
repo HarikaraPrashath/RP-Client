@@ -53,7 +53,7 @@ export const NotificationSystem: React.FC<{
                     <button
                         onClick={() => onRemove(n.id)}
                         className="hover:scale-110 active:scale-95 transition-all text-muted-foreground hover:text-foreground"
-                    >
+                        aria-label="Dismiss notification">
                         <X className="w-4 h-4" />
                     </button>
                 </div>

@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { PersonalityTraits } from '@/types';
-import motionShim from '@/lib/motion';
-const motion = motionShim;
+import { motion } from 'framer-motion';
 
 interface PersonalityRadarProps {
     data: PersonalityTraits;
@@ -56,11 +55,11 @@ const CircularTrait = ({ value, label, colorHex }: { value: number, label: strin
 export default function PersonalityRadar({ data }: PersonalityRadarProps) {
     // Map personality traits to the requested bars
     const traits = [
-        { label: 'Openness', value: data.openness * 100, colorHex: '#6366f1' }, // Indigo
-        { label: 'Altruism', value: data.agreeableness * 100, colorHex: '#10b981' }, // Emerald
-        { label: 'Conscientious', value: data.conscientiousness * 100, colorHex: '#3b82f6' }, // Blue
-        { label: 'Agreeable', value: data.agreeableness * 100, colorHex: '#f59e0b' }, // Amber
-        { label: 'Extraversion', value: data.extraversion * 100, colorHex: '#f43f5e' }, // Rose
+        { label: 'Openness', value: data.openness * 100, colorHex: 'var(--primary)' },
+        { label: 'Altruism', value: data.agreeableness * 100, colorHex: 'var(--accent)' },
+        { label: 'Conscientious', value: data.conscientiousness * 100, colorHex: 'var(--secondary)' },
+        { label: 'Agreeable', value: data.agreeableness * 100, colorHex: 'var(--chart-1)' },
+        { label: 'Extraversion', value: data.extraversion * 100, colorHex: 'var(--chart-4)' },
     ];
 
     const containerVariants = {

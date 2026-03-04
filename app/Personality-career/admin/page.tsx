@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/features/setup/ThemeToggle";
+import { ThemeToggle } from "@/components/components/features/setup/ThemeToggle";
 import { Users, Activity, Brain, ShieldCheck, ArrowLeft, BarChart3, TrendingUp } from "lucide-react";
 import Link from 'next/link';
 
@@ -22,7 +22,7 @@ export default function AdminDashboard() {
                 {/* Header */}
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-6">
-                        <Link href="/results" className="p-4 rounded-2xl bg-white/5 border-glass hover:bg-white/10 transition-all">
+                        <Link href="/Personality-career/results" className="p-4 rounded-2xl bg-white/5 border-glass hover:bg-white/10 transition-all">
                             <ArrowLeft className="w-6 h-6" />
                         </Link>
                         <div>

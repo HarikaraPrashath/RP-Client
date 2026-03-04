@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api } from '@/lib/api-r';
 import { Question, QuestionEmotions, EmotionData, AnalysisResult } from '@/types';
 
 export function useInterview() {
@@ -69,7 +69,7 @@ export function useInterview() {
         try {
             const results = await api.analyzeInterview(userName, history, blinkRate);
             sessionStorage.setItem('interviewResults', JSON.stringify(results));
-            router.push('/results');
+            router.push('/Personality-career/results');
         } catch (err) {
             setError('Failed to analyze interview. Please try again.');
             setLoading(false);
@@ -99,6 +99,7 @@ export function useInterview() {
     }, [currentIndex, questions, currentEmotions, emotionHistory, submitInterview]);
 
     const handleEmotionsDetected = useCallback((emotions: EmotionData) => {
+        console.log('Emotions captured:', emotions);
         setCurrentEmotions(emotions);
         setIsRecording(true);
         setWebcamStatus('ready');
