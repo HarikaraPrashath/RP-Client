@@ -38,13 +38,13 @@ export default function EmotionTimeline({ data }: EmotionTimelineProps) {
 
     // If data doesn't start from 0 and user wants it to start from 0, we can ensure the minimum is 0 using the YAxis domain below.
     const emotions = [
-        { key: 'happy', color: '#10b981' }, // Emerald (Matches Altruism)
-        { key: 'neutral', color: '#94a3b8' }, // Slate
-        { key: 'surprise', color: '#f59e0b' }, // Amber (Matches Agreeable)
-        { key: 'fear', color: '#6366f1' }, // Indigo (Matches Openness)
-        { key: 'sad', color: '#3b82f6' }, // Blue (Matches Conscientious)
-        { key: 'angry', color: '#f43f5e' }, // Rose (Matches Extraversion)
-        { key: 'disgust', color: '#ec4899' } // Pink
+        { key: 'happy', color: 'var(--primary)' },
+        { key: 'neutral', color: 'var(--muted-foreground)' },
+        { key: 'surprise', color: 'var(--accent)' },
+        { key: 'fear', color: 'var(--secondary)' },
+        { key: 'sad', color: 'var(--chart-3)' },
+        { key: 'angry', color: 'var(--destructive)' },
+        { key: 'disgust', color: 'var(--chart-4)' }
     ];
 
     return (
