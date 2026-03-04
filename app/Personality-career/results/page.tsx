@@ -5,7 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Loader2, Download, AlertCircle, Activity } from "lucide-react";
 import CareerCard from "@/components/features/results/CareerCard";
+<<<<<<< HEAD
 import PersonalityRadar from "@/components/features/results/PersonalityRadar";
+=======
+import PersonalityRadar from "@/components//features/results/PersonalityRadar";
+>>>>>>> 436a876 (Initial commit - FastAPI career prediction model deployment)
 import EmotionTimeline from "@/components/features/results/EmotionTimeline";
 import { AnalysisResult } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
