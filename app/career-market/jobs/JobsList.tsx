@@ -1,6 +1,4 @@
 "use client";
-
-import "@ant-design/v5-patch-for-react-19";
 import "antd/dist/reset.css";
 import Link from "next/link";
 import { Button, Modal } from "antd";

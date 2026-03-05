@@ -18,6 +18,19 @@ type JobMatch = {
   missing_skills?: string[]
   total_required?: number
 }
+type GapAnalysis = {
+  total_jobs_analyzed?: number
+  job_matches?: JobMatch[]
+  top_missing_skills?: Array<{ skill?: string; frequency?: number }>
+  readiness_summary?: {
+    average_match?: number
+    highly_qualified?: number
+  }
+}
+type Predictions = {
+  recommendations?: string[]
+  career_timeline?: Record<string, { focus?: string; opportunities?: number }>
+}
 
 export default function AnalysePage() {
   const [api, contextHolder] = message.useMessage()
@@ -119,7 +132,7 @@ export default function AnalysePage() {
           {result ? (
             <div className="mt-4 grid gap-6">
               {(() => {
-                const gap = result.gap_analysis as Record<string, unknown> | undefined
+                const gap = result.gap_analysis as GapAnalysis | undefined
                 const matches = (gap?.job_matches as JobMatch[] | undefined) || []
                 const anySkills = matches.some((job) => (job.total_required || 0) > 0)
                 if (anySkills) {
@@ -138,8 +151,8 @@ export default function AnalysePage() {
               <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
                 <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
                   {(() => {
-                    const gap = result.gap_analysis as Record<string, unknown> | undefined
-                    const summary = gap?.readiness_summary as Record<string, number> | undefined
+                    const gap = result.gap_analysis as GapAnalysis | undefined
+                    const summary = gap?.readiness_summary
                     return (
                       <div className="grid gap-4 md:grid-cols-3">
                         {[
@@ -191,8 +204,8 @@ export default function AnalysePage() {
                 </div>
 
                 {(() => {
-                  const gap = result.gap_analysis as Record<string, unknown> | undefined
-                  const topMissing = (gap?.top_missing_skills as Array<Record<string, unknown>> | undefined) || []
+                  const gap = result.gap_analysis as GapAnalysis | undefined
+                  const topMissing = gap?.top_missing_skills || []
                   return (
                     <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
                       <p className="text-xs uppercase tracking-[0.3em] text-emerald-200/70">Skill gaps</p>
@@ -217,7 +230,7 @@ export default function AnalysePage() {
               </div>
 
               {(() => {
-                const gap = result.gap_analysis as Record<string, unknown> | undefined
+                const gap = result.gap_analysis as GapAnalysis | undefined
                 const matches = (gap?.job_matches as JobMatch[] | undefined) || []
                 if (!matches.length) {
                   return null
@@ -265,9 +278,8 @@ export default function AnalysePage() {
               })()}
 
               {(() => {
-                const predictions = result.predictions as Record<string, unknown> | undefined
-                const timeline =
-                  (predictions?.career_timeline as Record<string, Record<string, unknown>> | undefined) || {}
+                const predictions = result.predictions as Predictions | undefined
+                const timeline = predictions?.career_timeline || {}
                 const entries = Object.entries(timeline)
                 if (!entries.length) {
                   return null

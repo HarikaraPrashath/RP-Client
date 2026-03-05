@@ -204,18 +204,34 @@ const loadProfileData = async (): Promise<ProfileData> => {
 const refreshFromProfile = async (keyword: string, userSkills: string[]) => {
   const cleanKeyword = keyword.trim() || "software engineer";
   try {
-    const res = await fetch(`${API_BASE}/jobs/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ keyword: cleanKeyword, userSkills }),
-      cache: "no-store",
-    });
+  const res = await fetch(`${API_BASE}/jobs/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeader() },
+    body: JSON.stringify({ keyword: cleanKeyword, userSkills, force: false }),
+    cache: "no-store",
+  });
     if (!res.ok) {
       return "Auto-refresh failed (backend error); showing last saved data.";
     }
     const data = await res.json();
     if (!data?.refreshed) {
       return "Showing cached data (recently refreshed).";
+    }
+    try {
+      const analysisRes = await fetch(`${API_BASE}/analyse`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify({ keyword: cleanKeyword }),
+        cache: "no-store",
+      });
+      if (analysisRes.ok) {
+        const analysisData = await analysisRes.json();
+        if (analysisData?.warning) {
+          return analysisData.warning as string;
+        }
+      }
+    } catch {
+      // Ignore analysis errors to avoid blocking the main flow.
     }
     return "";
   } catch {

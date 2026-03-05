@@ -1,0 +1,339 @@
+.page {
+  min-height: 100vh;
+  padding: 32px 36px 80px;
+  background: radial-gradient(circle at top, color-mix(in oklab, var(--primary) 12%, transparent) 0%, var(--background) 48%, color-mix(in oklab, var(--accent) 8%, transparent) 100%);
+  color: var(--foreground);
+  font-family: var(--font-sans), "Geist", "Segoe UI", sans-serif;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.kicker {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--primary) 80%, var(--foreground));
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: clamp(36px, 4vw, 64px);
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: color-mix(in oklab, var(--foreground) 65%, transparent);
+  margin: 0;
+  max-width: 520px;
+}
+
+.heroBadge {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, color-mix(in oklab, var(--primary) 10%, transparent), color-mix(in oklab, var(--accent) 10%, transparent));
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.card,
+.panel,
+.categoryCard,
+.metricCard,
+.pillCard {
+  background: var(--card);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 18px 20px;
+  box-shadow: 0 18px 50px color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+
+.cardLabel {
+  font-size: 12px;
+  color: color-mix(in oklab, var(--foreground) 60%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+
+.cardValue {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.cardValueSm {
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.cardSub {
+  color: color-mix(in oklab, var(--accent) 70%, var(--foreground));
+  margin-top: 6px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip,
+.chipPositive {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--primary) 8%, var(--background));
+}
+
+.chipPositive {
+  background: color-mix(in oklab, var(--accent) 14%, var(--background));
+  color: var(--foreground);
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+.sectionHeader {
+  margin-bottom: 16px;
+}
+
+.sectionHeader h2 {
+  margin: 0 0 6px;
+}
+
+.sectionHeader p {
+  color: color-mix(in oklab, var(--foreground) 60%, transparent);
+  margin: 0;
+}
+
+.gridTwo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.gridThree {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.barList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 120px 1fr 100px;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.barTrack {
+  height: 10px;
+  background: color-mix(in oklab, var(--primary) 8%, var(--background));
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+.barLabel {
+  font-weight: 600;
+}
+
+.barValue {
+  color: color-mix(in oklab, var(--foreground) 60%, transparent);
+  text-align: right;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.categoryLabel {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.categorySkills {
+  color: color-mix(in oklab, var(--foreground) 60%, transparent);
+  font-size: 13px;
+}
+
+.trendGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.trendCard {
+  background: color-mix(in oklab, var(--background) 85%, var(--primary));
+  border-radius: 14px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+}
+
+.trendTitle {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.trendLine {
+  height: 90px;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.trendPoint {
+  flex: 1;
+  background: linear-gradient(180deg, var(--accent), color-mix(in oklab, var(--accent) 30%, transparent));
+  border-radius: 8px 8px 4px 4px;
+}
+
+.trendMeta {
+  margin-top: 10px;
+  color: color-mix(in oklab, var(--foreground) 60%, transparent);
+  font-size: 12px;
+}
+
+.missingList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.missingRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--destructive) 12%, var(--background));
+  border: 1px solid color-mix(in oklab, var(--destructive) 40%, transparent);
+}
+
+.missingSkill {
+  font-weight: 600;
+  margin: 0;
+}
+
+.missingMeta {
+  font-size: 12px;
+  color: color-mix(in oklab, var(--destructive) 70%, var(--foreground));
+  margin: 4px 0 0;
+}
+
+.missingScore {
+  font-weight: 700;
+  color: var(--destructive);
+}
+
+.smallLabel {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--foreground) 60%, transparent);
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.pillGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.pillCard {
+  text-align: center;
+  background: color-mix(in oklab, var(--primary) 6%, var(--background));
+}
+
+.pillLabel {
+  color: color-mix(in oklab, var(--foreground) 60%, transparent);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.pillValue {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.splitRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.metricLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: color-mix(in oklab, var(--foreground) 60%, transparent);
+  margin-bottom: 6px;
+}
+
+.metricValue {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .barRow {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .barValue {
+    text-align: left;
+  }
+
+  .splitRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

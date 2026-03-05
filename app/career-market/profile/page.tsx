@@ -1,6 +1,4 @@
 ﻿"use client";
-
-import "@ant-design/v5-patch-for-react-19";
 import "antd/dist/reset.css";
 import { EditOutlined } from "@ant-design/icons";
 import { Checkbox, Input, Modal } from "antd";
@@ -391,6 +389,8 @@ export default function ProfilePage() {
   } | null>(null);
   const [bestMatch, setBestMatch] = useState<BestMatch | null>(null);
   const [topMatches, setTopMatches] = useState<TopMatch[]>([]);
+  const [mergeLoading, setMergeLoading] = useState(false);
+  const [mergeError, setMergeError] = useState<string | null>(null);
 
   const connectionsLabel = "500+ connections";
   const displayName = [
@@ -444,6 +444,43 @@ export default function ProfilePage() {
       });
     } catch {
       // Intentionally ignored; keep edits local if the API fails.
+    }
+  };
+
+  const handleOpenMergeSkills = async () => {
+    if (mergeLoading) return;
+    setMergeLoading(true);
+    setMergeError(null);
+    const keyword = basics.position.trim();
+    let shouldNavigate = true;
+
+    try {
+      const res = await fetch(`${API_BASE}/jobs/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify({
+          keyword,
+          userSkills: skills.map((skill) => skill.trim()).filter(Boolean),
+          force: false,
+        }),
+        cache: "no-store",
+      });
+      if (res.status === 401) {
+        shouldNavigate = false;
+        router.push("/Auth/login");
+        return;
+      }
+      if (!res.ok) {
+        const detail = await res.json().catch(() => null);
+        setMergeError(detail?.detail || "Unable to refresh jobs. Showing last saved data.");
+      }
+    } catch {
+      setMergeError("Unable to refresh jobs. Showing last saved data.");
+    } finally {
+      setMergeLoading(false);
+      if (shouldNavigate) {
+        router.push("/career-market/merge-skills");
+      }
     }
   };
 
@@ -1439,9 +1476,15 @@ export default function ProfilePage() {
               <p className={styles.cardBody}>
                 Compare your skills against live job demand and see your gap analysis.
               </p>
-              <Link className={`${styles.featureLink} ${styles.skillInsightsCta}`} href="/career-market/merge-skills">
-                Open merge-skills
-              </Link>
+              <button
+                className={`${styles.featureLink} ${styles.skillInsightsCta}`}
+                type="button"
+                onClick={handleOpenMergeSkills}
+                disabled={mergeLoading}
+              >
+                {mergeLoading ? "Running analysis..." : "Open merge-skills"}
+              </button>
+              {mergeError ? <p className={styles.skillInsightsNote}>{mergeError}</p> : null}
             </section>
 
             <section className={`${styles.card} ${styles.trendsCard}`}>
