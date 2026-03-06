@@ -669,10 +669,24 @@
   border-radius: 999px;
   text-decoration: none;
   box-shadow: 0 8px 18px rgba(10, 102, 194, 0.25);
+  border: none;
+  cursor: pointer;
+  font: inherit;
 }
 
 .skillInsightsCta:hover {
   background: #0856a3;
+}
+
+.skillInsightsCta:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.skillInsightsNote {
+  margin-top: 8px;
+  color: #b42318;
+  font-size: 13px;
 }
 
 .peopleList {
