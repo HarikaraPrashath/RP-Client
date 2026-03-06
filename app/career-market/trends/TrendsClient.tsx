@@ -129,6 +129,15 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
   const chartWidth = 680;
   const chartHeight = 160;
   const chartPadding = 22;
+  const chartTicks = useMemo(() => {
+    const max = Math.max(1, maxJobs);
+    const mid = Math.round(max / 2);
+    return [
+      { label: String(max), value: max },
+      { label: String(mid), value: mid },
+      { label: "0", value: 0 },
+    ];
+  }, [maxJobs]);
 
   const chartPoints = useMemo(() => {
     if (historySlice.length === 0) return [];
@@ -258,10 +267,19 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
     1,
     ...(skillView === "daily" ? skillSeriesDaily.map((item) => item.count) : skillSeriesMonthly.map((item) => item.count)),
   );
+  const skillTicks = useMemo(() => {
+    const max = Math.max(1, maxSkillCount);
+    const mid = Math.round(max / 2);
+    return [
+      { label: String(max), value: max },
+      { label: String(mid), value: mid },
+      { label: "0", value: 0 },
+    ];
+  }, [maxSkillCount]);
 
   const skillChartPoints = useMemo(() => {
     if (skillSeries.length === 0) return [];
-    return skillSeries.map((entry, index) => {
+    const buildPoint = (count: number, index: number, label: string, rawDate: string) => {
       const x =
         skillSeries.length === 1
           ? skillChartWidth / 2
@@ -269,16 +287,19 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
             (index / (skillSeries.length - 1)) * (skillChartWidth - skillChartPadding * 2);
       const y =
         skillChartPadding +
-        (1 - Math.min(1, entry.count / maxSkillCount)) * (skillChartHeight - skillChartPadding * 2);
-      return {
-        x,
-        y,
-        count: entry.count,
-        label: skillView === "daily" ? formatDate(entry.ranAt) : formatMonth(entry.month),
-        rawDate: "ranAt" in entry ? entry.ranAt : entry.month,
-      };
-    });
-  }, [skillSeries, maxSkillCount, skillView]);
+        (1 - Math.min(1, count / maxSkillCount)) * (skillChartHeight - skillChartPadding * 2);
+      return { x, y, count, label, rawDate };
+    };
+
+    if (skillView === "daily") {
+      return skillSeriesDaily.map((entry, index) =>
+        buildPoint(entry.count, index, formatDate(entry.ranAt), entry.ranAt),
+      );
+    }
+    return skillSeriesMonthly.map((entry, index) =>
+      buildPoint(entry.count, index, formatMonth(entry.month), entry.month),
+    );
+  }, [skillSeries, maxSkillCount, skillView, skillSeriesDaily, skillSeriesMonthly]);
 
   const skillChartPath =
     skillChartPoints.length === 0
@@ -321,6 +342,147 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
     if (!acc || entry.count > acc.count) return entry;
     return acc;
   }, null);
+
+  const windowRoleCounts = useMemo(() => {
+    return historySlice.reduce<Record<string, number>>((acc, entry) => {
+      const roles = entry.roleCounts || {};
+      Object.entries(roles).forEach(([term, count]) => {
+        const key = term.trim().toLowerCase();
+        if (!key) return;
+        acc[key] = (acc[key] ?? 0) + (typeof count === "number" ? count : 0);
+      });
+      return acc;
+    }, {});
+  }, [historySlice]);
+
+  const topWindowRoles = useMemo(() => {
+    return Object.entries(windowRoleCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([term, count]) => ({ term, count }));
+  }, [windowRoleCounts]);
+
+  const allRoleTotals = useMemo(() => {
+    return historySorted.reduce<Record<string, number>>((acc, entry) => {
+      const roles = entry.roleCounts || {};
+      Object.entries(roles).forEach(([term, count]) => {
+        const key = term.trim().toLowerCase();
+        if (!key) return;
+        acc[key] = (acc[key] ?? 0) + (typeof count === "number" ? count : 0);
+      });
+      return acc;
+    }, {});
+  }, [historySorted]);
+
+  const roleOptions = useMemo(
+    () =>
+      Object.entries(allRoleTotals)
+        .sort((a, b) => b[1] - a[1])
+        .map(([term]) => term),
+    [allRoleTotals],
+  );
+
+  const [selectedRole, setSelectedRole] = useState(() => roleOptions[0] ?? "");
+  const [roleView, setRoleView] = useState<"daily" | "monthly">("daily");
+  const [roleActiveIndex, setRoleActiveIndex] = useState<number | null>(null);
+
+  const effectiveRole = selectedRole || roleOptions[0] || "";
+
+  const roleSeriesDaily = useMemo(() => {
+    if (!effectiveRole) return [];
+    return historySorted.map((entry) => {
+      let count = 0;
+      const roles = entry.roleCounts || {};
+      Object.entries(roles).forEach(([term, value]) => {
+        if (term.trim().toLowerCase() === effectiveRole) {
+          count = typeof value === "number" ? value : 0;
+        }
+      });
+      return { ranAt: entry.ranAt, count };
+    });
+  }, [effectiveRole, historySorted]);
+
+  const roleSeriesMonthly = useMemo(() => {
+    if (!effectiveRole) return [];
+    const map = new Map<string, { month: string; count: number }>();
+    roleSeriesDaily.forEach((entry) => {
+      const parsed = new Date(entry.ranAt);
+      if (Number.isNaN(parsed.getTime())) return;
+      const key = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}`;
+      const current = map.get(key);
+      map.set(key, {
+        month: key,
+        count: (current?.count ?? 0) + entry.count,
+      });
+    });
+    return Array.from(map.values()).sort((a, b) => a.month.localeCompare(b.month));
+  }, [effectiveRole, roleSeriesDaily]);
+
+  const roleSeries = roleView === "daily" ? roleSeriesDaily : roleSeriesMonthly;
+
+  const roleChartWidth = 520;
+  const roleChartHeight = 140;
+  const roleChartPadding = 18;
+  const maxRoleCount = Math.max(
+    1,
+    ...(roleView === "daily" ? roleSeriesDaily.map((item) => item.count) : roleSeriesMonthly.map((item) => item.count)),
+  );
+
+  const roleChartPoints = useMemo(() => {
+    if (roleSeries.length === 0) return [];
+    const buildPoint = (count: number, index: number, label: string, rawDate: string) => {
+      const x =
+        roleSeries.length === 1
+          ? roleChartWidth / 2
+          : roleChartPadding +
+            (index / (roleSeries.length - 1)) * (roleChartWidth - roleChartPadding * 2);
+      const y =
+        roleChartPadding +
+        (1 - Math.min(1, count / maxRoleCount)) * (roleChartHeight - roleChartPadding * 2);
+      return { x, y, count, label, rawDate };
+    };
+
+    if (roleView === "daily") {
+      return roleSeriesDaily.map((entry, index) =>
+        buildPoint(entry.count, index, formatDate(entry.ranAt), entry.ranAt),
+      );
+    }
+    return roleSeriesMonthly.map((entry, index) =>
+      buildPoint(entry.count, index, formatMonth(entry.month), entry.month),
+    );
+  }, [roleSeries, maxRoleCount, roleView, roleSeriesDaily, roleSeriesMonthly]);
+
+  const roleChartPath =
+    roleChartPoints.length === 0
+      ? ""
+      : roleChartPoints.map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`).join(" ");
+
+  const roleChartAreaPath =
+    roleChartPoints.length === 0
+      ? ""
+      : `${roleChartPath} L${roleChartPoints[roleChartPoints.length - 1].x},${
+          roleChartHeight - roleChartPadding
+        } L${roleChartPoints[0].x},${roleChartHeight - roleChartPadding} Z`;
+
+  const roleActivePoint = roleActiveIndex !== null ? roleChartPoints[roleActiveIndex] : null;
+
+  const handleRoleChartMove: React.MouseEventHandler<SVGSVGElement> = (event) => {
+    if (roleChartPoints.length === 0) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * roleChartWidth;
+    let closest = 0;
+    let distance = Number.POSITIVE_INFINITY;
+    roleChartPoints.forEach((point, index) => {
+      const delta = Math.abs(point.x - x);
+      if (delta < distance) {
+        distance = delta;
+        closest = index;
+      }
+    });
+    setRoleActiveIndex(closest);
+  };
+
+  const handleRoleChartLeave = () => setRoleActiveIndex(null);
 
   const filteredBuckets = useMemo(() => {
     const buckets = summary[mode];
@@ -436,10 +598,30 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
                 >
                   <defs>
                     <linearGradient id="skillFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgba(59, 130, 246, 0.35)" />
-                      <stop offset="100%" stopColor="rgba(59, 130, 246, 0)" />
+                      <stop offset="0%" stopColor="rgba(37, 99, 235, 0.25)" />
+                      <stop offset="100%" stopColor="rgba(37, 99, 235, 0)" />
                     </linearGradient>
                   </defs>
+                  {skillTicks.map((tick) => {
+                    const y =
+                      skillChartPadding +
+                      (1 - Math.min(1, tick.value / maxSkillCount)) *
+                        (skillChartHeight - skillChartPadding * 2);
+                    return (
+                      <g key={`skill-tick-${tick.value}`}>
+                        <line
+                          x1={skillChartPadding}
+                          x2={skillChartWidth - skillChartPadding}
+                          y1={y}
+                          y2={y}
+                          className={styles.axisLine}
+                        />
+                        <text x={6} y={y + 4} className={styles.axisLabel}>
+                          {tick.label}
+                        </text>
+                      </g>
+                    );
+                  })}
                   <rect
                     x={skillChartPadding}
                     y={skillChartPadding}
@@ -470,7 +652,14 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
                   ) : null}
                 </svg>
                 {skillActivePoint ? (
-                  <div className={styles.timelineTooltip}>
+                  <div
+                    className={styles.timelineTooltipTop}
+                    style={{
+                      left: `${Math.min(88, Math.max(12, (skillActivePoint.x / skillChartWidth) * 100))}%`,
+                      top: "6%",
+                      transform: "translate(-50%, 0)",
+                    }}
+                  >
                     <p className={styles.timelineTooltipLabel}>{skillActivePoint.label}</p>
                     <p className={styles.timelineTooltipValue}>{skillActivePoint.count} mentions</p>
                   </div>
@@ -493,7 +682,7 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
               </div>
             </div>
           </div>
-        </section>\n\n<section className={styles.timeline}>
+        </section><section className={styles.timeline}>
           <div className={styles.sectionHead}>
             <div>
               <p className={styles.sectionKicker}>Scrape timeline</p>
@@ -567,12 +756,32 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
                     onMouseMove={handleChartMove}
                     onMouseLeave={handleChartLeave}
                   >
-                    <defs>
-                      <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="rgba(16, 185, 129, 0.35)" />
-                        <stop offset="100%" stopColor="rgba(16, 185, 129, 0)" />
-                      </linearGradient>
-                    </defs>
+                  <defs>
+                    <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(22, 163, 74, 0.25)" />
+                      <stop offset="100%" stopColor="rgba(22, 163, 74, 0)" />
+                    </linearGradient>
+                  </defs>
+                    {chartTicks.map((tick) => {
+                      const y =
+                        chartPadding +
+                        (1 - Math.min(1, tick.value / maxJobs)) *
+                          (chartHeight - chartPadding * 2);
+                      return (
+                        <g key={`jobs-tick-${tick.value}`}>
+                          <line
+                            x1={chartPadding}
+                            x2={chartWidth - chartPadding}
+                            y1={y}
+                            y2={y}
+                            className={styles.axisLine}
+                          />
+                          <text x={6} y={y + 4} className={styles.axisLabel}>
+                            {tick.label}
+                          </text>
+                        </g>
+                      );
+                    })}
                     <rect
                       x={chartPadding}
                       y={chartPadding}
@@ -613,7 +822,14 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
                     ))}
                   </svg>
                   {activePoint ? (
-                    <div className={styles.timelineTooltip}>
+                    <div
+                      className={styles.timelineTooltipTop}
+                      style={{
+                        left: `${Math.min(88, Math.max(12, (activePoint.x / chartWidth) * 100))}%`,
+                        top: "6%",
+                        transform: "translate(-50%, 0)",
+                      }}
+                    >
                       <p className={styles.timelineTooltipLabel}>{formatDate(activePoint.rawDate)}</p>
                       <p className={styles.timelineTooltipValue}>{activePoint.value} jobs</p>
                     </div>
@@ -664,6 +880,138 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
           )}
         </section>
 
+        <section className={styles.roleExplorer}>
+          <div className={styles.sectionHead}>
+            <div>
+              <p className={styles.sectionKicker}>Role constellation</p>
+              <h2 className={styles.sectionTitle}>Explore roles by momentum</h2>
+            </div>
+            <p className={styles.sectionMeta}>Tap a role to see its trendline</p>
+          </div>
+
+          <div className={styles.explorerControls}>
+            <div className={styles.controlGroup}>
+              <span className={styles.controlLabel}>Role</span>
+              <select
+                className={styles.controlSelect}
+                value={effectiveRole}
+                onChange={(event) => setSelectedRole(event.target.value)}
+              >
+                {roleOptions.map((term) => (
+                  <option key={term} value={term}>
+                    {term}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.controlGroup}>
+              <span className={styles.controlLabel}>View</span>
+              {(["daily", "monthly"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`${styles.controlButton} ${roleView === value ? styles.controlButtonActive : ""}`}
+                  onClick={() => setRoleView(value)}
+                >
+                  {value === "daily" ? "Daily" : "Monthly"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.roleGrid}>
+            <div className={styles.roleConstellation}>
+              {topWindowRoles.length === 0 ? (
+                <p className={styles.panelEmpty}>No role data yet.</p>
+              ) : (
+                topWindowRoles.map((item, index) => {
+                  const size = Math.max(64, Math.min(150, 54 + item.count * 6));
+                  return (
+                    <button
+                      key={item.term}
+                      type="button"
+                      className={`${styles.roleBubble} ${item.term === effectiveRole ? styles.roleBubbleActive : ""}`}
+                      style={{ width: size, height: size }}
+                      title={item.term}
+                      onClick={() => setSelectedRole(item.term)}
+                    >
+                      <span className={styles.roleBubbleLabel}>{item.term}</span>
+                      <span className={styles.roleBubbleCount}>{item.count}</span>
+                      <span className={styles.roleBubbleIndex}>{index + 1}</span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            <div className={styles.roleChart}>
+              <div className={styles.timelineChartHead}>
+                <p className={styles.timelineChartTitle}>{effectiveRole || "Select a role"}</p>
+                <p className={styles.timelineChartMeta}>
+                  {roleView === "daily" ? "Snapshots by day" : "Monthly aggregation"}
+                </p>
+              </div>
+              <div className={styles.timelineChartShell}>
+                <svg
+                  className={styles.timelineSvg}
+                  viewBox={`0 0 ${roleChartWidth} ${roleChartHeight}`}
+                  role="img"
+                  aria-label="Line chart showing role frequency"
+                  onMouseMove={handleRoleChartMove}
+                  onMouseLeave={handleRoleChartLeave}
+                >
+                  <defs>
+                    <linearGradient id="roleFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="rgba(245, 158, 11, 0.32)" />
+                      <stop offset="100%" stopColor="rgba(245, 158, 11, 0)" />
+                    </linearGradient>
+                  </defs>
+                  <rect
+                    x={roleChartPadding}
+                    y={roleChartPadding}
+                    width={roleChartWidth - roleChartPadding * 2}
+                    height={roleChartHeight - roleChartPadding * 2}
+                    className={styles.timelineGrid}
+                  />
+                  <path d={roleChartAreaPath} fill="url(#roleFill)" />
+                  <path d={roleChartPath} className={styles.roleLine} />
+                  {roleChartPoints.map((point, index) => (
+                    <circle
+                      key={`${point.rawDate}-${point.count}-${index}`}
+                      cx={point.x}
+                      cy={point.y}
+                      r={roleActiveIndex === index ? 5 : 3.5}
+                      className={`${styles.roleDot} ${roleActiveIndex === index ? styles.roleDotActive : ""}`}
+                    />
+                  ))}
+                  {roleActivePoint ? (
+                    <line
+                      x1={roleActivePoint.x}
+                      x2={roleActivePoint.x}
+                      y1={roleChartPadding}
+                      y2={roleChartHeight - roleChartPadding}
+                      className={styles.timelineMarkerLine}
+                    />
+                  ) : null}
+                </svg>
+                {roleActivePoint ? (
+                  <div
+                    className={styles.timelineTooltip}
+                    style={{
+                      left: `${Math.min(88, Math.max(12, (roleActivePoint.x / roleChartWidth) * 100))}%`,
+                      top: `${(roleActivePoint.y / roleChartHeight) * 100}%`,
+                      transform: "translate(-50%, -130%)",
+                    }}
+                  >
+                    <p className={styles.timelineTooltipLabel}>{roleActivePoint.label}</p>
+                    <p className={styles.timelineTooltipValue}>{roleActivePoint.count} mentions</p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </section>
+
         
 
         <section className={styles.section}>
@@ -703,5 +1051,3 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
     </div>
   );
 }
-
-

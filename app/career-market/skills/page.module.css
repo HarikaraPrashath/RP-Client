@@ -1,9 +1,7 @@
 .page {
   position: relative;
   min-height: 100vh;
-  background: radial-gradient(circle at 18% 22%, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0)),
-    radial-gradient(circle at 82% 16%, rgba(236, 72, 153, 0.14), rgba(236, 72, 153, 0)),
-    #f7f9fc;
+  background: #ffffff;
   color: #0f172a;
   padding: 32px 0 80px;
   overflow: hidden;
@@ -11,19 +9,11 @@
 
 .gradientOne,
 .gradientTwo {
-  position: absolute;
-  inset: -120px auto auto -120px;
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.25), rgba(14, 165, 233, 0));
-  filter: blur(10px);
-  z-index: 0;
-  pointer-events: none;
+  display: none;
 }
 
 .gradientTwo {
-  inset: auto -120px 0 auto;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.24), rgba(59, 130, 246, 0));
+  display: none;
 }
 
 .container {

@@ -487,7 +487,7 @@ export default function MergeSkillsPage() {
             {bestMatch ? (
               <>
                 <p className={styles.highlightRole}>
-                  {bestMatch.position ?? "Untitled role"} <span>â†’ {bestMatch.match_percent}%</span>
+                  {bestMatch.position ?? "Untitled role"} <span>→ {bestMatch.match_percent}%</span>
                 </p>
                 <p className={styles.employer}>{bestMatch.employer ?? "Unknown employer"}</p>
                 <div className={styles.chips}>
@@ -508,7 +508,7 @@ export default function MergeSkillsPage() {
               <>
                 <p className={styles.highlightRole}>
                   {lowestMatch.position ?? "Untitled role"}{" "}
-                  <span>â†’ {lowestMatch.match_percent ?? 0}%</span>
+                  <span>→ {lowestMatch.match_percent ?? 0}%</span>
                 </p>
                 <p className={styles.employer}>{lowestMatch.employer ?? "Unknown employer"}</p>
                 <div className={styles.chips}>
