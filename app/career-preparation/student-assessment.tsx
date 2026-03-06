@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -16,7 +16,9 @@ import {
   LayoutDashboard,
   ChevronRight,
   Home,
-  FileText
+  FileText,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 
 interface AssessmentData {
@@ -171,10 +173,31 @@ const sriLankanUniversities = [
   'Horizon Campus'
 ];
 
+// Timer and step configuration
+const TOTAL_TIME_SECONDS = 600; // 10 minutes
+const STEPS_COUNT = 5;
+const TIME_PER_STEP = TOTAL_TIME_SECONDS / STEPS_COUNT; // 120 seconds per step
+
+// Questions count per step for progress tracking
+const QUESTIONS_PER_STEP = {
+  1: 2, // Personal Info: gender, languages
+  2: 5, // Academic: education, major, GPA, year, semester
+  3: 4, // Technical: programming, databases, frameworks, cloud
+  4: 2, // Career Interests: work environment, work-life balance
+  5: 5  // Career: stress, learning style, internship, projects, certifications
+};
+
 function StudentAssessment() {
   const router = useRouter();
   const pathname = usePathname();
   const [currentStep, setCurrentStep] = useState(1);
+  
+  // Timer states
+  const [timeRemaining, setTimeRemaining] = useState(TOTAL_TIME_SECONDS);
+  const [stepTimeRemaining, setStepTimeRemaining] = useState(TIME_PER_STEP);
+  const [isTimerRunning, setIsTimerRunning] = useState(true);
+  const [showTimeWarning, setShowTimeWarning] = useState(false);
+  
   const [errors, setErrors] = useState<ValidationErrors>({
     personalInfo: {},
     academicBackground: {},
@@ -219,6 +242,138 @@ function StudentAssessment() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Timer effect
+  useEffect(() => {
+    if (!isTimerRunning) return;
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleTimeUp();
+          return 0;
+        }
+        return prev - 1;
+      });
+      
+      setStepTimeRemaining((prev) => {
+        if (prev <= 1) {
+          // Move to next step when step time expires
+          if (currentStep < STEPS_COUNT) {
+            handleStepTimeUp();
+            return TIME_PER_STEP;
+          } else {
+            clearInterval(timer);
+            handleTimeUp();
+            return 0;
+          }
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isTimerRunning, currentStep]);
+
+  // Show warning when step time is low (30 seconds remaining)
+  useEffect(() => {
+    if (stepTimeRemaining <= 30) {
+      setShowTimeWarning(true);
+    } else {
+      setShowTimeWarning(false);
+    }
+  }, [stepTimeRemaining]);
+
+  const handleTimeUp = useCallback(() => {
+    setIsTimerRunning(false);
+    // Auto-submit the form
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+  }, []);
+
+  const handleStepTimeUp = useCallback(() => {
+    if (currentStep < STEPS_COUNT) {
+      nextStep();
+    }
+  }, [currentStep]);
+
+  // Format time for display (MM:SS)
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Calculate progress
+  const getTotalQuestions = () => Object.values(QUESTIONS_PER_STEP).reduce((a, b) => a + b, 0);
+  
+  const getCompletedQuestions = () => {
+    let completed = 0;
+    // Step 1: Personal Info
+    if (assessmentData.personalInfo.gender) completed++;
+    if (assessmentData.personalInfo.languages.length > 0) completed++;
+    
+    // Step 2: Academic
+    if (assessmentData.academicBackground.educationLevel) completed++;
+    if (assessmentData.academicBackground.major) completed++;
+    if (assessmentData.academicBackground.gpa > 0) completed++;
+    if (assessmentData.academicBackground.currentYear > 0) completed++;
+    if (assessmentData.academicBackground.currentSemester) completed++;
+    
+    // Step 3: Technical
+    if (assessmentData.technicalSkills.programming.length > 0) completed++;
+    if (assessmentData.technicalSkills.databases.length > 0) completed++;
+    if (assessmentData.technicalSkills.frameworks.length > 0) completed++;
+    if (assessmentData.technicalSkills.cloudPlatforms.length > 0) completed++;
+    
+    // Step 4: Career Interests
+    if (assessmentData.careerInterests.workEnvironment) completed++;
+    if (assessmentData.careerInterests.workLifeBalance) completed++;
+    
+    // Step 5: Career
+    if (assessmentData.career.stressManagement) completed++;
+    if (assessmentData.career.learningStyle) completed++;
+    if (assessmentData.career.internship) completed++;
+    if (assessmentData.career.projects) completed++;
+    if (assessmentData.career.certifications) completed++;
+    
+    return completed;
+  };
+
+  const getCurrentStepCompletedQuestions = () => {
+    let completed = 0;
+    switch (currentStep) {
+      case 1:
+        if (assessmentData.personalInfo.gender) completed++;
+        if (assessmentData.personalInfo.languages.length > 0) completed++;
+        break;
+      case 2:
+        if (assessmentData.academicBackground.educationLevel) completed++;
+        if (assessmentData.academicBackground.major) completed++;
+        if (assessmentData.academicBackground.gpa > 0) completed++;
+        if (assessmentData.academicBackground.currentYear > 0) completed++;
+        if (assessmentData.academicBackground.currentSemester) completed++;
+        break;
+      case 3:
+        if (assessmentData.technicalSkills.programming.length > 0) completed++;
+        if (assessmentData.technicalSkills.databases.length > 0) completed++;
+        if (assessmentData.technicalSkills.frameworks.length > 0) completed++;
+        if (assessmentData.technicalSkills.cloudPlatforms.length > 0) completed++;
+        break;
+      case 4:
+        if (assessmentData.careerInterests.workEnvironment) completed++;
+        if (assessmentData.careerInterests.workLifeBalance) completed++;
+        break;
+      case 5:
+        if (assessmentData.career.stressManagement) completed++;
+        if (assessmentData.career.learningStyle) completed++;
+        if (assessmentData.career.internship) completed++;
+        if (assessmentData.career.projects) completed++;
+        if (assessmentData.career.certifications) completed++;
+        break;
+    }
+    return completed;
+  };
 
   // Validation functions
   const validatePersonalInfo = () => {
@@ -492,33 +647,100 @@ function StudentAssessment() {
   const nextStep = () => {
     if (validateCurrentStep() && currentStep < 5) {
       setCurrentStep(currentStep + 1);
+      setStepTimeRemaining(TIME_PER_STEP); // Reset step timer for new step
+      setShowTimeWarning(false);
     }
   };
 
   const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      setStepTimeRemaining(TIME_PER_STEP); // Reset step timer when going back
+      setShowTimeWarning(false);
+    }
   };
 
   const renderStepIndicator = () => {
+    const totalQuestions = getTotalQuestions();
+    const completedQuestions = getCompletedQuestions();
+    const currentStepCompleted = getCurrentStepCompletedQuestions();
+    const currentStepTotal = QUESTIONS_PER_STEP[currentStep as keyof typeof QUESTIONS_PER_STEP];
+    
     return (
-      <div className="flex justify-between mb-8">
-        {[1, 2, 3, 4, 5].map((step) => (
-          <div key={step} className="flex flex-col items-center">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-              step === currentStep ? 'bg-blue-500 text-white' :
-              step < currentStep ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
-            }`}>
-              {step < currentStep ? <CheckCircle className="w-5 h-5" /> : step}
+      <div className="mb-8">
+        {/* Timer Display */}
+        <div className="flex justify-between items-center mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${showTimeWarning ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+              <Clock className="w-5 h-5" />
             </div>
-            <span className="text-xs text-gray-600">
-              {step === 1 && 'Personal'}
-              {step === 2 && 'Academic'}
-              {step === 3 && 'Technical'}
-              {step === 4 && 'Interests'}
-              {step === 5 && 'Career'}
-            </span>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Time Remaining</p>
+              <p className={`text-2xl font-bold ${showTimeWarning ? 'text-red-600' : 'text-gray-900'}`}>
+                {formatTime(timeRemaining)}
+              </p>
+            </div>
           </div>
-        ))}
+          
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-600">Step Time</p>
+            <p className={`text-xl font-bold ${showTimeWarning ? 'text-red-600' : 'text-blue-600'}`}>
+              {formatTime(stepTimeRemaining)}
+            </p>
+          </div>
+        </div>
+
+        {/* Time Warning */}
+        {showTimeWarning && (
+          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4 text-red-700">
+            <AlertCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">Hurry up! Time is running out for this step!</span>
+          </div>
+        )}
+
+        {/* Step Indicator */}
+        <div className="flex justify-between mb-4">
+          {[1, 2, 3, 4, 5].map((step) => (
+            <div key={step} className="flex flex-col items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
+                step === currentStep ? 'bg-blue-500 text-white' :
+                step < currentStep ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+              }`}>
+                {step < currentStep ? <CheckCircle className="w-5 h-5" /> : step}
+              </div>
+              <span className="text-xs text-gray-600">
+                {step === 1 && 'Personal'}
+                {step === 2 && 'Academic'}
+                {step === 3 && 'Technical'}
+                {step === 4 && 'Interests'}
+                {step === 5 && 'Career'}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress Bar */}
+        <div className="bg-gray-200 rounded-full h-3 mb-2">
+          <div 
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all duration-500"
+            style={{ width: `${(completedQuestions / totalQuestions) * 100}%` }}
+          />
+        </div>
+        
+        {/* Progress Text */}
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">
+            Overall: <span className="font-semibold text-blue-600">{completedQuestions}/{totalQuestions}</span> questions completed
+          </span>
+          <span className="text-gray-600">
+            Step {currentStep}: <span className="font-semibold text-indigo-600">{currentStepCompleted}/{currentStepTotal}</span> answered
+          </span>
+        </div>
+        
+        {/* Remaining in Current Step */}
+        <p className="text-xs text-gray-500 mt-1 text-center">
+          {currentStepTotal - currentStepCompleted} question(s) remaining in current step
+        </p>
       </div>
     );
   };
@@ -1026,9 +1248,13 @@ function StudentAssessment() {
         <div className="max-w-4xl mx-auto">
           <div className="mb-8 text-center">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Student Assessment</h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 mb-2">
               Complete this comprehensive assessment to receive personalized career guidance and roadmap
             </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full text-amber-700 text-sm">
+              <Clock className="w-4 h-4" />
+              <span>You have <strong>10 minutes</strong> ({TIME_PER_STEP/60} min per step)</span>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-200 shadow-sm">

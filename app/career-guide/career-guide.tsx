@@ -594,10 +594,8 @@ export default function Home() {
           if (semObj && semObj.year > 2) {
             if (match) {
               guidance =
-                "✅ **Sliit Check:** You're in a good path.\n" +
-                `Your specialization **(${specialization})** matches your predicted role **(${top1})**.
-` +
-                `Suggested next steps: Strengthen your ${top1} skills with projects and certifications.`;
+                "✅ **Sliit Check:** You’re in a good path.\n" +
+                `Your specialization **(${specialization})** matches your predicted role **(${top1})**.`;
             } else {
               guidance =
                 "⚠️ **Sliit Check:** Your predicted role and specialization look different.\n" +

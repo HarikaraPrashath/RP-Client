@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import ChatBot from '@/components/career-preparation/ChatBot';
 import {
   Brain,
   Target,
@@ -368,6 +369,9 @@ function CareerPreparation() {
 
       </div>
       </div>
+      
+      {/* AI Chat Bot */}
+      <ChatBot selectedRole={selectedRole} />
     </div>
   );
 }
