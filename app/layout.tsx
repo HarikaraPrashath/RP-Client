@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import { Manrope } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
+import { AuthContextProvider } from "../context/authContext";
+import { Toaster } from 'react-hot-toast';
 
 const manrope = Manrope({ subsets: ["latin"] })
 
@@ -39,7 +41,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${manrope.className} antialiased`}>
-        {children}
+        <AuthContextProvider>
+          {children}
+        </AuthContextProvider>
+        <Toaster />
         <Analytics />
       </body>
     </html>

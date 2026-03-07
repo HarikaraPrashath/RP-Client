@@ -3,6 +3,10 @@
 import ChatArea from "@/components/career-guide/ChatArea";
 import ChatHeader from "@/components/career-guide/ChatHeader";
 import { useState, useRef, useEffect, FormEvent } from "react";
+import { MessageSquareMore } from 'lucide-react';
+import { Import } from 'lucide-react';
+import { Settings } from 'lucide-react';
+
 
 declare global {
   interface ImportMeta {
@@ -45,7 +49,7 @@ interface Message {
 }
 
 const API_URL =
-  (process.env.NEXT_PUBLIC_API_URL) + "/predict";
+  (process.env.NEXT_PUBLIC_API_URL) + "/predict-career";
 console.log("Api public", API_URL)
 
 export default function Home() {
@@ -285,29 +289,29 @@ export default function Home() {
       return;
     }
 
-  if (step === "softSkills") {
-  setSoftSkills(userText);
-  setStep("techSkills");
-  setCurrentQuestionNumber((n) => n + 1);
-  addBotMessage(
-    "✅ **Soft skills recorded!**\n\n" +
-    "🛠️ **Next:** List your technical skills (Python, Java, React, etc.)"
-  );
-  return;
-}
+    if (step === "softSkills") {
+      setSoftSkills(userText);
+      setStep("techSkills");
+      setCurrentQuestionNumber((n) => n + 1);
+      addBotMessage(
+        "✅ **Soft skills recorded!**\n\n" +
+        "🛠️ **Next:** List your technical skills (Python, Java, React, etc.)"
+      );
+      return;
+    }
 
     if (step === "techSkills") {
-  setTechSkills(userText);
-  setStep("english");
-  setCurrentQuestionNumber((n) => n + 1);
-  addBotMessage(
-    "✅ **Technical skills recorded!**\n\n" +
-    "🌐 **Next:** Enter your English score (0 - 100)"
-  );
-  return;
-}
+      setTechSkills(userText);
+      setStep("english");
+      setCurrentQuestionNumber((n) => n + 1);
+      addBotMessage(
+        "✅ **Technical skills recorded!**\n\n" +
+        "🌐 **Next:** Enter your English score (0 - 100)"
+      );
+      return;
+    }
 
-    if (step === "semester" ) {
+    if (step === "semester") {
       const semObj = parseSemesterCode(userText);
       if (!semObj) {
         addBotMessage("Please enter semester like **2Y2S** or **1Y1S**.");
@@ -333,7 +337,7 @@ export default function Home() {
       setGpa(gpaValue);
 
       const semObj = parseSemesterCode(semester);
-   
+
       // strictly: if year > 2 OR (year==2 && sem==2 is NOT over)
       const over = semObj ? (semObj.year > 2) : false;
 
@@ -419,7 +423,6 @@ export default function Home() {
       setOceanE(r);
       setStep("oceanA");
       setCurrentQuestionNumber(9);
-      setCurrentQuestionNumber(10);
       addBotMessage(
         `✅ **Agreeableness: ${r}/5**\n\n` +
         "**Question 10 of 17: Neuroticism**\n" +
@@ -539,6 +542,9 @@ export default function Home() {
 
       // Payload matching backend requirements
       const payload = {
+        Is_Sliit_Student: isSliitStudent ?? false,   // ✅ ADD THIS
+        Specialization: specialization ?? "",       // ✅ ADD THIS
+
         Soft_Skills: softSkills,
         Key_Skils: techSkills,
         Current_semester: semester,
@@ -562,7 +568,8 @@ export default function Home() {
 
       try {
         addBotMessage("✅ **All questions answered!**\n\n🤔 Analyzing your profile...");
-        console.log("Payload", payload)
+        console.log("Payload", payload);
+
         const res = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -572,170 +579,191 @@ export default function Home() {
         if (!res.ok) throw new Error("Network response was not ok");
 
         const data = await res.json();
+
         const top1 = data.top_1_prediction;
-        const top3 = data.top_3_predictions;
+        const top3 = data.top_3_predictions ?? [];
+        const llmGuidance: string = data.guidance ?? "";
+        const dynamicSuggestions = data.dynamic_suggestions ?? {};
 
-        // INSERT HERE (guidance block)
-        let guidance = "";
-
+        // 2️⃣ Guidance Summary
+        let guidanceSummary = "";
         if (isSliitStudent) {
           const semObj = parseSemesterCode(semester);
           const g = gpa ?? 0;
-
-          const specNorm = specialization.trim().toUpperCase();
-
-          const expectedSpecs = ROLE_TO_SPECIALIZATIONS[top1] ?? [];
+          const safeSpec = specialization ? specialization.trim() : "";
+          const specNorm = safeSpec.toUpperCase();
+          const expectedSpecs: string[] = ROLE_TO_SPECIALIZATIONS[top1] ?? [];
           const match =
             expectedSpecs.length > 0 &&
+            specNorm.length > 0 &&
             expectedSpecs.some((s) => specNorm.includes(s.toUpperCase()));
 
-
-          //choice the best guidance based on semester and gpa (for students), and specialization alignment (for over 2Y2S)
           if (semObj && semObj.year > 2) {
-            if (match) {
-              guidance =
-                "✅ **Sliit Check:** You’re in a good path.\n" +
-                `Your specialization **(${specialization})** matches your predicted role **(${top1})**.`;
-            } else {
-              guidance =
-                "⚠️ **Sliit Check:** Your predicted role and specialization look different.\n" +
-                `Predicted role: **${top1}**\n` +
-                `Your specialization: **${specialization}**\n\n` +
-                "✅ Suggestion: Either align projects/skills toward your predicted role, or consider adjusting specialization (if possible).";
-            }
+            guidanceSummary = match
+              ? `✅ **SLIIT Alignment:** ${safeSpec || "(no specialization)"} matches **${top1}**.`
+              : `⚠️ **SLIIT Alignment:** Predicted Role **${top1}**, Your Specialization: ${safeSpec || "(none)"}.\n\n👉 Consider bridge projects or adjusting career focus.`;
           } else {
-            if (g >= 3.0) {
-              guidance =
-                "✅ **Sliit Check:** GPA is strong (3.0+).\n" +
-                `Based on your profile, you can target **${top1}**.\n` +
-                (expectedSpecs.length
-                  ? `Recommended specializations to support this role: **${expectedSpecs.join(", ")}**`
-                  : "Recommended: pick a specialization that matches your top career direction and start building projects.");
-            } else {
-              guidance =
-                "⚠️ **Sliit Check:** GPA is below 3.0.\n" +
-                "You can still succeed, but you should improve your fundamentals + projects.\n\n" +
-                "✅ Action plan:\n" +
-                "• Improve core subjects + coding practice\n" +
-                "• Build 1–2 solid projects\n" +
-                `• Slowly move toward **${top1}** skill requirements`;
-            }
+            guidanceSummary =
+              g >= 3.0
+                ? `✅ **Strong Academic Foundation (GPA ≥ 3.0):** Targeting **${top1}**.`
+                : `⚠️ **Academic Recovery Recommended (GPA < 3.0):** Focus on fundamentals + portfolio.`;
           }
         } else {
-          guidance =
-            "✅ **Career Guidance (Non-student):**\n" +
-            "Focus on building a portfolio + real skills.\n" +
-            `Your best-fit direction is **${top1}** — start with one project and a roadmap for it.`;
+          guidanceSummary = `✅ **Career Direction Advice:** Your strongest path is **${top1}**.`;
         }
 
-        // ✅ THEN your final message uses guidance
-        addBotMessage(
-          `🎉 **Career Prediction Complete!**\n\n` +
-          `🏆 **Best Model Prediction:**\n` +
-          `## ${top1}\n\n` +
-          `📌 **Top-3 Suggested Careers:**\n` +
-          `${top3.map((c: string, i: number) => `${i + 1}. ${c}`).join("\n")}\n\n` +
-          `${guidance}\n\n` +
-          `💡 **Next step:** Build 1 project + upload to GitHub.`
-        );
+        addBotMessage(`🧭 **Guidance Summary:**\n\n${guidanceSummary}`);
 
+        // 3️⃣ LLM Guidance (each line as separate bullet)
+        if (llmGuidance) {
+          const llmLines = llmGuidance
+            .split(/\n|•/)
+            .map((line) => line.trim())
+            .filter(Boolean);
+          addBotMessage(
+            "🧠 **Model Guidance:**\n\n" +
+            llmLines.map((line) => `• ${line}`).join("\n\n")
+          );
+        }
 
-        addBotMessage(
-          `🔄 **Take another assessment?**\n` +
-          `Type **"start"** to begin again with different responses.`
-        );
+        // 4️⃣ Dynamic Suggestions (each bullet/module starts on a new line)
+        if (Object.keys(dynamicSuggestions).length > 0) {
+          const bullets = dynamicSuggestions.bullets ?? [];
+          const modules = dynamicSuggestions.modules ?? [];
+          addBotMessage(
+            `💡 **Dynamic Suggestions:**\n` +
+            `**Plan Title:** ${dynamicSuggestions.title || "–"}\n\n` +
+            `**Audience:** ${dynamicSuggestions.audience || "–"}\n\n` +
+            `**Semester:** ${dynamicSuggestions.semester || "–"}\n\n` +
+            `**GPA Band:** ${dynamicSuggestions.gpa_band || "–"}\n` +
+            `**Specialization:** ${dynamicSuggestions.specialization || "–"}\n\n` +
+            `**Matches Top-1 Role:** ${dynamicSuggestions.specialization_matches_top1 ? "✅ Yes" : "❌ No"}\n\n` +
+            `**Key Actions:**\n\n` +
+            bullets.map((b: string) => `• ${b}`).join("\n\n") +
+            (modules.length > 0
+              ? `\n\n**Recommended Modules:**\n\n` +
+              modules.map((m: string) => `• ${m}`).join("\n\n")
+              : "")
+          );
+        }
+
+        // 5️⃣ Prompt for new assessment
+        addBotMessage(`\n🔄 **Take another assessment?**\nType **"start"** to begin again.`);
         resetAll();
       } catch (error) {
         console.error(error);
         addBotMessage(
           "❌ **Service Temporarily Unavailable**\n" +
           "Our prediction engine is currently updating. Please try again in a few minutes."
-        ); resetAll();
+        );
+        resetAll();
       } finally {
         setIsThinking(false);
       }
-      return;
     }
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4 md:p-6 flex items-center justify-center font-sans">
-      <div className="w-full max-w-6xl h-[90vh] bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-blue-200/30 flex flex-col overflow-hidden border border-slate-200">
-        {/* Enhanced Header */}
-        <ChatHeader currentQuestionNumber={currentQuestionNumber} progress={progress} />
+  <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 font-sans flex">
 
-        {/* Chat Area */}
-        <ChatArea
-          messages={messages}
-          isThinking={isThinking}
-          messagesEndRef={messagesEndRef}
-        />;
+  {/* 🔵 Sidebar */}
+  <aside className="w-64 bg-white border-r border-slate-200 shadow-lg hidden md:flex flex-col">
+    
+    {/* Logo / Title */}
+    <div className="p-6 border-b border-slate-100">
+      <h2 className="text-xl font-bold text-slate-800">Career AI</h2>
+      <p className="text-xs text-slate-500 mt-1">Assessment Dashboard</p>
+    </div>
 
-        {/* Enhanced Input Area */}
-        <form onSubmit={handleSubmit} className="border-t border-slate-100 bg-gradient-to-t from-white to-slate-50/50 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <input
-              className="flex-1 rounded-xl bg-white border border-slate-200 px-4 py-3.5 text-base text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all font-medium shadow-sm"
-              placeholder={
-                step === "welcome"
-                  ? 'Type "start" to begin your career assessment...'
-                  : step === "oceanO" || step === "oceanC" || step === "oceanE" || step === "oceanA" || step === "oceanN"
-                    ? `Enter rating 1-5 for Question ${currentQuestionNumber}...`
-                    : step === "riaR" || step === "riaI" || step === "riaA" || step === "riaS" || step === "riaE" || step === "riaC"
-                      ? `Enter rating 1-10 for Question ${currentQuestionNumber}...`
-                      : `Answer Question ${currentQuestionNumber}...`
-              }
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              disabled={isThinking}
-            />
-            <button
-              type="submit"
-              disabled={!input.trim() || isThinking}
-              className="inline-flex items-center justify-center rounded-xl px-6 py-3.5 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30 active:scale-[0.98]"            >
-              <span className="mr-2 font-bold">Send</span>
-              <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-              </svg>
-            </button>
-          </div>
-          <div className="mt-2 text-xs text-slate-500 text-center font-medium">
-            {step === "oceanO" || step === "oceanC" || step === "oceanE" || step === "oceanA" || step === "oceanN"
-              ? "Rating scale: 1 (Lowest) to 5 (Highest)"
-              : step === "riaR" || step === "riaI" || step === "riaA" || step === "riaS" || step === "riaE" || step === "riaC"
-                ? "Rating scale: 1 (Lowest) to 10 (Highest)"
-                : "Press Enter to send your response"}
-          </div>
-        </form>
+    {/* Menu Buttons */}
+    <div className="flex-1 p-4 space-y-3">
 
-      </div>
-      <style jsx global>{`
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.25s ease-out;
-        }
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-          background: #f1f5f9;
-          border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-        body {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-      `}</style>
-    </main>
+      <button type="button"
+        className="w-full text-left px-4 py-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium transition"
+      >
+        <MessageSquareMore className="w-4 h-4 mr-2 inline" /> New Chat
+      </button>
+
+      <button type="button"
+        className="w-full text-left px-4 py-3 rounded-xl items-center bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium transition"
+      >
+        <Import className="w-4 h-4 mr-2 inline" /> Save to Profile
+      </button>
+
+      <button type="button"
+        className="w-full  text-left px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium transition"
+      >
+        <Settings className="w-4 h-4 mr-2 inline"/> Settings
+      </button>
+
+    </div>
+
+    {/* Bottom Section */}
+    <div className="p-4 border-t border-slate-100 text-xs text-slate-400">
+      © 2026 Career AI
+    </div>
+  </aside>
+
+
+  {/* 🔵 Chat Section */}
+  <div className="flex-1 p-4 md:p-6 flex items-center justify-center">
+    <div className="w-full max-w-6xl h-[90vh] bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-blue-200/30 flex flex-col overflow-hidden border border-slate-200">
+      
+      {/* Header */}
+      <ChatHeader currentQuestionNumber={currentQuestionNumber} progress={progress} />
+
+      {/* Chat Area */}
+      <ChatArea
+        messages={messages}
+        isThinking={isThinking}
+        messagesEndRef={messagesEndRef}
+      />
+
+      {/* Input Area */}
+      <form
+        onSubmit={handleSubmit}
+        className="border-t border-slate-100 bg-gradient-to-t from-white to-slate-50/50 px-4 py-3"
+      >
+        <div className="flex items-center gap-3">
+          <input
+            className="flex-1 rounded-xl bg-white border border-slate-200 px-4 py-3.5 text-base text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all font-medium shadow-sm"
+            placeholder={
+              step === "welcome"
+                ? 'Type "start" to begin your career assessment...'
+                : step === "oceanO" || step === "oceanC" || step === "oceanE" || step === "oceanA" || step === "oceanN"
+                  ? `Enter rating 1-5 for Question ${currentQuestionNumber}...`
+                  : step === "riaR" || step === "riaI" || step === "riaA" || step === "riaS" || step === "riaE" || step === "riaC"
+                    ? `Enter rating 1-10 for Question ${currentQuestionNumber}...`
+                    : `Answer Question ${currentQuestionNumber}...`
+            }
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={isThinking}
+          />
+
+          <button
+            type="submit"
+            disabled={!input.trim() || isThinking}
+            className="inline-flex items-center justify-center rounded-xl px-6 py-3.5 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white disabled:opacity-30 disabled:cursor-not-allowed hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30 active:scale-[0.98]"
+          >
+            <span className="mr-2 font-bold">Send</span>
+            <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div className="mt-2 text-xs text-slate-500 text-center font-medium">
+          {step === "oceanO" || step === "oceanC" || step === "oceanE" || step === "oceanA" || step === "oceanN"
+            ? "Rating scale: 1 (Lowest) to 5 (Highest)"
+            : step === "riaR" || step === "riaI" || step === "riaA" || step === "riaS" || step === "riaE" || step === "riaC"
+              ? "Rating scale: 1 (Lowest) to 10 (Highest)"
+              : "Press Enter to send your response"}
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
   );
 
 }

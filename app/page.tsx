@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -20,9 +20,24 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation";
+import { useLogout } from "../hook/useLogout";
+
 
 export default function Home() {
+  const router = useRouter();
+  const { logout } = useLogout();
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const [user, setUser] = useState<{
+    name: string;
+    token: string;
+    email?: string;
+  } | null>(null);
+
+
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("career");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,15 +47,49 @@ export default function Home() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        const token = parsedUser?.token;
+        const name = parsedUser?.user?.name || parsedUser?.name;
+        const email = parsedUser?.user?.email || parsedUser?.email;
+
+        if (token && name) {
+          setUser({ name, token, email });
+          setLoading(false);
+        } else {
+          router.push("/login");
+        }
+      } catch (e) {
+        router.push("/login");
+      }
+    } else {
+      router.push("/login");
+    }
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <p className="text-lg font-semibold animate-pulse">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
   return (
     <main className="min-h-screen bg-background">
       {/* Navigation */}
       <nav
-        className={`fixed w-full z-50 transition-all duration-300 ${
-          isScrolled
-            ? "bg-white/80 backdrop-blur-md shadow-lg"
-            : "bg-transparent"
-        }`}
+        className={`fixed w-full z-50 transition-all duration-300 ${isScrolled
+          ? "bg-white/80 backdrop-blur-md shadow-lg"
+          : "bg-transparent"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 animate-fade-in-down">
@@ -88,14 +137,29 @@ export default function Home() {
             >
               Pricing
             </a>
-
+            <Link href="/trends" className="text-foreground/70 hover:text-foreground transition-colors">
+              Trend Radar
+            </Link>
+            <Link href="/merge-skills" className="text-foreground/70 hover:text-foreground transition-colors">
+              Merge Skills
+            </Link>
           </div>
-          <button
-            type="button"
-            className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-          >
-            Get Started
-          </button>
+          {user ? (
+            <Link href="/profile">
+              <div className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                {`Welcome, ${user.name.split(" ")[0]}!`}
+              </div>
+            </Link>
+          ) : (
+            <Link href="/login">
+              <button
+                type="button"
+                className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+              >
+                Get Started
+              </button>
+            </Link>
+          )}
         </div>
       </nav>
 
@@ -438,7 +502,7 @@ export default function Home() {
                 </div>
 
                 <Link
-                  href="/career-market/profile"
+                  href="/login"
                   className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
                 >
                   Try Service
@@ -481,7 +545,7 @@ export default function Home() {
                 </div>
 
                 <Link
-                  href="/Personality-career"
+                  href="/personality-prediction"
                   className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
                 >
                   Try Service
@@ -856,11 +920,10 @@ export default function Home() {
             ].map((plan, idx) => (
               <div
                 key={idx}
-                className={`relative rounded-2xl p-8 animate-fade-in-up transition-all duration-300 ${
-                  plan.highlighted
-                    ? "bg-gradient-to-br from-primary to-accent text-white border-0 transform scale-105 shadow-2xl"
-                    : "bg-white border border-primary/10 hover:shadow-lg"
-                }`}
+                className={`relative rounded-2xl p-8 animate-fade-in-up transition-all duration-300 ${plan.highlighted
+                  ? "bg-gradient-to-br from-primary to-accent text-white border-0 transform scale-105 shadow-2xl"
+                  : "bg-white border border-primary/10 hover:shadow-lg"
+                  }`}
                 style={{ animationDelay: `${0.2 * idx}s` }}
               >
                 {plan.highlighted && (
@@ -869,41 +932,36 @@ export default function Home() {
                   </div>
                 )}
                 <h3
-                  className={`text-2xl font-bold mb-2 ${
-                    plan.highlighted ? "text-white" : "text-foreground"
-                  }`}
+                  className={`text-2xl font-bold mb-2 ${plan.highlighted ? "text-white" : "text-foreground"
+                    }`}
                 >
                   {plan.name}
                 </h3>
                 <p
-                  className={`mb-6 text-sm ${
-                    plan.highlighted ? "text-white/80" : "text-foreground/70"
-                  }`}
+                  className={`mb-6 text-sm ${plan.highlighted ? "text-white/80" : "text-foreground/70"
+                    }`}
                 >
                   {plan.desc}
                 </p>
                 <div className="mb-6">
                   <span
-                    className={`text-4xl font-bold ${
-                      plan.highlighted ? "text-white" : "text-primary"
-                    }`}
+                    className={`text-4xl font-bold ${plan.highlighted ? "text-white" : "text-primary"
+                      }`}
                   >
                     {plan.price}
                   </span>
                   <span
-                    className={`text-sm ml-2 ${
-                      plan.highlighted ? "text-white/80" : "text-foreground/60"
-                    }`}
+                    className={`text-sm ml-2 ${plan.highlighted ? "text-white/80" : "text-foreground/60"
+                      }`}
                   >
                     {plan.period}
                   </span>
                 </div>
                 <button
-                  className={`w-full py-3 rounded-lg font-semibold mb-8 transition-all duration-300 ${
-                    plan.highlighted
-                      ? "bg-white text-primary hover:shadow-lg"
-                      : "bg-gradient-to-r from-primary to-accent text-white hover:shadow-lg"
-                  }`}
+                  className={`w-full py-3 rounded-lg font-semibold mb-8 transition-all duration-300 ${plan.highlighted
+                    ? "bg-white text-primary hover:shadow-lg"
+                    : "bg-gradient-to-r from-primary to-accent text-white hover:shadow-lg"
+                    }`}
                 >
                   {plan.cta}
                 </button>
@@ -911,16 +969,14 @@ export default function Home() {
                   {plan.features.map((feature, fidx) => (
                     <li
                       key={fidx}
-                      className={`flex items-start gap-3 text-sm ${
-                        plan.highlighted
-                          ? "text-white/90"
-                          : "text-foreground/70"
-                      }`}
+                      className={`flex items-start gap-3 text-sm ${plan.highlighted
+                        ? "text-white/90"
+                        : "text-foreground/70"
+                        }`}
                     >
                       <Check
-                        className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                          plan.highlighted ? "text-white" : "text-primary"
-                        }`}
+                        className={`w-5 h-5 flex-shrink-0 mt-0.5 ${plan.highlighted ? "text-white" : "text-primary"
+                          }`}
                       />
                       {feature}
                     </li>
