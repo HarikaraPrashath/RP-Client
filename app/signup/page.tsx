@@ -46,123 +46,110 @@ const Page = () => {
   };
 
   return (
-    <div
-      className="min-h-screen "
-      style={{ backgroundImage: "url('/Images/bg.png')" }}
-    >
-      <div className="grid grid-cols-[30%_70%] min-h-screen b">
-        {/* Left Column */}
-        <div className="">
+    <div className="min-h-screen flex">
+      {/* Left Column - Full Image */}
+      <div className="w-1/2 min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('/Images/hero.png')" }}>
+        <div className="flex flex-col justify-between min-h-screen p-10 text-white">
           {/* Logo */}
-          <div className="flex items-center justify-center pt-10">
-         
+          <div className="flex justify-center pt-10">
+            <Image
+              src="logo.png"
+              alt="Logo"
+              width={150}
+              height={50}
+              className="w-98 h-auto mt-30"
+            />
           </div>
-
-          {/* Footer Text */}
-          <div className="absolute bottom-8 left-8 text-gray-700 text-sm font-semibold">
-            © 2025 MediSync. All rights reserved.
+          {/* Footer */}
+          <div className="text-blue-500 text-sm font-semibold">
+            © 2025 Mentora. All rights reserved.
           </div>
         </div>
+      </div>
 
-        {/* Right Column */}
-        <div
-          className="w-full h-full bg-cover bg-center "
-          style={{ backgroundImage: "url('/Images/hero.png')" }}
-        >
-          {/* Login Form */}
-          <div className=" flex flex-col items-center justify-center h-full ml-50 text-white px-6">
-            <h1 className="text-5xl md:text-6xl font-bold mb-2">Welcome</h1>
-            <p className="text-lg mb-8">Sign up to access your EMR Dashboard</p>
+      {/* Right Column - Signup Form */}
+      <div className="w-1/2 flex items-center justify-center bg-blue-500 px-10">
+        <div className="bg-white rounded-3xl shadow-xl p-10 w-full max-w-md">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2 text-center">Welcome</h1>
+          <p className="text-gray-500 mb-8 text-center">Sign up to access your Education Service</p>
 
-            <form
-              onSubmit={handleSubmit}
-              className="rounded-2xl  px-8 py-6 w-full max-w-md  "
-            >
-              {/* Username */}
-              <div className="mb-4">
-                <label className="block mb-1 text-white">Username</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-2 border bg-white text-black border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white"
-                  placeholder="Enter your username"
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Username */}
+            <div>
+              <label className="block mb-1 text-gray-700 font-medium">Username</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter your username"
+              />
+            </div>
 
-              {/* email */}
-              <div className="mb-4">
-                <label className="block mb-1  text-white">E-mail Address</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 border bg-white text-black border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white"
-                  placeholder="Enter your Email"
-                />
-              </div>
+            {/* Email */}
+            <div>
+              <label className="block mb-1 text-gray-700 font-medium">Email Address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter your email"
+              />
+            </div>
 
-              {/*  Password */}
-              <div className="mb-4 relative">
-                <label className="block mb-1 text-white">Password</label>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2 border bg-white text-black border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white pr-10"
-                  placeholder="Enter your password"
-                />
-                <span
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute top-9 right-4 text-gray-500 cursor-pointer"
-                >
-                  {showPassword ? (
-                    <AiOutlineEye size={20} />
-                  ) : (
-                    <AiOutlineEyeInvisible size={20} />
-                  )}
-                </span>
-              </div>
-
-              {/* Remember Me and Forgot */}
-              <div className="flex justify-between items-center mb-6 text-sm">
-                <label className="flex items-center text-white">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 mr-2 appearance-none border-2 border-white rounded-sm bg-transparent checked:bg-white checked:border-white checked:accent-white focus:outline-none"
-                  />
-                  Remember me
-                </label>
-                <a
-                  href="/ForgotPassword"
-                  className="text-white hover:underline"
-                >
-                  Forgot Password?
-                </a>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full bg-green-900 hover:bg-green-950 text-white font-semibold py-2 rounded-2xl transition ${
-                  isLoading
-                    ? "bg-blue-300 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-green-700"
-                }`}
+            {/* Password */}
+            <div className="relative">
+              <label className="block mb-1 text-gray-700 font-medium">Password</label>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                placeholder="Enter your password"
+              />
+              <span
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute top-9 right-4 text-gray-500 cursor-pointer"
+                style={{ top: '35px' }}
               >
-                {isLoading ? " Go To Dashboard..." : " Go To Dashboard"}
-              </button>
+                {showPassword ? <AiOutlineEye size={20} /> : <AiOutlineEyeInvisible size={20} />}
+              </span>
+            </div>
 
-              {/* Already have account */}
-              <p className="text-center text-white text-sm mt-6">
-                Already have an account?{" "}
-                <a href="/login" className="text-green-600 hover:underline">
-                  Login
-                </a>
-              </p>
-            </form>
-          </div>
+            {/* Remember Me & Forgot */}
+            <div className="flex justify-between items-center text-sm">
+              <label className="flex items-center text-gray-700">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 mr-2 accent-blue-500"
+                />
+                Remember me
+              </label>
+              <a href="/forgot-password" className="text-blue-500 hover:underline">
+                Forgot Password?
+              </a>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`w-full py-2 rounded-2xl text-white font-semibold transition ${
+                isLoading ? "bg-gray-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {isLoading ? "Go To Dashboard..." : "Go To Dashboard"}
+            </button>
+
+            {/* Login Link */}
+            <p className="text-center text-gray-500 text-sm mt-6">
+              Already have an account?{" "}
+              <a href="/login" className="text-blue-600 hover:underline">
+                Login
+              </a>
+            </p>
+          </form>
         </div>
       </div>
     </div>

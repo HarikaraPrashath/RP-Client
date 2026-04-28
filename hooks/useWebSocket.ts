@@ -27,9 +27,14 @@ export const useWebSocket = (url: string) => {
         };
 
         ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'LIVE_INSIGHT') {
-                setLastInsight(data);
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'LIVE_INSIGHT') {
+                    setLastInsight(data);
+                }
+            } catch (e) {
+                // Handle non-JSON messages or invalid JSON
+                console.log('Non-JSON message received from WebSocket:', event.data);
             }
         };
 

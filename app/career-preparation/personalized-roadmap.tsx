@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { authHeader } from '../../lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -28,7 +29,8 @@ import {
   Check,
   LayoutDashboard,
   ChevronRight,
-  Home
+  Home,
+  Save
 } from 'lucide-react';
 
 interface AssessmentData {
@@ -117,6 +119,7 @@ function PersonalizedRoadmap() {
   const [activeMilestone, setActiveMilestone] = useState<string | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [showCourses, setShowCourses] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     // Load assessment data from sessionStorage
@@ -769,6 +772,51 @@ function PersonalizedRoadmap() {
     { id: 'roadmap', name: 'Personalized Roadmap', icon: <Target className="w-5 h-5" />, href: '/career-preparation/personalized-roadmap' },
   ];
 
+
+  const onSaveToProfile = async () => {
+    if (!careerPrediction || !roadmap) {
+      alert("No roadmap available to save.");
+      return;
+    }
+    setIsSaving(true);
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+    try {
+      const getHeaders = { ...authHeader() };
+      const resGet = await fetch(apiBase + "/profile", { 
+        credentials: "include",
+        headers: getHeaders
+      });
+      if (!resGet.ok) throw new Error("Failed to get profile");
+      const profileData = await resGet.json();
+
+      profileData.careerPrep = {
+        careerPrediction,
+        roadmap
+      };
+
+      const putHeaders = { 
+        "Content-Type": "application/json", 
+        ...authHeader() 
+      };
+      const resPut = await fetch(apiBase + "/profile", {
+        method: "PUT",
+        headers: putHeaders,
+        credentials: "include",
+        body: JSON.stringify(profileData)
+      });
+      if (resPut.ok) {
+        alert("Success! Career Preparation roadmap saved to your Profile.");
+      } else {
+        alert("Failed to save to profile.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error saving profile.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex">
       {/* Sidebar */}
@@ -808,6 +856,17 @@ function PersonalizedRoadmap() {
             ))}
           </div>
           
+          <div className="mt-4 border-t border-gray-200">
+             <button
+              onClick={onSaveToProfile}
+              disabled={isSaving}
+              className={`w-full flex items-center gap-3 px-4 py-3 mt-4 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors font-medium ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <Save className={`w-5 h-5 ${isSaving ? 'animate-bounce' : ''}`} />
+              <span>{isSaving ? 'Saving...' : 'Save to Profile'}</span>
+            </button>
+          </div>
+
           <div className="mt-8 pt-6 border-t border-gray-200">
             <Link
               href="/"

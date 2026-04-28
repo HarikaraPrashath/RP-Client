@@ -1,6 +1,7 @@
 import styles from "./page.module.css";
 import AppSider from "../../../components/market/app-sider";
 import siderStyles from "../../../components/market/app-sider.module.css";
+import SaveToProfileButton from "../../../components/market/save-to-profile-button";
 
 type TrendEntry = {
   ranAt: string;
@@ -241,7 +242,10 @@ export default async function TrDashboardPage() {
                 Executive view of market demand, skill gaps, and learning priorities.
               </p>
             </div>
-            <div className={styles.heroBadge}>Live snapshot</div>
+            <div>
+              <div className={styles.heroBadge}>Live snapshot</div>
+              <SaveToProfileButton studentGap={student} topSkills={topSkills} career={career} />
+            </div>
           </div>
 
           <section className={styles.overviewGrid}>

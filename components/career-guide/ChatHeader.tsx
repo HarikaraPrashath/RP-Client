@@ -1,9 +1,10 @@
 interface Props{
     currentQuestionNumber:number;
     progress:number;
+    userName?: string | null;
 }
 
-export default function ChatHeader({currentQuestionNumber,progress}:Props) {
+export default function ChatHeader({currentQuestionNumber,progress,userName}:Props) {
     return (
           <header className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700">
           <div className="flex items-center justify-between mb-3">
@@ -18,12 +19,15 @@ export default function ChatHeader({currentQuestionNumber,progress}:Props) {
                 <p className="text-sm text-blue-100/80 font-medium">Intelligent Career Assessment</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <div className="h-3 w-3 rounded-full bg-emerald-400 animate-pulse"></div>
-                <div className="h-3 w-3 rounded-full bg-emerald-400 animate-pulse absolute inset-0 opacity-50"></div>
+            <div className="flex items-center gap-4">
+              <div className="text-sm font-semibold text-white">{`Welcome, ${userName ?? "Guest"}!`}</div>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <div className="h-3 w-3 rounded-full bg-emerald-400 animate-pulse"></div>
+                  <div className="h-3 w-3 rounded-full bg-emerald-400 animate-pulse absolute inset-0 opacity-50"></div>
+                </div>
+                <span className="text-sm font-medium text-white">Live Assessment</span>
               </div>
-              <span className="text-sm font-medium text-white">Live Assessment</span>
             </div>
           </div>
           {/* Progress Bar */}

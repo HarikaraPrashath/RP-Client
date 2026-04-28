@@ -1,6 +1,19 @@
 export const getAuthToken = () => {
   if (typeof window === "undefined") return "";
-  return window.localStorage.getItem("authToken") || "";
+  const token = window.localStorage.getItem("authToken");
+  if (token) return token;
+
+  // Fallback: check if it's inside the 'user' object
+  try {
+    const user = window.localStorage.getItem("user");
+    if (user) {
+      const parsed = JSON.parse(user);
+      return parsed.token || parsed.user?.token || "";
+    }
+  } catch (e) {
+    return "";
+  }
+  return "";
 };
 
 export const setAuthToken = (token: string) => {
