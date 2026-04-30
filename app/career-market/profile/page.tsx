@@ -1,12 +1,9 @@
-﻿"use client";
-import "antd/dist/reset.css";
+"use client";
 import { EditOutlined } from "@ant-design/icons";
-import { Checkbox, Input, Modal } from "antd";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { authHeader } from "../../../lib/auth";
-import styles from "./page.module.css";
 import AppSider from "../../../components/market/app-sider";
 import siderStyles from "../../../components/market/app-sider.module.css";
 
@@ -325,6 +322,291 @@ const buildProjectEntries = (lines: string[]): ProjectEntry[] => {
 
   flushCurrent();
   return entries;
+};
+
+const cx = (...classes: Array<string | false | null | undefined>) =>
+  classes.filter(Boolean).join(" ");
+
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+type ButtonSize = "sm" | "md";
+
+const Button = ({
+  variant = "secondary",
+  size = "md",
+  className,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+}) => {
+  const base =
+    "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50";
+  const sizes: Record<ButtonSize, string> = {
+    sm: "h-8 px-3 text-xs",
+    md: "h-9 px-3.5 text-sm",
+  };
+  const variants: Record<ButtonVariant, string> = {
+    primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+    secondary: "bg-card text-foreground hover:bg-muted shadow-sm",
+    ghost: "bg-transparent text-foreground hover:bg-muted",
+    danger: "bg-destructive text-white hover:bg-destructive/90 shadow-sm",
+  };
+
+  return (
+    <button className={cx(base, sizes[size], variants[variant], className)} {...props} />
+  );
+};
+
+const Card = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cx("rounded-2xl bg-card shadow-sm ring-1 ring-border/60", className)}
+    {...props}
+  />
+);
+
+const SectionCard = ({
+  title,
+  description,
+  actions,
+  children,
+}: {
+  title: string;
+  description?: string;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+}) => (
+  <Card className="p-5">
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
+        {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
+      </div>
+      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+    </div>
+    <div className="mt-4">{children}</div>
+  </Card>
+);
+
+const Pill = ({ children }: { children: React.ReactNode }) => (
+  <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+    {children}
+  </span>
+);
+
+const TextField = ({
+  label,
+  hint,
+  className,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) => (
+  <label className={cx("block space-y-1.5", className)}>
+    <span className="text-xs font-medium text-muted-foreground">{label}</span>
+    <input
+      className="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/15 disabled:opacity-60"
+      {...props}
+    />
+    {hint ? <span className="text-xs text-muted-foreground">{hint}</span> : null}
+  </label>
+);
+
+const TextArea = ({
+  label,
+  className,
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }) => (
+  <label className={cx("block space-y-1.5", className)}>
+    <span className="text-xs font-medium text-muted-foreground">{label}</span>
+    <textarea
+      className="min-h-[96px] w-full resize-y rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
+      {...props}
+    />
+  </label>
+);
+
+const CheckboxField = ({
+  label,
+  className,
+  ...props
+}: Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> & { label: string }) => (
+  <label className={cx("flex items-start gap-2 text-sm", className)}>
+    <input
+      type="checkbox"
+      className="mt-0.5 size-4 rounded border-border text-primary focus:ring-2 focus:ring-primary/20"
+      {...props}
+    />
+    <span className="text-foreground">{label}</span>
+  </label>
+);
+
+const ModalShell = ({
+  open,
+  title,
+  description,
+  onClose,
+  children,
+  footer,
+  widthClassName = "max-w-2xl",
+}: {
+  open: boolean;
+  title: string;
+  description?: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  widthClassName?: string;
+}) => {
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  return (
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onMouseDown={onClose} />
+      <div
+        className={cx(
+          "relative w-full overflow-hidden rounded-2xl bg-card shadow-xl ring-1 ring-border",
+          widthClassName
+        )}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-border/70 px-5 py-4">
+          <div>
+            <h3 className="text-sm font-semibold">{title}</h3>
+            {description ? <p className="mt-1 text-xs text-muted-foreground">{description}</p> : null}
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
+            Close
+          </Button>
+        </div>
+        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">{children}</div>
+        {footer ? (
+          <div className="flex items-center justify-end gap-2 border-t border-border/70 px-5 py-4">
+            {footer}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
+type SkillGroupKey = "Languages" | "Frameworks" | "Tools" | "Other";
+const groupSkills = (skills: string[]) => {
+  const languages = new Set([
+    "javascript",
+    "typescript",
+    "python",
+    "java",
+    "c",
+    "c++",
+    "c#",
+    "go",
+    "rust",
+    "php",
+    "kotlin",
+    "swift",
+    "sql",
+    "r",
+    "dart",
+  ]);
+  const frameworks = new Set([
+    "react",
+    "next.js",
+    "nextjs",
+    "node.js",
+    "nodejs",
+    "express",
+    "nestjs",
+    "django",
+    "flask",
+    "fastapi",
+    "spring",
+    "spring boot",
+    "laravel",
+    "vue",
+    "angular",
+    "svelte",
+    "tailwind",
+  ]);
+  const tools = new Set([
+    "git",
+    "github",
+    "docker",
+    "kubernetes",
+    "aws",
+    "azure",
+    "gcp",
+    "figma",
+    "jira",
+    "notion",
+    "postgres",
+    "mysql",
+    "mongodb",
+    "redis",
+    "linux",
+  ]);
+
+  const result: Record<SkillGroupKey, string[]> = {
+    Languages: [],
+    Frameworks: [],
+    Tools: [],
+    Other: [],
+  };
+
+  skills
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .forEach((skill) => {
+      const key = skill.toLowerCase();
+      if (languages.has(key)) result.Languages.push(skill);
+      else if (frameworks.has(key)) result.Frameworks.push(skill);
+      else if (tools.has(key)) result.Tools.push(skill);
+      else result.Other.push(skill);
+    });
+
+  (Object.keys(result) as SkillGroupKey[]).forEach((k) => {
+    result[k] = Array.from(new Set(result[k])).sort((a, b) => a.localeCompare(b));
+  });
+
+  return result;
+};
+
+const Timeline = ({
+  items,
+  emptyText,
+}: {
+  items: Array<{ key: string; title: string; meta?: string; body?: React.ReactNode }>;
+  emptyText: string;
+}) => {
+  if (!items.length) return <p className="text-sm text-muted-foreground">{emptyText}</p>;
+
+  return (
+    <ol className="relative space-y-5 border-l border-border/70 pl-6">
+      {items.map((item) => (
+        <li key={item.key} className="relative">
+          <span className="absolute -left-[9px] top-1.5 grid size-4 place-items-center rounded-full bg-primary/15 ring-2 ring-primary/20">
+            <span className="size-1.5 rounded-full bg-primary" />
+          </span>
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="text-sm font-semibold text-foreground">{item.title}</div>
+              {item.meta ? <div className="text-xs text-muted-foreground">{item.meta}</div> : null}
+            </div>
+            {item.body ? <div className="text-sm text-foreground/90">{item.body}</div> : null}
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
 };
 
 export default function ProfilePage() {
@@ -695,7 +977,7 @@ export default function ProfilePage() {
   const splitBullets = (value: string) =>
     value
       .split(/\n+/)
-      .map((line) => line.replace(/^[-*•\u2022]\s*/, "").trim())
+      .map((line) => line.replace(/^[-*â€¢\u2022]\s*/, "").trim())
       .filter(Boolean);
 
   const saveRecommendation = () => {
@@ -784,936 +1066,989 @@ export default function ProfilePage() {
     [projects]
   );
 
+  const skillGroups = useMemo(() => groupSkills(skills), [skills]);
+  const [expandedSkillGroups, setExpandedSkillGroups] = useState<
+    Partial<Record<SkillGroupKey, boolean>>
+  >({});
+
   return (
     <div className={siderStyles.siderLayout}>
       <AppSider variant="light" />
       <div className={siderStyles.siderContent}>
-        <div className={styles.page}>
-      <div className={styles.container}>
-        <section className={styles.noticeCard}>
-          <div>
-            <h2 className={styles.noticeTitle}>Auto-fill from your CV</h2>
-            <p className={styles.noticeText}>
-              You can still add everything manually, but CV_extracter can parse your resume and
-              pre-fill these sections in seconds.
-            </p>
-          </div>
-          <Link href="/career-market/cv_extracter" className={styles.noticeButton}>
-            Go to CV_extracter
-          </Link>
-        </section>
-        <section className={styles.profileCard}>
-          <button
-            className={styles.profileEdit}
-            type="button"
-            aria-label="Edit profile"
-            onClick={openBasicsModal}
-          >
-            <EditOutlined />
-          </button>
-          <div className={styles.avatarWrap}>
-            <div className={styles.avatar}>JD</div>
-            <span className={styles.openTag}>Open to work</span>
-          </div>
-          <div className={styles.profileInfo}>
-            <div className={styles.profileHeader}>
-              <div>
-                <h1 className={styles.name}>{displayName}</h1>
-                <p className={styles.headline}>{basics.headline || "Add a headline"}</p>
-                <p className={styles.meta}>{metaLine}</p>
-              </div>
-            </div>
-            <div className={styles.profileHighlights}>
-              <div className={styles.highlight}>
-                <span className={styles.highlightLabel}>Current</span>
-                <span>
-                  {basics.showCurrentCompany
-                    ? basics.position || "Add current position"
-                    : "Hidden"}
-                </span>
-              </div>
-              <div className={styles.highlight}>
-                <span className={styles.highlightLabel}>Education</span>
-                <span>
-                  {basics.showSchool
-                    ? basics.school || "Add education"
-                    : "Hidden"}
-                </span>
-              </div>
-              <div className={styles.highlight}>
-                <span className={styles.highlightLabel}>Contact</span>
-                <span>{basics.contactEmail || "Add contact info"}</span>
-              </div>
-            </div>
-            <div className={styles.profileActions}>
-              <button className={styles.resetBtn} type="button" onClick={resetSections}>
-                Reset sections
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <div className={styles.grid}>
-          <main className={styles.mainCol}>
-            <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2>About</h2>
-                {!isEditingAbout && (
-                  <button
-                    className={styles.linkBtn}
-                    type="button"
-                    aria-label={about ? "Edit about" : "Add about"}
-                    onClick={() => {
-                      setAboutDraft(about);
-                      setIsEditingAbout(true);
-                    }}
-                  >
-                    {about ? <EditOutlined /> : "Add"}
-                  </button>
-                )}
-              </div>
-              {isEditingAbout ? (
-                <div className={styles.formStack}>
-                  <textarea
-                    className={styles.textarea}
-                    rows={4}
-                    placeholder="Write a short summary about your work."
-                    value={aboutDraft}
-                    onChange={(event) => setAboutDraft(event.target.value)}
-                  />
-                  <div className={styles.formActions}>
-                    <button className={styles.primaryBtn} type="button" onClick={saveAbout}>
-                      Save
-                    </button>
-                    <button
-                      className={styles.ghostBtn}
-                      type="button"
-                      onClick={() => setIsEditingAbout(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : about ? (
-                <p className={styles.cardBody}>{about}</p>
-              ) : (
-                <p className={styles.emptyText}>Add a short summary about your work and focus areas.</p>
-              )}
-            </section>
-
-            <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2>Experience</h2>
-                {!showExperienceForm && (
-                  <button
-                    className={styles.linkBtn}
-                    type="button"
-                    onClick={() => {
-                      setExperienceDraft(emptyExperience);
-                      setShowExperienceForm(true);
-                    }}
-                  >
-                    Add
-                  </button>
-                )}
-              </div>
-              {showExperienceForm && (
-                <div className={styles.formStack}>
-                  <div className={styles.formRow}>
-                    <input
-                      className={styles.input}
-                      placeholder="Role"
-                      value={experienceDraft.role}
-                      onChange={(event) =>
-                        setExperienceDraft((prev) => ({ ...prev, role: event.target.value }))
-                      }
-                    />
-                    <input
-                      className={styles.input}
-                      placeholder="Company"
-                      value={experienceDraft.company}
-                      onChange={(event) =>
-                        setExperienceDraft((prev) => ({ ...prev, company: event.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className={styles.formRow}>
-                    <input
-                      className={styles.input}
-                      placeholder="Employment type"
-                      value={experienceDraft.type}
-                      onChange={(event) =>
-                        setExperienceDraft((prev) => ({ ...prev, type: event.target.value }))
-                      }
-                    />
-                    <input
-                      className={styles.input}
-                      placeholder="Dates"
-                      value={experienceDraft.dates}
-                      onChange={(event) =>
-                        setExperienceDraft((prev) => ({ ...prev, dates: event.target.value }))
-                      }
-                    />
-                  </div>
-                  <textarea
-                    className={styles.textarea}
-                    rows={3}
-                    placeholder="Summary"
-                    value={experienceDraft.summary}
-                    onChange={(event) =>
-                      setExperienceDraft((prev) => ({ ...prev, summary: event.target.value }))
-                    }
-                  />
-                  <div className={styles.formActions}>
-                    <button className={styles.primaryBtn} type="button" onClick={saveExperience}>
-                      Save
-                    </button>
-                    <button
-                      className={styles.ghostBtn}
-                      type="button"
-                      onClick={() => setShowExperienceForm(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-              {experiences.length === 0 && !showExperienceForm ? (
-                <p className={styles.emptyText}>Add your most recent roles and accomplishments.</p>
-              ) : (
-                <div className={styles.timeline}>
-                  {experiences.map((experience) => (
-                    <div key={`${experience.role}-${experience.company}`} className={styles.timelineItem}>
-                      <div className={styles.timelineLogo}>EX</div>
-                      <div>
-                        <h3>{experience.role || "Role"}</h3>
-                        <p className={styles.timelineMeta}>
-                          {(experience.company || "Company") + (experience.type ? ` - ${experience.type}` : "")}
-                        </p>
-                        {experience.dates && <p className={styles.timelineMeta}>{experience.dates}</p>}
-                        {experience.summary && (() => {
-                          const bullets = splitBullets(experience.summary);
-                          if (bullets.length > 1) {
-                            return (
-                              <ul className={styles.bulletList}>
-                                {bullets.map((bullet, index) => (
-                                  <li key={`${experience.role}-${index}`} className={styles.bulletItem}>
-                                    {bullet}
-                                  </li>
-                                ))}
-                              </ul>
-                            );
-                          }
-                          return <p className={styles.timelineBody}>{experience.summary}</p>;
-                        })()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2>Education</h2>
-                {!showEducationForm && (
-                  <button
-                    className={styles.linkBtn}
-                    type="button"
-                    onClick={() => {
-                      setEducationDraft(emptyEducation);
-                      setEditingEducationIndex(null);
-                      setShowEducationForm(true);
-                    }}
-                  >
-                    Add
-                  </button>
-                )}
-              </div>
-              {showEducationForm && (
-                <div className={styles.formStack}>
-                  <div className={styles.formRow}>
-                    <input
-                      className={styles.input}
-                      placeholder="School"
-                      value={educationDraft.school}
-                      onChange={(event) =>
-                        setEducationDraft((prev) => ({ ...prev, school: event.target.value }))
-                      }
-                    />
-                    <input
-                      className={styles.input}
-                      placeholder="Degree"
-                      value={educationDraft.degree}
-                      onChange={(event) =>
-                        setEducationDraft((prev) => ({ ...prev, degree: event.target.value }))
-                      }
-                    />
-                  </div>
-                  <input
-                    className={styles.input}
-                    placeholder="Dates"
-                    value={educationDraft.dates}
-                    onChange={(event) =>
-                      setEducationDraft((prev) => ({ ...prev, dates: event.target.value }))
-                    }
-                  />
-                  <div className={styles.formActions}>
-                    <button className={styles.primaryBtn} type="button" onClick={saveEducation}>
-                      Save
-                    </button>
-                    <button
-                      className={styles.ghostBtn}
-                      type="button"
-                      onClick={() => {
-                        setShowEducationForm(false);
-                        setEditingEducationIndex(null);
-                        setEducationDraft(emptyEducation);
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-              {educationItems.length === 0 && !showEducationForm ? (
-                <p className={styles.emptyText}>Add your schools, degrees, or certifications.</p>
-              ) : (
-                <div className={styles.timeline}>
-                  {educationItems.map((education, index) => (
-                    <div key={`${education.school}-${education.degree}`} className={styles.timelineItem}>
-                      <div className={styles.timelineLogo}>ED</div>
-                      <div>
-                        <div className={styles.timelineHeader}>
-                          <h3>{education.school || "School"}</h3>
-                          <button
-                            className={styles.timelineEditBtn}
-                            type="button"
-                            aria-label={`Edit ${education.school || "education"}`}
-                            onClick={() => {
-                              setEducationDraft(education);
-                              setEditingEducationIndex(index);
-                              setShowEducationForm(true);
-                            }}
-                          >
-                            <EditOutlined />
-                          </button>
-                        </div>
-                        {education.degree && <p className={styles.timelineMeta}>{education.degree}</p>}
-                        {education.dates && <p className={styles.timelineMeta}>{education.dates}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2>Skills</h2>
-                {!showSkillsForm && (
-                  <button
-                    className={styles.linkBtn}
-                    type="button"
-                    aria-label={skills.length ? "Edit skills" : "Add skills"}
-                    onClick={() => {
-                      setSkillsDraft(skills.join(", "));
-                      setShowSkillsForm(true);
-                    }}
-                  >
-                    {skills.length ? <EditOutlined /> : "Add"}
-                  </button>
-                )}
-              </div>
-              {showSkillsForm && (
-                <div className={styles.formStack}>
-                  <input
-                    className={styles.input}
-                    placeholder="Add skills separated by commas"
-                    value={skillsDraft}
-                    onChange={(event) => setSkillsDraft(event.target.value)}
-                  />
-                  <div className={styles.formActions}>
-                    <button className={styles.primaryBtn} type="button" onClick={saveSkills}>
-                      Save
-                    </button>
-                    <button
-                      className={styles.ghostBtn}
-                      type="button"
-                      onClick={() => setShowSkillsForm(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-              {!showSkillsForm && skills.length === 0 && (
-                <p className={styles.emptyText}>Add the skills you want recruiters to notice.</p>
-              )}
-              {skills.length > 0 && !showSkillsForm && (
-                <div className={styles.skillGrid}>
-                  {skills.map((skill) => (
-                    <span key={skill} className={styles.skillPill}>
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2>Projects</h2>
-                {!showProjectsForm && (
-                  <button
-                    className={styles.linkBtn}
-                    type="button"
-                    aria-label={projects.length ? "Edit projects" : "Add projects"}
-                    onClick={() => {
-                      setProjectsDraft(projects.join("\n"));
-                      setShowProjectsForm(true);
-                    }}
-                  >
-                    {projects.length ? <EditOutlined /> : "Add"}
-                  </button>
-                )}
-              </div>
-              {showProjectsForm && (
-                <div className={styles.formStack}>
-                  <textarea
-                    className={styles.textarea}
-                    rows={4}
-                    placeholder="Add one project per line"
-                    value={projectsDraft}
-                    onChange={(event) => setProjectsDraft(event.target.value)}
-                  />
-                  <div className={styles.formActions}>
-                    <button className={styles.primaryBtn} type="button" onClick={saveProjects}>
-                      Save
-                    </button>
-                    <button
-                      className={styles.ghostBtn}
-                      type="button"
-                      onClick={() => setShowProjectsForm(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-              {!showProjectsForm && projects.length === 0 && (
-                <p className={styles.emptyText}>Add projects or case studies from your CV.</p>
-              )}
-              {projects.length > 0 && !showProjectsForm && (
-                <div className={styles.projectGrid}>
-                  {organizedProjects.map((project, index) => (
-                    <div key={`${project.title}-${index}`} className={styles.projectCard}>
-                      <div className={styles.projectHeader}>
-                        <h3 className={styles.projectTitle}>
-                          {project.title || `Project ${index + 1}`}
-                        </h3>
-                        <div className={styles.projectActions}>
-                          <button
-                            className={styles.projectActionBtn}
-                            type="button"
-                            aria-label={`Edit ${project.title || `Project ${index + 1}`}`}
-                            onClick={() => openProjectEdit(project)}
-                          >
-                            <EditOutlined />
-                            Edit
-                          </button>
-                          {project.link && (
-                            <a
-                              className={styles.projectActionLink}
-                              href={project.link}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              View link
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                      {project.details.length > 0 && (
-                        <ul className={styles.projectMetaList}>
-                          {project.details.map((detail, detailIndex) => (
-                            <li
-                              key={`${project.title}-${detailIndex}`}
-                              className={styles.projectMetaItem}
-                            >
-                              {detail.label && (
-                                <span className={styles.projectLabel}>{detail.label}:</span>
-                              )}
-                              <span>{detail.text}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2>Certifications</h2>
-                {!showCertificationsForm && (
-                  <button
-                    className={styles.linkBtn}
-                    type="button"
-                    aria-label={certifications.length ? "Edit certifications" : "Add certifications"}
-                    onClick={() => {
-                      setCertificationsDraft(certifications.join("\n"));
-                      setShowCertificationsForm(true);
-                    }}
-                  >
-                    {certifications.length ? <EditOutlined /> : "Add"}
-                  </button>
-                )}
-              </div>
-              {showCertificationsForm && (
-                <div className={styles.formStack}>
-                  <textarea
-                    className={styles.textarea}
-                    rows={4}
-                    placeholder="Add one certification per line"
-                    value={certificationsDraft}
-                    onChange={(event) => setCertificationsDraft(event.target.value)}
-                  />
-                  <div className={styles.formActions}>
-                    <button className={styles.primaryBtn} type="button" onClick={saveCertifications}>
-                      Save
-                    </button>
-                    <button
-                      className={styles.ghostBtn}
-                      type="button"
-                      onClick={() => setShowCertificationsForm(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-              {!showCertificationsForm && certifications.length === 0 && (
-                <p className={styles.emptyText}>Add certifications and courses from your CV.</p>
-              )}
-              {certificationsList.length > 0 && !showCertificationsForm && (
-                <ul className={styles.bulletList}>
-                  {certificationsList.map((cert, index) => (
-                    <li key={`${cert}-${index}`} className={styles.bulletItem}>
-                      {cert}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            {referencesList.length > 0 && (
-              <section className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <h2>References</h2>
-                </div>
-                <ul className={styles.bulletList}>
-                  {referencesList.map((ref, index) => (
-                    <li key={`${ref}-${index}`} className={styles.bulletItem}>
-                      {ref}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
-
-            <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2>Recommendations</h2>
-                {!showRecommendationForm && (
-                  <button
-                    className={styles.linkBtn}
-                    type="button"
-                    onClick={() => {
-                      setRecommendationDraft(emptyRecommendation);
-                      setShowRecommendationForm(true);
-                    }}
-                  >
-                    Add
-                  </button>
-                )}
-              </div>
-              {showRecommendationForm && (
-                <div className={styles.formStack}>
-                  <textarea
-                    className={styles.textarea}
-                    rows={3}
-                    placeholder="Recommendation quote"
-                    value={recommendationDraft.quote}
-                    onChange={(event) =>
-                      setRecommendationDraft((prev) => ({ ...prev, quote: event.target.value }))
-                    }
-                  />
-                  <input
-                    className={styles.input}
-                    placeholder="Author name"
-                    value={recommendationDraft.author}
-                    onChange={(event) =>
-                      setRecommendationDraft((prev) => ({ ...prev, author: event.target.value }))
-                    }
-                  />
-                  <div className={styles.formActions}>
-                    <button className={styles.primaryBtn} type="button" onClick={saveRecommendation}>
-                      Save
-                    </button>
-                    <button
-                      className={styles.ghostBtn}
-                      type="button"
-                      onClick={() => setShowRecommendationForm(false)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-              {recommendations.length === 0 && !showRecommendationForm ? (
-                <p className={styles.emptyText}>Add endorsements or feedback from teammates.</p>
-              ) : (
-                <div className={styles.quoteList}>
-                  {recommendations.map((recommendation, index) => (
-                    <div key={`${recommendation.author}-${index}`} className={styles.quote}>
-                      <p>{recommendation.quote}</p>
-                      {recommendation.author && <span>- {recommendation.author}</span>}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          </main>
-
-          <aside className={styles.sideCol}>
-            <section className={`${styles.card} ${styles.openToCard}`}>
-              <div className={styles.cardHeader}>
-                <h2>Open to</h2>
-                <button className={styles.linkBtn} type="button" aria-label="Edit open to">
-                  <EditOutlined />
-                </button>
-              </div>
-              <p className={styles.cardBody}>Frontend engineering, AI tooling, UI systems.</p>
-            </section>
-
-            <section className={`${styles.card} ${styles.featuredCard}`}>
-              <div className={styles.cardHeader}>
-                <h2>Featured</h2>
-              </div>
-              <div className={styles.featureItem}>
-                <div className={styles.featureThumb}>CV</div>
+        <div className="min-h-screen bg-muted/40">
+          <div className="mx-auto max-w-6xl px-4 py-6 lg:px-6">
+            <Card className="p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className={styles.featureTitle}>
-                    {cvLoading ? "Loading CV" : cvFile ? "Latest CV" : "No CV uploaded"}
+                  <p className="text-xs font-medium text-primary">AI-powered profile builder</p>
+                  <h2 className="mt-1 text-base font-semibold tracking-tight">Auto-fill from your CV</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Paste your resume once. Weâ€™ll pre-fill sections and keep your profile consistent.
                   </p>
-                  <p className={styles.featureMeta}>
-                    {cvLoading
-                      ? "Fetching your most recent upload."
-                      : cvError
-                        ? cvError
-                        : cvFile
+                </div>
+                <Link href="/career-market/cv_extracter">
+                  <Button variant="primary">Open CV extractor</Button>
+                </Link>
+              </div>
+            </Card>
+
+            <Card className="mt-6 p-5">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="relative">
+                    <div className="grid size-14 place-items-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary ring-1 ring-primary/15">
+                      {(basics.firstName?.[0] || "J") + (basics.lastName?.[0] || "D")}
+                    </div>
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-medium text-primary-foreground shadow-sm">
+                      Open to work
+                    </span>
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <h1 className="truncate text-xl font-semibold tracking-tight">{displayName}</h1>
+                      <span className="text-sm text-muted-foreground">
+                        {basics.position || "Add current position"}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {basics.headline || "Add a headline that shows your direction"}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <span>{metaLine}</span>
+                      <span className="text-border">â€¢</span>
+                      <span>{basics.contactEmail || "Add contact email"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" onClick={resetSections} title="Reset sections">
+                    Reset
+                  </Button>
+                  <Button variant="secondary" onClick={openBasicsModal}>
+                    <EditOutlined /> Edit profile
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl bg-muted/40 px-4 py-3 ring-1 ring-border/60">
+                  <p className="text-xs font-medium text-muted-foreground">Current</p>
+                  <p className="mt-1 text-sm font-medium">
+                    {basics.showCurrentCompany ? basics.position || "Add position" : "Hidden"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-muted/40 px-4 py-3 ring-1 ring-border/60">
+                  <p className="text-xs font-medium text-muted-foreground">Education</p>
+                  <p className="mt-1 text-sm font-medium">
+                    {basics.showSchool ? basics.school || "Add education" : "Hidden"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-muted/40 px-4 py-3 ring-1 ring-border/60">
+                  <p className="text-xs font-medium text-muted-foreground">Focus</p>
+                  <p className="mt-1 text-sm font-medium">{basics.industry || "Choose an industry"}</p>
+                </div>
+              </div>
+            </Card>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-12">
+              <main className="space-y-6 lg:col-span-8">
+                <SectionCard
+                  title="About"
+                  description="A short summary that helps recruiters understand your goals."
+                  actions={
+                    !isEditingAbout ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setAboutDraft(about);
+                          setIsEditingAbout(true);
+                        }}
+                      >
+                        {about ? "Edit" : "Add"}
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {isEditingAbout ? (
+                    <div className="space-y-3">
+                      <TextArea
+                        label="Summary"
+                        rows={4}
+                        value={aboutDraft}
+                        onChange={(event) => setAboutDraft(event.target.value)}
+                        placeholder="Example: Final-year IT student focused on frontend engineering and AI toolsâ€¦"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button variant="primary" onClick={saveAbout}>
+                          Save
+                        </Button>
+                        <Button variant="ghost" onClick={() => setIsEditingAbout(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-foreground/90">
+                      {about ||
+                        "Tell employers what you're learning right now and what kind of opportunities you want."}
+                    </p>
+                  )}
+                </SectionCard>
+
+                <SectionCard
+                  title="Experience"
+                  description="Roles, internships, or leadership experiences."
+                  actions={
+                    !showExperienceForm ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setExperienceDraft(emptyExperience);
+                          setEditingExperienceIndex(null);
+                          setShowExperienceForm(true);
+                        }}
+                      >
+                        Add
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {showExperienceForm ? (
+                    <div className="space-y-3">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <TextField
+                          label="Role"
+                          value={experienceDraft.role}
+                          onChange={(event) =>
+                            setExperienceDraft((prev) => ({ ...prev, role: event.target.value }))
+                          }
+                          placeholder="Frontend Intern"
+                        />
+                        <TextField
+                          label="Company"
+                          value={experienceDraft.company}
+                          onChange={(event) =>
+                            setExperienceDraft((prev) => ({ ...prev, company: event.target.value }))
+                          }
+                          placeholder="Company / Organization"
+                        />
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <TextField
+                          label="Type"
+                          value={experienceDraft.type}
+                          onChange={(event) =>
+                            setExperienceDraft((prev) => ({ ...prev, type: event.target.value }))
+                          }
+                          placeholder="Internship / Part-time"
+                        />
+                        <TextField
+                          label="Dates"
+                          value={experienceDraft.dates}
+                          onChange={(event) =>
+                            setExperienceDraft((prev) => ({ ...prev, dates: event.target.value }))
+                          }
+                          placeholder="2025 â€” 2026"
+                        />
+                      </div>
+                      <TextArea
+                        label="Summary (bullets supported)"
+                        rows={3}
+                        value={experienceDraft.summary}
+                        onChange={(event) =>
+                          setExperienceDraft((prev) => ({ ...prev, summary: event.target.value }))
+                        }
+                        placeholder="- Shipped X feature\n- Improved Y by 30%"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button variant="primary" onClick={saveExperience}>
+                          Save
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowExperienceForm(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className={cx(showExperienceForm ? "mt-6" : "")}>
+                    <Timeline
+                      emptyText="Add your most recent roles and accomplishments."
+                      items={experiences.map((experience) => {
+                        const title = experience.role || "Role";
+                        const meta = [
+                          experience.company || "Company",
+                          experience.type ? experience.type : "",
+                          experience.dates ? experience.dates : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" Â· ");
+                        const bullets = experience.summary ? splitBullets(experience.summary) : [];
+                        const body =
+                          bullets.length > 1 ? (
+                            <ul className="list-disc space-y-1 pl-5 text-sm text-foreground/90">
+                              {bullets.map((bullet, index) => (
+                                <li key={`${title}-${index}`}>{bullet}</li>
+                              ))}
+                            </ul>
+                          ) : experience.summary ? (
+                            <p className="text-sm text-foreground/90">{experience.summary}</p>
+                          ) : undefined;
+                        return {
+                          key: `${experience.role}-${experience.company}-${experience.dates}`,
+                          title,
+                          meta,
+                          body,
+                        };
+                      })}
+                    />
+                  </div>
+                </SectionCard>
+
+                <SectionCard
+                  title="Education"
+                  description="University, courses, and other learning milestones."
+                  actions={
+                    !showEducationForm ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setEducationDraft(emptyEducation);
+                          setEditingEducationIndex(null);
+                          setShowEducationForm(true);
+                        }}
+                      >
+                        Add
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {showEducationForm ? (
+                    <div className="space-y-3">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <TextField
+                          label="School"
+                          value={educationDraft.school}
+                          onChange={(event) =>
+                            setEducationDraft((prev) => ({ ...prev, school: event.target.value }))
+                          }
+                          placeholder="University"
+                        />
+                        <TextField
+                          label="Degree"
+                          value={educationDraft.degree}
+                          onChange={(event) =>
+                            setEducationDraft((prev) => ({ ...prev, degree: event.target.value }))
+                          }
+                          placeholder="BSc in IT"
+                        />
+                      </div>
+                      <TextField
+                        label="Dates"
+                        value={educationDraft.dates}
+                        onChange={(event) =>
+                          setEducationDraft((prev) => ({ ...prev, dates: event.target.value }))
+                        }
+                        placeholder="2022 â€” 2026"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button variant="primary" onClick={saveEducation}>
+                          Save
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowEducationForm(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className={cx(showEducationForm ? "mt-6" : "")}>
+                    <Timeline
+                      emptyText="Add your university or certifications that matter for your goal."
+                      items={educationItems.map((education) => ({
+                        key: `${education.school}-${education.degree}-${education.dates}`,
+                        title: education.school || "School",
+                        meta: education.dates || "",
+                        body: education.degree ? <p>{education.degree}</p> : undefined,
+                      }))}
+                    />
+                  </div>
+                </SectionCard>
+
+                <SectionCard
+                  title="Skills"
+                  description="Grouped to reduce clutter and help matching."
+                  actions={
+                    !showSkillsForm ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setSkillsDraft(skills.join("\n"));
+                          setShowSkillsForm(true);
+                        }}
+                      >
+                        {skills.length ? "Edit" : "Add"}
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {showSkillsForm ? (
+                    <div className="space-y-3">
+                      <TextArea
+                        label="Skills (one per line)"
+                        rows={5}
+                        value={skillsDraft}
+                        onChange={(event) => setSkillsDraft(event.target.value)}
+                        placeholder="React\nNext.js\nTypeScript"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button variant="primary" onClick={saveSkills}>
+                          Save
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowSkillsForm(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : skills.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      List the tools you are comfortable using. Weâ€™ll match them to jobs.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {(Object.keys(skillGroups) as SkillGroupKey[]).map((groupKey) => {
+                        const groupItems = skillGroups[groupKey];
+                        if (!groupItems.length) return null;
+                        const expanded = Boolean(expandedSkillGroups[groupKey]);
+                        const visible = expanded ? groupItems : groupItems.slice(0, 10);
+                        const hasMore = groupItems.length > visible.length;
+
+                        return (
+                          <div key={groupKey}>
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-xs font-semibold text-muted-foreground">{groupKey}</p>
+                              {hasMore ? (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() =>
+                                    setExpandedSkillGroups((prev) => ({
+                                      ...prev,
+                                      [groupKey]: !expanded,
+                                    }))
+                                  }
+                                >
+                                  {expanded ? "Show less" : `Show more (${groupItems.length})`}
+                                </Button>
+                              ) : null}
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {visible.map((skill) => (
+                                <Pill key={`${groupKey}-${skill}`}>{skill}</Pill>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </SectionCard>
+
+                <SectionCard
+                  title="Projects"
+                  description="Short, scannable cards with tech highlights."
+                  actions={
+                    !showProjectsForm ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setProjectsDraft(projects.join("\n"));
+                          setShowProjectsForm(true);
+                        }}
+                      >
+                        {projects.length ? "Edit" : "Add"}
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {showProjectsForm ? (
+                    <div className="space-y-3">
+                      <TextArea
+                        label="Projects (paste lines)"
+                        rows={6}
+                        value={projectsDraft}
+                        onChange={(event) => setProjectsDraft(event.target.value)}
+                        placeholder="Project title\nTech stack: ...\nDescription: ...\nhttps://..."
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button variant="primary" onClick={saveProjects}>
+                          Save
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowProjectsForm(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : organizedProjects.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Showcase 2â€“4 projects that match the roles you're targeting.
+                    </p>
+                  ) : (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {organizedProjects.map((project, idx) => {
+                        const title = project.title || "Project";
+                        const techDetail = project.details.find((d) => isTechLabel(d.label));
+                        const descriptionDetail =
+                          project.details.find((d) => /description|summary|objective/i.test(d.label || "")) ||
+                          project.details.find((d) => !d.label && isLikelyDescription(d.text));
+                        const techStack = techDetail?.text
+                          ? techDetail.text
+                              .split(/,|Â·|\|/)
+                              .map((s) => s.trim())
+                              .filter(Boolean)
+                              .slice(0, 6)
+                          : [];
+
+                        return (
+                          <Card key={`${title}-${idx}`} className="p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold">{title}</p>
+                                {descriptionDetail?.text ? (
+                                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                                    {descriptionDetail.text}
+                                  </p>
+                                ) : null}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => openProjectEdit(project.startIndex, project.endIndex)}
+                                >
+                                  Edit
+                                </Button>
+                                {project.link ? (
+                                  <a href={project.link} target="_blank" rel="noreferrer">
+                                    <Button size="sm" variant="secondary">
+                                      View
+                                    </Button>
+                                  </a>
+                                ) : null}
+                              </div>
+                            </div>
+
+                            {techStack.length ? (
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {techStack.map((t) => (
+                                  <Pill key={`${title}-${t}`}>{t}</Pill>
+                                ))}
+                              </div>
+                            ) : null}
+
+                            {project.details.length ? (
+                              <ul className="mt-3 space-y-1 text-sm text-foreground/90">
+                                {project.details
+                                  .filter((d) => d !== techDetail && d !== descriptionDetail)
+                                  .slice(0, 2)
+                                  .map((detail, index) => (
+                                    <li key={`${title}-${index}`} className="text-muted-foreground">
+                                      {detail.label ? (
+                                        <span className="font-medium text-foreground">{detail.label}:</span>
+                                      ) : null}{" "}
+                                      {detail.text}
+                                    </li>
+                                  ))}
+                              </ul>
+                            ) : null}
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
+                </SectionCard>
+
+                <SectionCard
+                  title="Certifications"
+                  description="Certificates, awards, and references."
+                  actions={
+                    !showCertificationsForm ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setCertificationsDraft(certifications.join("\n"));
+                          setShowCertificationsForm(true);
+                        }}
+                      >
+                        {certifications.length ? "Edit" : "Add"}
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {showCertificationsForm ? (
+                    <div className="space-y-3">
+                      <TextArea
+                        label="Items (one per line)"
+                        rows={4}
+                        value={certificationsDraft}
+                        onChange={(event) => setCertificationsDraft(event.target.value)}
+                        placeholder="AWS Cloud Practitioner\nGoogle UX Design Certificate"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button variant="primary" onClick={saveCertifications}>
+                          Save
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowCertificationsForm(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : certificationsList.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Add certifications, licenses, or awards that boost your profile.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <ul className="grid gap-2 sm:grid-cols-2">
+                        {certificationsList.map((cert, idx) => (
+                          <li
+                            key={`${cert}-${idx}`}
+                            className="rounded-xl bg-muted/40 px-3 py-2 text-sm ring-1 ring-border/60"
+                          >
+                            {cert}
+                          </li>
+                        ))}
+                      </ul>
+
+                      {referencesList.length ? (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground">References</p>
+                          <ul className="mt-2 grid gap-2">
+                            {referencesList.map((reference, idx) => (
+                              <li
+                                key={`${reference}-${idx}`}
+                                className="rounded-xl bg-muted/40 px-3 py-2 text-sm ring-1 ring-border/60"
+                              >
+                                {reference}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                </SectionCard>
+
+                <SectionCard
+                  title="Recommendations"
+                  description="Feedback that builds trust (short and specific)."
+                  actions={
+                    !showRecommendationForm ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setRecommendationDraft(emptyRecommendation);
+                          setEditingRecommendationIndex(null);
+                          setShowRecommendationForm(true);
+                        }}
+                      >
+                        Add
+                      </Button>
+                    ) : null
+                  }
+                >
+                  {showRecommendationForm ? (
+                    <div className="space-y-3">
+                      <TextArea
+                        label="Quote"
+                        rows={4}
+                        value={recommendationDraft.quote}
+                        onChange={(event) =>
+                          setRecommendationDraft((prev) => ({ ...prev, quote: event.target.value }))
+                        }
+                        placeholder="â€œStrong ownership and great communicationâ€¦â€"
+                      />
+                      <TextField
+                        label="Author"
+                        value={recommendationDraft.author}
+                        onChange={(event) =>
+                          setRecommendationDraft((prev) => ({ ...prev, author: event.target.value }))
+                        }
+                        placeholder="Name, Title"
+                      />
+                      <div className="flex items-center gap-2">
+                        <Button variant="primary" onClick={saveRecommendation}>
+                          Save
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowRecommendationForm(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {recommendations.length === 0 && !showRecommendationForm ? (
+                    <p className="text-sm text-muted-foreground">
+                      Add endorsements or feedback from teammates.
+                    </p>
+                  ) : recommendations.length ? (
+                    <div className="space-y-3">
+                      {recommendations.map((recommendation, index) => (
+                        <Card key={`${recommendation.author}-${index}`} className="p-4">
+                          <p className="text-sm text-foreground/90">{recommendation.quote}</p>
+                          {recommendation.author ? (
+                            <p className="mt-2 text-xs font-medium text-muted-foreground">â€” {recommendation.author}</p>
+                          ) : null}
+                        </Card>
+                      ))}
+                    </div>
+                  ) : null}
+                </SectionCard>
+              </main>
+
+              <aside className="space-y-6 lg:col-span-4">
+                <SectionCard
+                  title="Open to"
+                  description="Helps the AI tailor guidance and matches."
+                  actions={
+                    <Button size="sm" variant="ghost" aria-label="Edit open to">
+                      <EditOutlined />
+                    </Button>
+                  }
+                >
+                  <p className="text-sm text-foreground/90">Frontend engineering, AI tooling, UI systems.</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Pill>Internships</Pill>
+                    <Pill>Junior roles</Pill>
+                    <Pill>Remote / Hybrid</Pill>
+                  </div>
+                </SectionCard>
+
+                <SectionCard title="CV" description="Keep your latest resume handy.">
+                  <div className="flex items-start gap-3">
+                    <div className="grid size-10 place-items-center rounded-xl bg-primary/10 text-xs font-semibold text-primary ring-1 ring-primary/15">
+                      CV
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold">
+                        {cvLoading ? "Loading CV" : cvFile ? "Latest CV" : "No CV uploaded"}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {cvLoading
+                          ? "Fetching your most recent upload."
+                          : cvError
+                          ? cvError
+                          : cvFile
                           ? cvMeta
                           : "Upload a CV to store it here."}
-                  </p>
-                  {!cvLoading && !cvError && cvFile && (
-                    <a
-                      className={styles.featureLink}
-                      href={cvViewUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View CV
-                    </a>
-                  )}
-                  {!cvLoading && !cvError && !cvFile && (
-                    <Link className={styles.featureLink} href="/career-market/cv_extracter">
-                      Upload CV
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            <section className={`${styles.card} ${styles.topMatchCard}`}>
-              <div className={styles.cardHeader}>
-                <h2>Top matched job</h2>
-              </div>
-              {bestMatch ? (
-                <div className={styles.bestMatch}>
-                  <div>
-                    <p className={styles.bestMatchRole}>
-                      {bestMatch.position || "Untitled role"}
-                      <span className={styles.bestBadge}>{bestMatch.match_percent}% match</span>
-                    </p>
-                    <p className={styles.bestMatchMeta}>
-                      {bestMatch.employer || "Unknown employer"}
-                      {bestMatch.ref ? ` · ${bestMatch.ref}` : ""}
-                    </p>
-                  </div>
-                  {bestMatch.url ? (
-                    <a
-                      className={styles.featureLink}
-                      href={bestMatch.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      View on TopJobs
-                    </a>
-                  ) : null}
-                </div>
-              ) : (
-                <p className={styles.cardBody}>No ranked job yet. Run skills ranking to view.</p>
-              )}
-            </section>
-
-            <section className={`${styles.card} ${styles.skillInsightsCard}`}>
-              <div className={styles.cardHeader}>
-                <h2>Skill insights</h2>
-              </div>
-              <p className={styles.cardBody}>
-                Compare your skills against live job demand and see your gap analysis.
-              </p>
-              <button
-                className={`${styles.featureLink} ${styles.skillInsightsCta}`}
-                type="button"
-                onClick={handleOpenMergeSkills}
-                disabled={mergeLoading}
-              >
-                {mergeLoading ? "Running analysis..." : "Open merge-skills"}
-              </button>
-              {mergeError ? <p className={styles.skillInsightsNote}>{mergeError}</p> : null}
-            </section>
-
-            <section className={`${styles.card} ${styles.trendsCard}`}>
-              <div className={styles.cardHeader}>
-                <h2>Trends</h2>
-              </div>
-              <p className={styles.cardBody}>
-                View job and skill trends over time to spot opportunities.
-              </p>
-              <Link className={styles.featureLink} href="/career-market/trends">
-                Open trends
-              </Link>
-            </section>
-
-            <section className={`${styles.card} ${styles.allMatchesCard}`}>
-              <div className={styles.cardHeader}>
-                <h2>All top matches</h2>
-              </div>
-              {topMatches.length === 0 ? (
-                <p className={styles.cardBody}>No ranked jobs yet.</p>
-              ) : (
-                <ul className={styles.bestList}>
-                  {topMatches.map((job, idx) => (
-                    <li key={`${job.ref || "job"}-${idx}`} className={styles.bestListItem}>
-                      <div>
-                        <p className={styles.bestListRole}>{job.position || "Untitled role"}</p>
-                        <p className={styles.bestListMeta}>
-                          {job.employer || "Unknown employer"}
-                          {job.ref ? ` · ${job.ref}` : ""}
-                        </p>
-                      </div>
-                      <div className={styles.bestListRight}>
-                        <span className={styles.bestBadge}>{job.match_percent}%</span>
-                        {job.url ? (
-                          <a
-                            className={styles.bestListLink}
-                            href={job.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            View
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        {!cvLoading && !cvError && cvFile ? (
+                          <a href={cvViewUrl} target="_blank" rel="noreferrer">
+                            <Button size="sm" variant="secondary">
+                              View
+                            </Button>
                           </a>
                         ) : null}
+                        {!cvLoading && !cvError && !cvFile ? (
+                          <Link href="/career-market/cv_extracter">
+                            <Button size="sm" variant="primary">
+                              Upload
+                            </Button>
+                          </Link>
+                        ) : null}
                       </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          </aside>
-        </div>
-      </div>
-      <Modal
-        title="Edit profile"
-        open={isBasicsModalOpen}
-        onCancel={() => setIsBasicsModalOpen(false)}
-        onOk={saveBasics}
-        okText="Save"
-        width={640}
-        styles={{ body: { maxHeight: "70vh", overflowY: "auto" } }}
-      >
-        <div className={styles.modalBody}>
-          <p className={styles.modalNote}>* Indicates required</p>
+                    </div>
+                  </div>
+                </SectionCard>
 
-          <div className={styles.modalSection}>
-            <h3 className={styles.modalTitle}>Name</h3>
-            <div className={styles.modalRow}>
-              <label className={styles.modalField}>
-                <span className={styles.modalLabel}>First name*</span>
-                <Input
-                  value={basicsDraft.firstName}
-                  onChange={(event) =>
-                    setBasicsDraft((prev) => ({ ...prev, firstName: event.target.value }))
-                  }
-                />
-              </label>
-              <label className={styles.modalField}>
-                <span className={styles.modalLabel}>Last name*</span>
-                <Input
-                  value={basicsDraft.lastName}
-                  onChange={(event) =>
-                    setBasicsDraft((prev) => ({ ...prev, lastName: event.target.value }))
-                  }
-                />
-              </label>
+                <SectionCard title="Top matched job" description="Based on your skills + target role.">
+                  {bestMatch ? (
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold">{bestMatch.position || "Untitled role"}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {bestMatch.employer || "Unknown employer"}
+                            {bestMatch.ref ? ` Â· ${bestMatch.ref}` : ""}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary ring-1 ring-primary/15">
+                          {bestMatch.match_percent}% match
+                        </span>
+                      </div>
+                      {bestMatch.url ? (
+                        <a href={bestMatch.url} target="_blank" rel="noreferrer">
+                          <Button size="sm" variant="secondary">
+                            View
+                          </Button>
+                        </a>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No ranked job yet. Run skill insights to generate matches.
+                    </p>
+                  )}
+                </SectionCard>
+
+                <SectionCard title="Skill insights" description="Gap analysis and job demand signals.">
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Compare your skills against live job demand and see what to learn next.
+                    </p>
+                    <Button variant="primary" onClick={handleOpenMergeSkills} disabled={mergeLoading}>
+                      {mergeLoading ? "Running analysis..." : "Open skill insights"}
+                    </Button>
+                    {mergeError ? <p className="text-sm text-destructive">{mergeError}</p> : null}
+                  </div>
+                </SectionCard>
+
+                <SectionCard title="Trends" description="Track skills and roles over time.">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm text-muted-foreground">Spot opportunities early.</p>
+                    <Link href="/career-market/trends">
+                      <Button size="sm" variant="secondary">
+                        Open
+                      </Button>
+                    </Link>
+                  </div>
+                </SectionCard>
+
+                <SectionCard title="All matches" description="Your top saved job matches.">
+                  {topMatches.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No ranked jobs yet.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {topMatches.slice(0, 6).map((job, idx) => (
+                        <li
+                          key={`${job.ref || "job"}-${idx}`}
+                          className="flex items-start justify-between gap-3 rounded-xl bg-muted/40 px-3 py-2 ring-1 ring-border/60"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">{job.position || "Untitled role"}</p>
+                            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                              {job.employer || "Unknown employer"}
+                              {job.ref ? ` Â· ${job.ref}` : ""}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary ring-1 ring-primary/15">
+                              {job.match_percent}%
+                            </span>
+                            {job.url ? (
+                              <a href={job.url} target="_blank" rel="noreferrer">
+                                <Button size="sm" variant="ghost">
+                                  View
+                                </Button>
+                              </a>
+                            ) : null}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </SectionCard>
+              </aside>
             </div>
-            <label className={styles.modalField}>
-              <span className={styles.modalLabel}>Additional name</span>
-              <Input
-                value={basicsDraft.additionalName}
-                onChange={(event) =>
-                  setBasicsDraft((prev) => ({ ...prev, additionalName: event.target.value }))
-                }
-              />
-            </label>
-            <label className={styles.modalField}>
-              <span className={styles.modalLabel}>Name pronunciation</span>
-              <Input disabled placeholder="Add using mobile app" />
-              <span className={styles.modalHint}>
-                This can only be added using our mobile app.
-              </span>
-            </label>
           </div>
 
-          <div className={styles.modalSection}>
-            <h3 className={styles.modalTitle}>Headline</h3>
-            <label className={styles.modalField}>
-              <span className={styles.modalLabel}>Headline*</span>
-              <Input.TextArea
-                rows={3}
-                value={basicsDraft.headline}
-                onChange={(event) =>
-                  setBasicsDraft((prev) => ({ ...prev, headline: event.target.value }))
-                }
-              />
-            </label>
-            <button className={styles.modalLink} type="button">Get AI suggestions</button>
-          </div>
+          <ModalShell
+            open={isBasicsModalOpen}
+            title="Edit profile"
+            description="Update the basics shown on your public profile."
+            onClose={() => setIsBasicsModalOpen(false)}
+            footer={
+              <>
+                <Button variant="ghost" onClick={() => setIsBasicsModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button variant="primary" onClick={saveBasics}>
+                  Save changes
+                </Button>
+              </>
+            }
+          >
+            <div className="space-y-6">
+              <p className="text-xs text-muted-foreground">* Indicates required</p>
 
-          <div className={styles.modalSection}>
-            <h3 className={styles.modalTitle}>Current position</h3>
-            <label className={styles.modalField}>
-              <span className={styles.modalLabel}>Position*</span>
-              <Input
-                value={basicsDraft.position}
-                onChange={(event) =>
-                  setBasicsDraft((prev) => ({ ...prev, position: event.target.value }))
-                }
-              />
-            </label>
-            <button className={styles.modalLink} type="button">+ Add new position</button>
-            <Checkbox
-              checked={basicsDraft.showCurrentCompany}
-              onChange={(event) =>
-                setBasicsDraft((prev) => ({ ...prev, showCurrentCompany: event.target.checked }))
-              }
-            >
-              Show current company in my intro
-            </Checkbox>
-            <label className={styles.modalField}>
-              <span className={styles.modalLabel}>Industry</span>
-              <Input
-                value={basicsDraft.industry}
-                onChange={(event) =>
-                  setBasicsDraft((prev) => ({ ...prev, industry: event.target.value }))
-                }
-              />
-            </label>
-          </div>
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold">Name</h4>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <TextField
+                    label="First name*"
+                    value={basicsDraft.firstName}
+                    onChange={(event) =>
+                      setBasicsDraft((prev) => ({ ...prev, firstName: event.target.value }))
+                    }
+                  />
+                  <TextField
+                    label="Last name*"
+                    value={basicsDraft.lastName}
+                    onChange={(event) =>
+                      setBasicsDraft((prev) => ({ ...prev, lastName: event.target.value }))
+                    }
+                  />
+                </div>
+                <TextField
+                  label="Additional name"
+                  value={basicsDraft.additionalName}
+                  onChange={(event) =>
+                    setBasicsDraft((prev) => ({ ...prev, additionalName: event.target.value }))
+                  }
+                />
+                <TextField
+                  label="Name pronunciation"
+                  disabled
+                  placeholder="Add using mobile app"
+                  hint="This can only be added using our mobile app."
+                />
+              </div>
 
-          <div className={styles.modalSection}>
-            <h3 className={styles.modalTitle}>Education</h3>
-            <label className={styles.modalField}>
-              <span className={styles.modalLabel}>School</span>
-              <Input
-                value={basicsDraft.school}
-                onChange={(event) =>
-                  setBasicsDraft((prev) => ({ ...prev, school: event.target.value }))
-                }
-              />
-            </label>
-            <button className={styles.modalLink} type="button">+ Add new education</button>
-            <Checkbox
-              checked={basicsDraft.showSchool}
-              onChange={(event) =>
-                setBasicsDraft((prev) => ({ ...prev, showSchool: event.target.checked }))
-              }
-            >
-              Show school in my intro
-            </Checkbox>
-          </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="text-sm font-semibold">Headline</h4>
+                  <Button size="sm" variant="ghost" type="button">
+                    Get AI suggestions
+                  </Button>
+                </div>
+                <TextArea
+                  label="Headline*"
+                  rows={3}
+                  value={basicsDraft.headline}
+                  onChange={(event) =>
+                    setBasicsDraft((prev) => ({ ...prev, headline: event.target.value }))
+                  }
+                />
+              </div>
 
-          <div className={styles.modalSection}>
-            <h3 className={styles.modalTitle}>Location</h3>
-            <label className={styles.modalField}>
-              <span className={styles.modalLabel}>Country/Region</span>
-              <Input
-                value={basicsDraft.country}
-                onChange={(event) =>
-                  setBasicsDraft((prev) => ({ ...prev, country: event.target.value }))
-                }
-              />
-            </label>
-            <label className={styles.modalField}>
-              <span className={styles.modalLabel}>City</span>
-              <Input
-                value={basicsDraft.city}
-                onChange={(event) =>
-                  setBasicsDraft((prev) => ({ ...prev, city: event.target.value }))
-                }
-              />
-            </label>
-          </div>
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold">Current position</h4>
+                <TextField
+                  label="Position*"
+                  value={basicsDraft.position}
+                  onChange={(event) =>
+                    setBasicsDraft((prev) => ({ ...prev, position: event.target.value }))
+                  }
+                />
+                <Button size="sm" variant="ghost" type="button">
+                  + Add new position
+                </Button>
+                <CheckboxField
+                  label="Show current company in my intro"
+                  checked={basicsDraft.showCurrentCompany}
+                  onChange={(event) =>
+                    setBasicsDraft((prev) => ({
+                      ...prev,
+                      showCurrentCompany: event.currentTarget.checked,
+                    }))
+                  }
+                />
+                <TextField
+                  label="Industry"
+                  value={basicsDraft.industry}
+                  onChange={(event) =>
+                    setBasicsDraft((prev) => ({ ...prev, industry: event.target.value }))
+                  }
+                />
+              </div>
 
-          <div className={styles.modalSection}>
-            <h3 className={styles.modalTitle}>Contact info</h3>
-            <label className={styles.modalField}>
-              <span className={styles.modalLabel}>Email</span>
-              <Input
-                value={basicsDraft.contactEmail}
-                onChange={(event) =>
-                  setBasicsDraft((prev) => ({ ...prev, contactEmail: event.target.value }))
-                }
-              />
-            </label>
-            <button className={styles.modalLink} type="button" aria-label="Edit contact info">
-              <EditOutlined /> Contact info
-            </button>
-          </div>
-        </div>
-      </Modal>
-      <Modal
-        title="Edit project"
-        open={isProjectEditOpen}
-        onCancel={closeProjectEdit}
-        onOk={saveProjectEdit}
-        okText="Save"
-        width={560}
-      >
-        <Input.TextArea
-          rows={8}
-          value={projectEditDraft}
-          onChange={(event) => setProjectEditDraft(event.target.value)}
-          placeholder="Edit this project details"
-        />
-      </Modal>
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold">Education</h4>
+                <TextField
+                  label="School"
+                  value={basicsDraft.school}
+                  onChange={(event) =>
+                    setBasicsDraft((prev) => ({ ...prev, school: event.target.value }))
+                  }
+                />
+                <Button size="sm" variant="ghost" type="button">
+                  + Add new education
+                </Button>
+                <CheckboxField
+                  label="Show school in my intro"
+                  checked={basicsDraft.showSchool}
+                  onChange={(event) =>
+                    setBasicsDraft((prev) => ({
+                      ...prev,
+                      showSchool: event.currentTarget.checked,
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold">Location</h4>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <TextField
+                    label="Country/Region"
+                    value={basicsDraft.country}
+                    onChange={(event) =>
+                      setBasicsDraft((prev) => ({ ...prev, country: event.target.value }))
+                    }
+                  />
+                  <TextField
+                    label="City"
+                    value={basicsDraft.city}
+                    onChange={(event) =>
+                      setBasicsDraft((prev) => ({ ...prev, city: event.target.value }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold">Contact</h4>
+                <TextField
+                  label="Email"
+                  value={basicsDraft.contactEmail}
+                  onChange={(event) =>
+                    setBasicsDraft((prev) => ({ ...prev, contactEmail: event.target.value }))
+                  }
+                />
+                <Button size="sm" variant="ghost" type="button" aria-label="Edit contact info">
+                  <EditOutlined /> Contact info
+                </Button>
+              </div>
+            </div>
+          </ModalShell>
+
+          <ModalShell
+            open={isProjectEditOpen}
+            title="Edit project"
+            description="Edits the raw lines for this project entry."
+            onClose={closeProjectEdit}
+            widthClassName="max-w-xl"
+            footer={
+              <>
+                <Button variant="ghost" onClick={closeProjectEdit}>
+                  Cancel
+                </Button>
+                <Button variant="primary" onClick={saveProjectEdit}>
+                  Save
+                </Button>
+              </>
+            }
+          >
+            <TextArea
+              label="Project details"
+              rows={8}
+              value={projectEditDraft}
+              onChange={(event) => setProjectEditDraft(event.target.value)}
+              placeholder="Edit this project details"
+            />
+          </ModalShell>
         </div>
       </div>
     </div>
   );
 }
-
