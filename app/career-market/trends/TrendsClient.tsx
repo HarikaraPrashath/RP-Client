@@ -1,7 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
-import styles from "./page.module.css";
+import { motion } from "framer-motion";
+import { TrendingUp, TrendingDown, Sparkles, Calendar, Layers, Clock } from "lucide-react";
+import { MetricBlock } from "../../../components/market/merge-skill-components";
 
 export type TrendItem = {
   term: string;
@@ -75,38 +77,56 @@ const TrendList = ({
   items: TrendItem[];
   tone: "rise" | "fall" | "new";
   emptyLabel: string;
-}) => (
-  <div className={`${styles.panel} ${styles[`panel${tone}`]}`}>
-    <div className={styles.panelHead}>
-      <p className={styles.panelTitle}>{title}</p>
-      <span className={styles.panelBadge}>{items.length}</span>
-    </div>
-    {items.length === 0 ? (
-      <p className={styles.panelEmpty}>{emptyLabel}</p>
-    ) : (
-      <ul className={styles.panelList}>
-        {items.map((item) => (
-          <li key={`${title}-${item.term}`} className={styles.panelRow}>
-            <div>
-              <p className={styles.panelTerm}>{item.term}</p>
-              <p className={styles.panelMeta}>
-                <span className={styles.panelMetaLabel}>Current</span> {item.current}
-                {typeof item.baseline === "number" ? (
-                  <>
-                    {" "}
-                    <span className={styles.panelMetaDivider}>-</span>{" "}
-                    <span className={styles.panelMetaLabel}>Baseline</span> {item.baseline}
-                  </>
-                ) : null}
-              </p>
-            </div>
-            <span className={styles.panelDelta}>{formatChange(item.changePct)}</span>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
+}) => {
+  const Icon = tone === "rise" ? TrendingUp : tone === "fall" ? TrendingDown : Sparkles;
+  const toneColor = tone === "rise" ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" : tone === "fall" ? "text-rose-500 bg-rose-500/10 border-rose-500/20" : "text-blue-500 bg-blue-500/10 border-blue-500/20";
+  
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card border border-border rounded-3xl p-6 flex flex-col shadow-sm"
+    >
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/50">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-xl border ${toneColor}`}>
+            <Icon size={18} />
+          </div>
+          <h3 className="text-lg font-black tracking-tight">{title}</h3>
+        </div>
+        <span className="text-xs font-bold bg-muted px-2 py-1 rounded-md">{items.length}</span>
+      </div>
+      
+      {items.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center py-8">
+          <p className="text-sm font-medium text-muted-foreground">{emptyLabel}</p>
+        </div>
+      ) : (
+        <ul className="space-y-4">
+          {items.map((item) => (
+            <li key={`${title}-${item.term}`} className="flex items-center justify-between group">
+              <div>
+                <p className="text-sm font-bold group-hover:text-primary transition-colors">{item.term}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Current: {item.current}</span>
+                  {typeof item.baseline === "number" && (
+                    <>
+                      <span className="w-1 h-1 rounded-full bg-border" />
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Base: {item.baseline}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <span className={`text-xs font-bold px-2 py-1 rounded-md ${toneColor}`}>
+                {formatChange(item.changePct)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </motion.div>
+  );
+};
 
 export default function TrendsClient({ summary, history }: TrendsClientProps) {
   const historySorted = useMemo(
@@ -497,557 +517,436 @@ export default function TrendsClient({ summary, history }: TrendsClientProps) {
   }, [summary, mode, search]);
 
   return (
-    <div className={styles.page}>
-      <div className={styles.glowOne} />
-      <div className={styles.glowTwo} />
-      <div className={styles.container}>
-        <header className={styles.hero}>
-          <div className={styles.heroText}>
-            <p className={styles.kicker}>Market trend radar</p>
-            <h1 className={styles.title}>Track skill momentum over time</h1>
-            <p className={styles.lead}>
-              Each scrape saves a snapshot of job postings. Compare snapshots to spot the skills and roles
-              gaining momentum or fading out.
-            </p>
-            <div className={styles.heroChips}>
-              <span className={styles.heroChip}>{summary.windowDays || 7} day window</span>
-              <span className={styles.heroChip}>{summary.snapshotCount} snapshots</span>
-              <span className={styles.heroChip}>Updated {formatDate(summary.latestAt)}</span>
-            </div>
-          </div>
-          <div className={styles.heroPanel}>
-            <div>
-              <p className={styles.heroLabel}>Keyword focus</p>
-              <p className={styles.heroValue}>{keyword}</p>
-            </div>
-            <div className={styles.heroDivider} />
-            <div>
-              <p className={styles.heroLabel}>Jobs captured</p>
-              <p className={styles.heroValue}>{jobCount}</p>
-            </div>
-          </div>
-        </header>
+    <div className="min-h-screen max-w-[1400px] mx-auto space-y-8 pb-12 p-4 lg:p-8">
+      {/* HERO SECTION */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col xl:flex-row xl:items-end justify-between gap-6"
+      >
+        <div>
+          <h1 className="text-4xl font-black tracking-tighter mb-2">Track skill momentum over time</h1>
+          <p className="text-muted-foreground font-medium max-w-2xl">
+            Each scrape saves a snapshot of job postings. Compare snapshots to spot the skills and roles gaining momentum or fading out.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <MetricBlock icon={Calendar} label="Window" value={`${summary.windowDays || 7} Days`} />
+          <MetricBlock icon={Layers} label="Snapshots" value={summary.snapshotCount} />
+          <MetricBlock icon={Clock} label="Updated" value={formatDate(summary.latestAt)} hint={keyword !== "Not set" ? keyword : undefined} />
+        </div>
+      </motion.div>
 
-        <section className={styles.skillExplorer}>
-          <div className={styles.sectionHead}>
+      {/* SCRAPE TIMELINE & TOP SKILLS */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 xl:grid-cols-3 gap-8"
+      >
+        {/* Job Count Trend */}
+        <div className="xl:col-span-2 bg-card border border-border rounded-3xl p-6 shadow-sm flex flex-col">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
-              <p className={styles.sectionKicker}>Skill explorer</p>
-              <h2 className={styles.sectionTitle}>See when a skill spikes</h2>
+              <h2 className="text-xl font-black tracking-tight">Job count trend</h2>
+              <p className="text-xs text-muted-foreground font-medium">Multiple scrapes, stacked in time ({historySlice.length} recent snapshots)</p>
             </div>
-            <p className={styles.sectionMeta}>Track demand by day or month</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-muted-foreground">Window:</span>
+              <div className="flex items-center bg-muted p-1 rounded-lg">
+                {[6, 12, 20].map((size) => {
+                  const disabled = maxSnapshots > 0 && maxSnapshots < size;
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      className={`text-xs font-bold px-3 py-1 rounded-md transition-colors ${windowSize === size ? "bg-background shadow-sm text-foreground" : disabled ? "text-muted-foreground/30 cursor-not-allowed" : "text-muted-foreground hover:text-foreground"}`}
+                      onClick={() => setWindowSize(Math.min(size, maxSnapshots || size))}
+                      disabled={disabled}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
-          <div className={styles.explorerControls}>
-            <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>Skill</span>
+          {historySlice.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl bg-muted/10 p-8">
+              <p className="text-lg font-bold text-muted-foreground">No trend history yet</p>
+              <p className="text-sm text-muted-foreground/60">Run a job refresh to store a snapshot.</p>
+            </div>
+          ) : (
+            <div className="relative h-[240px] w-full rounded-xl border border-border bg-muted/20 overflow-hidden flex-1">
+              <svg
+                className="w-full h-full"
+                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                role="img"
+                onMouseMove={handleChartMove}
+                onMouseLeave={handleChartLeave}
+              >
+                <defs>
+                  <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#22c55e" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {chartTicks.map((tick) => {
+                  const y = chartPadding + (1 - Math.min(1, tick.value / maxJobs)) * (chartHeight - chartPadding * 2);
+                  return (
+                    <g key={`jobs-tick-${tick.value}`}>
+                      <line x1={chartPadding} x2={chartWidth - chartPadding} y1={y} y2={y} stroke="currentColor" strokeOpacity="0.1" strokeDasharray="4 4" />
+                      <text x={6} y={y + 4} className="fill-muted-foreground text-[10px] font-medium">
+                        {tick.label}
+                      </text>
+                    </g>
+                  );
+                })}
+                <path d={chartAreaPath} fill="url(#trendFill)" />
+                <path d={chartPath} stroke="#22c55e" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                {chartPoints.map((point, index) => (
+                  <circle
+                    key={`${point.rawDate}-${point.value}-${index}`}
+                    cx={point.x} cy={point.y}
+                    r={activeIndex === index ? 6 : 4}
+                    fill={activeIndex === index ? "#22c55e" : "var(--background)"}
+                    stroke="#22c55e"
+                    strokeWidth="2"
+                    className="transition-all duration-200"
+                  />
+                ))}
+                {activePoint ? (
+                  <line x1={activePoint.x} x2={activePoint.x} y1={chartPadding} y2={chartHeight - chartPadding} stroke="#22c55e" strokeOpacity="0.5" strokeDasharray="4 4" />
+                ) : null}
+                {chartPoints.map((point, index) => (
+                  <text key={`${point.rawDate}-tick-${index}`} x={point.x} y={chartHeight - 6} className="fill-muted-foreground text-[9px] font-bold text-anchor-middle" textAnchor="middle">
+                    {point.label}
+                  </text>
+                ))}
+              </svg>
+              {activePoint ? (
+                <div
+                  className="absolute bg-popover border border-border shadow-xl rounded-lg p-2 pointer-events-none z-10 whitespace-nowrap"
+                  style={{
+                    left: `${Math.min(88, Math.max(12, (activePoint.x / chartWidth) * 100))}%`,
+                    top: "10%",
+                    transform: "translate(-50%, 0)",
+                  }}
+                >
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">{formatDate(activePoint.rawDate)}</p>
+                  <p className="text-sm font-black text-[#22c55e]">{activePoint.value} jobs</p>
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        {/* Highly Available Skills */}
+        <div className="bg-card border border-border rounded-3xl p-6 shadow-sm flex flex-col h-full max-h-[400px]">
+          <div className="mb-6">
+            <h2 className="text-xl font-black tracking-tight">Highly available skills</h2>
+            <p className="text-xs text-muted-foreground font-medium">Most frequent in this window</p>
+          </div>
+          
+          {topWindowSkills.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-sm text-muted-foreground">No skill data yet.</p>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col gap-3 overflow-y-auto pr-2 custom-scrollbar">
+              {topWindowSkills.map((item) => {
+                const width = (item.count / maxWindowSkill) * 100;
+                return (
+                  <div key={item.term} className="flex flex-col gap-1 group">
+                    <div className="flex justify-between items-center text-[11px] font-bold">
+                      <span className="text-foreground group-hover:text-primary transition-colors truncate pr-2">{item.term}</span>
+                      <span className="text-muted-foreground">{item.count}</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary/60 group-hover:bg-primary transition-all duration-500 rounded-full" 
+                        style={{ width: `${width}%` }} 
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* CHARTS GRID */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        {/* SKILL EXPLORER */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="bg-card border border-border rounded-3xl p-6 shadow-sm flex flex-col"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-black tracking-tight">Skill explorer</h2>
+              <p className="text-xs text-muted-foreground font-medium">See when a skill spikes</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
               <select
-                className={styles.controlSelect}
+                className="bg-muted border border-border rounded-lg text-sm font-medium px-3 py-1.5 outline-none focus:ring-2 focus:ring-primary/20"
                 value={effectiveSkill}
                 onChange={(event) => setSelectedSkill(event.target.value)}
               >
                 {skillOptions.map((term) => (
-                  <option key={term} value={term}>
-                    {term}
-                  </option>
+                  <option key={term} value={term}>{term}</option>
                 ))}
               </select>
+              <div className="flex items-center bg-muted p-1 rounded-lg">
+                {(["daily", "monthly"] as const).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`text-xs font-bold px-3 py-1 rounded-md transition-colors ${skillView === value ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    onClick={() => setSkillView(value)}
+                  >
+                    {value === "daily" ? "Daily" : "Monthly"}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>View</span>
-              {(["daily", "monthly"] as const).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`${styles.controlButton} ${skillView === value ? styles.controlButtonActive : ""}`}
-                  onClick={() => setSkillView(value)}
-                >
-                  {value === "daily" ? "Daily" : "Monthly"}
-                </button>
+          </div>
+          
+          <div className="flex flex-wrap gap-1.5 mb-6">
+            {topWindowSkills.slice(0, 6).map((item) => (
+              <button
+                key={item.term}
+                type="button"
+                className={`text-[10px] font-bold px-2 py-1 rounded-md border transition-colors ${item.term === effectiveSkill ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border hover:bg-accent"}`}
+                onClick={() => setSelectedSkill(item.term)}
+              >
+                {item.term}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative h-[200px] w-full rounded-xl border border-border bg-muted/20 overflow-hidden flex-1">
+            <svg
+              className="w-full h-full"
+              viewBox={`0 0 ${skillChartWidth} ${skillChartHeight}`}
+              role="img"
+              onMouseMove={handleSkillChartMove}
+              onMouseLeave={handleSkillChartLeave}
+            >
+              <defs>
+                <linearGradient id="skillFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              {skillTicks.map((tick) => {
+                const y = skillChartPadding + (1 - Math.min(1, tick.value / maxSkillCount)) * (skillChartHeight - skillChartPadding * 2);
+                return (
+                  <g key={`skill-tick-${tick.value}`}>
+                    <line x1={skillChartPadding} x2={skillChartWidth - skillChartPadding} y1={y} y2={y} stroke="currentColor" strokeOpacity="0.1" strokeDasharray="4 4" />
+                    <text x={6} y={y + 4} className="fill-muted-foreground text-[10px] font-medium">
+                      {tick.label}
+                    </text>
+                  </g>
+                );
+              })}
+              <path d={skillChartAreaPath} fill="url(#skillFill)" />
+              <path d={skillChartPath} stroke="hsl(var(--primary))" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              {skillChartPoints.map((point, index) => (
+                <circle
+                  key={`${point.rawDate}-${point.count}-${index}`}
+                  cx={point.x} cy={point.y}
+                  r={skillActiveIndex === index ? 6 : 4}
+                  fill={skillActiveIndex === index ? "hsl(var(--primary))" : "var(--background)"}
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="2"
+                  className="transition-all duration-200"
+                />
               ))}
+              {skillActivePoint ? (
+                <line x1={skillActivePoint.x} x2={skillActivePoint.x} y1={skillChartPadding} y2={skillChartHeight - skillChartPadding} stroke="hsl(var(--primary))" strokeOpacity="0.5" strokeDasharray="4 4" />
+              ) : null}
+            </svg>
+            {skillActivePoint ? (
+              <div
+                className="absolute bg-popover border border-border shadow-xl rounded-lg p-2 pointer-events-none z-10 whitespace-nowrap"
+                style={{
+                  left: `${Math.min(88, Math.max(12, (skillActivePoint.x / skillChartWidth) * 100))}%`,
+                  top: "10%",
+                  transform: "translate(-50%, 0)",
+                }}
+              >
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">{skillActivePoint.label}</p>
+                <p className="text-sm font-black text-foreground">{skillActivePoint.count} mentions</p>
+              </div>
+            ) : null}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="p-4 bg-muted/50 rounded-2xl border border-border/50 flex flex-col justify-center">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Peak Day</p>
+              <p className="text-lg font-black tracking-tight">{peakDay ? formatDateLong(peakDay.ranAt) : "Not yet"}</p>
+              <p className="text-xs font-medium text-primary">{peakDay ? `${peakDay.count} mentions` : "No snapshots"}</p>
             </div>
-            <div className={styles.quickChips}>
-              {topWindowSkills.slice(0, 6).map((item) => (
+            <div className="p-4 bg-muted/50 rounded-2xl border border-border/50 flex flex-col justify-center">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Peak Month</p>
+              <p className="text-lg font-black tracking-tight">{peakMonth ? formatMonth(`${peakMonth.month}-01`) : "Not yet"}</p>
+              <p className="text-xs font-medium text-primary">{peakMonth ? `${peakMonth.count} mentions` : "No snapshots"}</p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ROLE EXPLORER */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className="bg-card border border-border rounded-3xl p-6 shadow-sm flex flex-col"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-xl font-black tracking-tight">Role constellation</h2>
+              <p className="text-xs text-muted-foreground font-medium">Explore roles by momentum</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                className="bg-muted border border-border rounded-lg text-sm font-medium px-3 py-1.5 outline-none focus:ring-2 focus:ring-amber-500/20"
+                value={effectiveRole}
+                onChange={(event) => setSelectedRole(event.target.value)}
+              >
+                {roleOptions.map((role) => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
+              <div className="flex items-center bg-muted p-1 rounded-lg">
+                {(["daily", "monthly"] as const).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`text-xs font-bold px-3 py-1 rounded-md transition-colors ${roleView === value ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    onClick={() => setRoleView(value)}
+                  >
+                    {value === "daily" ? "Daily" : "Monthly"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="relative h-[200px] w-full rounded-xl border border-border bg-muted/20 overflow-hidden flex-1 mb-6">
+            <svg
+              className="w-full h-full"
+              viewBox={`0 0 ${roleChartWidth} ${roleChartHeight}`}
+              role="img"
+              onMouseMove={handleRoleChartMove}
+              onMouseLeave={handleRoleChartLeave}
+            >
+              <defs>
+                <linearGradient id="roleFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d={roleChartAreaPath} fill="url(#roleFill)" />
+              <path d={roleChartPath} stroke="#f59e0b" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+              {roleChartPoints.map((point, index) => (
+                <circle
+                  key={`${point.rawDate}-${point.count}-${index}`}
+                  cx={point.x} cy={point.y}
+                  r={roleActiveIndex === index ? 6 : 4}
+                  fill={roleActiveIndex === index ? "#f59e0b" : "var(--background)"}
+                  stroke="#f59e0b"
+                  strokeWidth="2"
+                  className="transition-all duration-200"
+                />
+              ))}
+              {roleActivePoint ? (
+                <line x1={roleActivePoint.x} x2={roleActivePoint.x} y1={roleChartPadding} y2={roleChartHeight - roleChartPadding} stroke="#f59e0b" strokeOpacity="0.5" strokeDasharray="4 4" />
+              ) : null}
+            </svg>
+            {roleActivePoint ? (
+              <div
+                className="absolute bg-popover border border-border shadow-xl rounded-lg p-2 pointer-events-none z-10 whitespace-nowrap"
+                style={{
+                  left: `${Math.min(88, Math.max(12, (roleActivePoint.x / roleChartWidth) * 100))}%`,
+                  top: "10%",
+                  transform: "translate(-50%, 0)",
+                }}
+              >
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">{roleActivePoint.label}</p>
+                <p className="text-sm font-black text-amber-500">{roleActivePoint.count} mentions</p>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap gap-2 justify-center">
+            {topWindowRoles.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No role data yet.</p>
+            ) : (
+              topWindowRoles.map((item, index) => (
                 <button
                   key={item.term}
                   type="button"
-                  className={`${styles.quickChip} ${item.term === effectiveSkill ? styles.quickChipActive : ""}`}
-                  onClick={() => setSelectedSkill(item.term)}
+                  className={`relative flex items-center justify-center rounded-full border transition-all ${item.term === effectiveRole ? "bg-amber-500 text-white border-amber-600 shadow-md scale-110 z-10" : "bg-card text-foreground border-border hover:bg-muted"}`}
+                  style={{ width: Math.max(56, Math.min(100, 40 + item.count * 4)), height: Math.max(56, Math.min(100, 40 + item.count * 4)) }}
+                  title={item.term}
+                  onClick={() => setSelectedRole(item.term)}
                 >
-                  {item.term}
+                  <span className="text-[9px] font-bold text-center leading-tight p-1 break-words line-clamp-2">{item.term}</span>
+                  {item.term === effectiveRole && (
+                    <span className="absolute -top-1 -right-1 bg-background text-foreground text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border shadow-sm">{index + 1}</span>
+                  )}
                 </button>
-              ))}
-            </div>
+              ))
+            )}
           </div>
+        </motion.div>
+      </div>
 
-          <div className={styles.explorerGrid}>
-            <div className={styles.explorerChart}>
-              <div className={styles.timelineChartHead}>
-                <p className={styles.timelineChartTitle}>{effectiveSkill || "Select a skill"}</p>
-                <p className={styles.timelineChartMeta}>
-                  {skillView === "daily" ? "Snapshot-by-snapshot counts" : "Aggregated by month"}
-                </p>
-              </div>
-              <div className={styles.timelineChartShell}>
-                <svg
-                  className={styles.timelineSvg}
-                  viewBox={`0 0 ${skillChartWidth} ${skillChartHeight}`}
-                  role="img"
-                  aria-label="Line chart showing skill frequency"
-                  onMouseMove={handleSkillChartMove}
-                  onMouseLeave={handleSkillChartLeave}
-                >
-                  <defs>
-                    <linearGradient id="skillFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgba(37, 99, 235, 0.25)" />
-                      <stop offset="100%" stopColor="rgba(37, 99, 235, 0)" />
-                    </linearGradient>
-                  </defs>
-                  {skillTicks.map((tick) => {
-                    const y =
-                      skillChartPadding +
-                      (1 - Math.min(1, tick.value / maxSkillCount)) *
-                        (skillChartHeight - skillChartPadding * 2);
-                    return (
-                      <g key={`skill-tick-${tick.value}`}>
-                        <line
-                          x1={skillChartPadding}
-                          x2={skillChartWidth - skillChartPadding}
-                          y1={y}
-                          y2={y}
-                          className={styles.axisLine}
-                        />
-                        <text x={6} y={y + 4} className={styles.axisLabel}>
-                          {tick.label}
-                        </text>
-                      </g>
-                    );
-                  })}
-                  <rect
-                    x={skillChartPadding}
-                    y={skillChartPadding}
-                    width={skillChartWidth - skillChartPadding * 2}
-                    height={skillChartHeight - skillChartPadding * 2}
-                    className={styles.timelineGrid}
-                  />
-                  <path d={skillChartAreaPath} fill="url(#skillFill)" />
-                  <path d={skillChartPath} className={styles.timelineLineAlt} />
-                  {skillChartPoints.map((point, index) => (
-                    <g key={`${point.rawDate}-${point.count}-${index}`}>
-                      <circle
-                        cx={point.x}
-                        cy={point.y}
-                        r={skillActiveIndex === index ? 6 : 4}
-                        className={`${styles.timelineDotAlt} ${skillActiveIndex === index ? styles.timelineDotActive : ""}`}
-                      />
-                    </g>
-                  ))}
-                  {skillActivePoint ? (
-                    <line
-                      x1={skillActivePoint.x}
-                      x2={skillActivePoint.x}
-                      y1={skillChartPadding}
-                      y2={skillChartHeight - skillChartPadding}
-                      className={styles.timelineMarkerLine}
-                    />
-                  ) : null}
-                </svg>
-                {skillActivePoint ? (
-                  <div
-                    className={styles.timelineTooltipTop}
-                    style={{
-                      left: `${Math.min(88, Math.max(12, (skillActivePoint.x / skillChartWidth) * 100))}%`,
-                      top: "6%",
-                      transform: "translate(-50%, 0)",
-                    }}
-                  >
-                    <p className={styles.timelineTooltipLabel}>{skillActivePoint.label}</p>
-                    <p className={styles.timelineTooltipValue}>{skillActivePoint.count} mentions</p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <div className={styles.explorerStats}>
-              <div className={styles.explorerCard}>
-                <p className={styles.explorerLabel}>Peak day</p>
-                <p className={styles.explorerValue}>{peakDay ? formatDateLong(peakDay.ranAt) : "Not yet"}</p>
-                <p className={styles.explorerMeta}>{peakDay ? `${peakDay.count} mentions` : "No snapshots"}</p>
-              </div>
-              <div className={styles.explorerCard}>
-                <p className={styles.explorerLabel}>Peak month</p>
-                <p className={styles.explorerValue}>
-                  {peakMonth ? formatMonth(`${peakMonth.month}-01`) : "Not yet"}
-                </p>
-                <p className={styles.explorerMeta}>{peakMonth ? `${peakMonth.count} mentions` : "No snapshots"}</p>
-              </div>
-            </div>
+      {/* TREND BUCKETS */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="space-y-6 pt-4"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border rounded-3xl p-6 shadow-sm">
+          <div>
+            <h2 className="text-2xl font-black tracking-tight">{mode === "skills" ? "Trending skills" : "Trending roles"}</h2>
+            <p className="text-sm text-muted-foreground font-medium">Signals from the stream across snapshots</p>
           </div>
-        </section><section className={styles.timeline}>
-          <div className={styles.sectionHead}>
-            <div>
-              <p className={styles.sectionKicker}>Scrape timeline</p>
-              <h2 className={styles.sectionTitle}>Multiple scrapes, stacked in time</h2>
-            </div>
-            <p className={styles.sectionMeta}>{historySlice.length} recent snapshots</p>
-          </div>
-
-          <div className={styles.controls}>
-            <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>Window</span>
-              {[6, 12, 20].map((size) => {
-                const disabled = maxSnapshots > 0 && maxSnapshots < size;
-                return (
-                <button
-                  key={size}
-                  type="button"
-                  className={`${styles.controlButton} ${windowSize === size ? styles.controlButtonActive : ""}`}
-                  onClick={() => setWindowSize(Math.min(size, maxSnapshots || size))}
-                  disabled={disabled}
-                  aria-disabled={disabled}
-                >
-                  {size} snapshots
-                </button>
-              )})}
-            </div>
-            <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>Mode</span>
+          <div className="flex items-center gap-4 bg-background border border-border p-2 rounded-2xl shadow-sm">
+            <div className="flex items-center bg-muted p-1 rounded-xl">
               {(["skills", "roles"] as const).map((value) => (
                 <button
                   key={value}
                   type="button"
-                  className={`${styles.controlButton} ${mode === value ? styles.controlButtonActive : ""}`}
+                  className={`text-sm font-bold px-4 py-1.5 rounded-lg transition-colors ${mode === value ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                   onClick={() => setMode(value)}
                 >
                   {value === "skills" ? "Skills" : "Roles"}
                 </button>
               ))}
             </div>
-            <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>Filter</span>
-              <input
-                className={styles.controlInput}
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search terms"
-              />
-            </div>
-          </div>
-
-          {historySlice.length === 0 ? (
-            <div className={styles.emptyCard}>
-              <p className={styles.emptyTitle}>No trend history yet</p>
-              <p className={styles.emptyText}>
-                Run a job refresh to store a snapshot, or seed demo data from the server.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className={styles.timelineChart}>
-                <div className={styles.timelineChartHead}>
-                  <p className={styles.timelineChartTitle}>Job count trend</p>
-                  <p className={styles.timelineChartMeta}>Hover to inspect each snapshot</p>
-                </div>
-                <div className={styles.timelineChartShell}>
-                  <svg
-                    className={styles.timelineSvg}
-                    viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                    role="img"
-                    aria-label="Line chart showing job counts per snapshot"
-                    onMouseMove={handleChartMove}
-                    onMouseLeave={handleChartLeave}
-                  >
-                  <defs>
-                    <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgba(22, 163, 74, 0.25)" />
-                      <stop offset="100%" stopColor="rgba(22, 163, 74, 0)" />
-                    </linearGradient>
-                  </defs>
-                    {chartTicks.map((tick) => {
-                      const y =
-                        chartPadding +
-                        (1 - Math.min(1, tick.value / maxJobs)) *
-                          (chartHeight - chartPadding * 2);
-                      return (
-                        <g key={`jobs-tick-${tick.value}`}>
-                          <line
-                            x1={chartPadding}
-                            x2={chartWidth - chartPadding}
-                            y1={y}
-                            y2={y}
-                            className={styles.axisLine}
-                          />
-                          <text x={6} y={y + 4} className={styles.axisLabel}>
-                            {tick.label}
-                          </text>
-                        </g>
-                      );
-                    })}
-                    <rect
-                      x={chartPadding}
-                      y={chartPadding}
-                      width={chartWidth - chartPadding * 2}
-                      height={chartHeight - chartPadding * 2}
-                      className={styles.timelineGrid}
-                    />
-                    <path d={chartAreaPath} fill="url(#trendFill)" />
-                    <path d={chartPath} className={styles.timelineLine} />
-                    {chartPoints.map((point, index) => (
-                      <g key={`${point.rawDate}-${point.value}-${index}`}>
-                        <circle
-                          cx={point.x}
-                          cy={point.y}
-                          r={activeIndex === index ? 6 : 4}
-                          className={`${styles.timelineDot} ${activeIndex === index ? styles.timelineDotActive : ""}`}
-                        />
-                      </g>
-                    ))}
-                    {activePoint ? (
-                      <line
-                        x1={activePoint.x}
-                        x2={activePoint.x}
-                        y1={chartPadding}
-                        y2={chartHeight - chartPadding}
-                        className={styles.timelineMarkerLine}
-                      />
-                    ) : null}
-                    {chartPoints.map((point, index) => (
-                      <text
-                        key={`${point.rawDate}-tick-${index}`}
-                        x={point.x}
-                        y={chartHeight - 6}
-                        className={styles.timelineTick}
-                      >
-                        {point.label}
-                      </text>
-                    ))}
-                  </svg>
-                  {activePoint ? (
-                    <div
-                      className={styles.timelineTooltipTop}
-                      style={{
-                        left: `${Math.min(88, Math.max(12, (activePoint.x / chartWidth) * 100))}%`,
-                        top: "6%",
-                        transform: "translate(-50%, 0)",
-                      }}
-                    >
-                      <p className={styles.timelineTooltipLabel}>{formatDate(activePoint.rawDate)}</p>
-                      <p className={styles.timelineTooltipValue}>{activePoint.value} jobs</p>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className={styles.timelineSkills}>
-                <div className={styles.timelineSkillsHead}>
-                  <div>
-                    <p className={styles.timelineSkillsTitle}>Highly available skills</p>
-                    <p className={styles.timelineSkillsMeta}>Most frequent in this window</p>
-                  </div>
-                  <p className={styles.timelineSkillsMeta}>{topWindowSkills.length} highlights</p>
-                </div>
-                {topWindowSkills.length === 0 ? (
-                  <p className={styles.timelineSkillsEmpty}>No skill data yet.</p>
-                ) : (
-                  <>
-                    <div className={styles.timelineSkillsChart}>
-                      {topWindowSkills.map((item) => {
-                        const width = (item.count / maxWindowSkill) * 100;
-                        return (
-                          <div key={item.term} className={styles.timelineSkillRow}>
-                            <span className={styles.timelineSkillName}>{item.term}</span>
-                            <div className={styles.timelineSkillBarTrack}>
-                              <div
-                                className={styles.timelineSkillBarFill}
-                                style={{ width: `${width}%` }}
-                              />
-                            </div>
-                            <span className={styles.timelineSkillValue}>{item.count}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className={styles.timelineSkillChips}>
-                      {topWindowSkills.map((item) => (
-                        <span key={item.term} className={styles.timelineSkillChip}>
-                          {item.term} <span className={styles.timelineSkillCount}>{item.count}</span>
-                        </span>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-        </section>
-
-        <section className={styles.roleExplorer}>
-          <div className={styles.sectionHead}>
-            <div>
-              <p className={styles.sectionKicker}>Role constellation</p>
-              <h2 className={styles.sectionTitle}>Explore roles by momentum</h2>
-            </div>
-            <p className={styles.sectionMeta}>Tap a role to see its trendline</p>
-          </div>
-
-          <div className={styles.explorerControls}>
-            <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>Role</span>
-              <select
-                className={styles.controlSelect}
-                value={effectiveRole}
-                onChange={(event) => setSelectedRole(event.target.value)}
-              >
-                {roleOptions.map((term) => (
-                  <option key={term} value={term}>
-                    {term}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.controlGroup}>
-              <span className={styles.controlLabel}>View</span>
-              {(["daily", "monthly"] as const).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`${styles.controlButton} ${roleView === value ? styles.controlButtonActive : ""}`}
-                  onClick={() => setRoleView(value)}
-                >
-                  {value === "daily" ? "Daily" : "Monthly"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.roleGrid}>
-            <div className={styles.roleConstellation}>
-              {topWindowRoles.length === 0 ? (
-                <p className={styles.panelEmpty}>No role data yet.</p>
-              ) : (
-                topWindowRoles.map((item, index) => {
-                  const size = Math.max(64, Math.min(150, 54 + item.count * 6));
-                  return (
-                    <button
-                      key={item.term}
-                      type="button"
-                      className={`${styles.roleBubble} ${item.term === effectiveRole ? styles.roleBubbleActive : ""}`}
-                      style={{ width: size, height: size }}
-                      title={item.term}
-                      onClick={() => setSelectedRole(item.term)}
-                    >
-                      <span className={styles.roleBubbleLabel}>{item.term}</span>
-                      <span className={styles.roleBubbleCount}>{item.count}</span>
-                      <span className={styles.roleBubbleIndex}>{index + 1}</span>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-
-            <div className={styles.roleChart}>
-              <div className={styles.timelineChartHead}>
-                <p className={styles.timelineChartTitle}>{effectiveRole || "Select a role"}</p>
-                <p className={styles.timelineChartMeta}>
-                  {roleView === "daily" ? "Snapshots by day" : "Monthly aggregation"}
-                </p>
-              </div>
-              <div className={styles.timelineChartShell}>
-                <svg
-                  className={styles.timelineSvg}
-                  viewBox={`0 0 ${roleChartWidth} ${roleChartHeight}`}
-                  role="img"
-                  aria-label="Line chart showing role frequency"
-                  onMouseMove={handleRoleChartMove}
-                  onMouseLeave={handleRoleChartLeave}
-                >
-                  <defs>
-                    <linearGradient id="roleFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="rgba(245, 158, 11, 0.32)" />
-                      <stop offset="100%" stopColor="rgba(245, 158, 11, 0)" />
-                    </linearGradient>
-                  </defs>
-                  <rect
-                    x={roleChartPadding}
-                    y={roleChartPadding}
-                    width={roleChartWidth - roleChartPadding * 2}
-                    height={roleChartHeight - roleChartPadding * 2}
-                    className={styles.timelineGrid}
-                  />
-                  <path d={roleChartAreaPath} fill="url(#roleFill)" />
-                  <path d={roleChartPath} className={styles.roleLine} />
-                  {roleChartPoints.map((point, index) => (
-                    <circle
-                      key={`${point.rawDate}-${point.count}-${index}`}
-                      cx={point.x}
-                      cy={point.y}
-                      r={roleActiveIndex === index ? 5 : 3.5}
-                      className={`${styles.roleDot} ${roleActiveIndex === index ? styles.roleDotActive : ""}`}
-                    />
-                  ))}
-                  {roleActivePoint ? (
-                    <line
-                      x1={roleActivePoint.x}
-                      x2={roleActivePoint.x}
-                      y1={roleChartPadding}
-                      y2={roleChartHeight - roleChartPadding}
-                      className={styles.timelineMarkerLine}
-                    />
-                  ) : null}
-                </svg>
-                {roleActivePoint ? (
-                  <div
-                    className={styles.timelineTooltip}
-                    style={{
-                      left: `${Math.min(88, Math.max(12, (roleActivePoint.x / roleChartWidth) * 100))}%`,
-                      top: `${(roleActivePoint.y / roleChartHeight) * 100}%`,
-                      transform: "translate(-50%, -130%)",
-                    }}
-                  >
-                    <p className={styles.timelineTooltipLabel}>{roleActivePoint.label}</p>
-                    <p className={styles.timelineTooltipValue}>{roleActivePoint.count} mentions</p>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        
-
-        <section className={styles.section}>
-          <div className={styles.sectionHead}>
-            <div>
-              <p className={styles.sectionKicker}>{mode === "skills" ? "Trending skills" : "Trending roles"}</p>
-              <h2 className={styles.sectionTitle}>
-                {mode === "skills" ? "Signals from the skill stream" : "Role momentum across snapshots"}
-              </h2>
-            </div>
-            <p className={styles.sectionMeta}>
-              {search ? `Filtered by “${search}”` : "Compared with earlier snapshots in the window"}
-            </p>
-          </div>
-          <div className={styles.panelGrid}>
-            <TrendList
-              title="Emerging"
-              items={filteredBuckets.emerging}
-              tone="new"
-              emptyLabel="No new signals yet."
-            />
-            <TrendList
-              title="Rising"
-              items={filteredBuckets.rising}
-              tone="rise"
-              emptyLabel="No strong risers yet."
-            />
-            <TrendList
-              title="Declining"
-              items={filteredBuckets.declining}
-              tone="fall"
-              emptyLabel="No declines yet."
+            <input
+              className="bg-transparent text-sm font-medium outline-none px-2 w-32 focus:w-48 transition-all placeholder:text-muted-foreground/50"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Filter..."
             />
           </div>
-        </section>
-      </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <TrendList title="Emerging" items={filteredBuckets.emerging} tone="new" emptyLabel="No new signals yet." />
+          <TrendList title="Rising" items={filteredBuckets.rising} tone="rise" emptyLabel="No strong risers yet." />
+          <TrendList title="Declining" items={filteredBuckets.declining} tone="fall" emptyLabel="No declines yet." />
+        </div>
+      </motion.div>
     </div>
   );
 }

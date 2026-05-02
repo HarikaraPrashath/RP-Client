@@ -1,10 +1,35 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Search,
+  RefreshCcw,
+  Wrench,
+  Briefcase,
+  Layers,
+  Target,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
+  ChevronRight
+} from "lucide-react";
 import { authHeader } from "../../../lib/auth";
-import styles from "../skills/page.module.css";
 import AppSider from "../../../components/market/app-sider";
-import siderStyles from "../../../components/market/app-sider.module.css";
+import {
+  CAREER_MARKET_ROLE_OPTIONS,
+  mergeRoleOptions,
+  resolveCareerRole,
+} from "../../../components/market/role-config";
+import {
+  ScoreCard,
+  MetricBlock,
+  SkillTag,
+  JobCard,
+  RoadmapStep
+} from "../../../components/market/merge-skill-components";
+import { cn } from "@/lib/utils";
 
 type RankedJob = {
   ref?: string;
@@ -15,7 +40,6 @@ type RankedJob = {
   match_percent?: number;
   missing?: string[];
   overlap?: string[];
-  job_skill_count?: number;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -25,6 +49,30 @@ type CareerTimelineEntry = {
   focus?: string;
   opportunities?: number;
   recommended_skills?: string[];
+  mentor_tip?: string;
+};
+
+const categorizeSkills = (skills: string[]) => {
+  const languages = ["java", "python", "javascript", "typescript", "php", "kotlin", "swift", "c", "c++", "c#", "go", "rust", "ruby", "scala", "r", "bash", "powershell"];
+  const frameworks = ["react", "vue", "angular", "next.js", "nuxt", "flutter", "django", "flask", "fastapi", "spring", "express", "nestjs", ".net", "laravel"];
+  const tools = ["docker", "kubernetes", "aws", "gcp", "azure", "git", "jenkins", "terraform", "ansible", "mysql", "postgresql", "mongodb", "redis", "elasticsearch"];
+
+  const categories = {
+    Languages: [] as string[],
+    "Frameworks & Libraries": [] as string[],
+    "Tools & Platforms": [] as string[],
+    Other: [] as string[]
+  };
+
+  skills.forEach(skill => {
+    const s = skill.toLowerCase();
+    if (languages.some(l => s === l || s.split(/\s+/).includes(l))) categories.Languages.push(skill);
+    else if (frameworks.some(f => s === f || s.split(/\s+/).includes(f))) categories["Frameworks & Libraries"].push(skill);
+    else if (tools.some(t => s === t || s.split(/\s+/).includes(t))) categories["Tools & Platforms"].push(skill);
+    else categories.Other.push(skill);
+  });
+
+  return categories;
 };
 
 const calcAverageCount = (jobs: RankedJob[], key: "skills_found" | "missing") => {
@@ -33,30 +81,20 @@ const calcAverageCount = (jobs: RankedJob[], key: "skills_found" | "missing") =>
   return total / jobs.length;
 };
 
-const loadRanked = async (): Promise<RankedJob[]> => {
+const loadRanked = async (role: string, userSkills: string[]): Promise<RankedJob[]> => {
   try {
-    const res = await fetch(`${API_BASE}/ranked`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/ranked/search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeader() },
+      body: JSON.stringify({ role, userSkills }),
+      cache: "no-store",
+    });
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data?.ranked) ? data.ranked : [];
   } catch {
     return [];
   }
-};
-
-const summarizeSkills = (jobs: RankedJob[]): { skill: string; count: number }[] => {
-  const counts = new Map<string, number>();
-  jobs.forEach((job) => {
-    (job.skills_found ?? []).forEach((skill) => {
-      const key = skill.trim().toLowerCase();
-      if (!key) return;
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    });
-  });
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([skill, count]) => ({ skill, count }));
 };
 
 const avgMatch = (jobs: RankedJob[]) => {
@@ -95,44 +133,6 @@ const topMissing = (jobs: RankedJob[], limit = 8) => {
     .map(([skill, count]) => ({ skill, count }));
 };
 
-const buildRecommendations = (jobs: RankedJob[], skills: string[]) => {
-  const avg = avgMatch(jobs);
-  const highlyQualified = jobs.filter((j) => (j.match_percent ?? 0) >= 70).length;
-  const missing = topMissing(jobs, 3);
-  const recommendations: string[] = [];
-
-  if (avg >= 65) {
-    recommendations.push(
-      "You're well-positioned for many roles. Focus on applying to jobs with 70%+ match.",
-    );
-  } else if (avg >= 50) {
-    recommendations.push(
-      "You have a solid foundation. Learning a few key skills will improve your opportunities.",
-    );
-  } else {
-    recommendations.push(
-      "Focus on building foundational skills. Consider internships or entry-level positions.",
-    );
-  }
-
-  if (highlyQualified > 0) {
-    recommendations.push(`You qualify for ${highlyQualified} positions right now. Start applying.`);
-  }
-
-  if (missing.length) {
-    const skillsStr = missing.map((item) => item.skill).join(", ");
-    recommendations.push(`Priority skills to learn: ${skillsStr}`);
-  }
-
-  if (skills.length) {
-    recommendations.push("Highlight your existing skills and projects in applications.");
-  } else {
-    recommendations.push("Add skills to your profile to improve matching accuracy.");
-  }
-
-  return recommendations;
-};
-
 const buildCareerTimeline = (
   jobs: RankedJob[],
   missingSkills: { skill: string; count: number }[],
@@ -150,16 +150,19 @@ const buildCareerTimeline = (
       focus: "Apply to immediate opportunities while learning 2-3 high-priority skills",
       opportunities: immediate,
       recommended_skills: skills.slice(0, 3),
+      mentor_tip: "Focus on interview readiness. Your skill set is almost ready; prioritize the few high-impact gaps to unlock multiple offers quickly."
     },
     "3-6_months": {
-      focus: "Expand skill set with medium-priority skills and apply to short-term opportunities",
+      focus: "Expand skill set with medium-priority skills and apply to mid-range roles",
       opportunities: shortTerm,
-      recommended_skills: skills.slice(0, 3),
+      recommended_skills: skills.slice(3, 6),
+      mentor_tip: "Deepen your technical depth. Start working on a significant project using these next-step skills to prove your expertise to mid-level recruiters."
     },
     "6-12_months": {
-      focus: "Master advanced skills to qualify for long-term opportunities",
+      focus: "Master advanced technologies to qualify for highly specialized positions",
       opportunities: longTerm,
-      recommended_skills: skills.slice(0, 3),
+      recommended_skills: skills.slice(6, 9),
+      mentor_tip: "Think architectural. These skills are often used in specialized or senior roles. Understanding the 'why' is as important as the 'how' for these targets."
     },
   };
 };
@@ -172,11 +175,17 @@ const loadProfileData = async (): Promise<ProfileData> => {
     }
     if (!res.ok) return { position: "", skills: [] };
     const doc = await res.json();
-    const skills = Array.isArray(doc?.skills) ? doc.skills : [];
+    const rawSkills = Array.isArray(doc?.skills) ? doc.skills : [];
+    // Robustly split any combined skill strings
+    const skills = Array.from(new Set(
+      rawSkills.flatMap((s: unknown) => 
+        typeof s === "string" ? s.split(/[\n,;\u2022·]|\s{2,}/).map(i => i.trim()).filter(Boolean) : []
+      )
+    ));
     const position = typeof doc?.basics?.position === "string" ? doc.basics.position : "";
     return {
       position: position.trim(),
-      skills: skills.map((s: unknown) => (typeof s === "string" ? s.trim() : "")).filter(Boolean),
+      skills: skills as string[],
     };
   } catch (error) {
     throw error;
@@ -184,14 +193,14 @@ const loadProfileData = async (): Promise<ProfileData> => {
 };
 
 const refreshFromProfile = async (keyword: string, userSkills: string[]) => {
-  const cleanKeyword = keyword.trim() || "software engineer";
+  const cleanKeyword = resolveCareerRole(keyword);
   try {
-  const res = await fetch(`${API_BASE}/jobs/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeader() },
-    body: JSON.stringify({ keyword: cleanKeyword, userSkills, force: false }),
-    cache: "no-store",
-  });
+    const res = await fetch(`${API_BASE}/jobs/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeader() },
+      body: JSON.stringify({ keyword: cleanKeyword, userSkills, force: false }),
+      cache: "no-store",
+    });
     if (!res.ok) {
       return "Auto-refresh failed (backend error); showing last saved data.";
     }
@@ -213,7 +222,7 @@ const refreshFromProfile = async (keyword: string, userSkills: string[]) => {
         }
       }
     } catch {
-      // Ignore analysis errors to avoid blocking the main flow.
+      // Ignore analysis errors
     }
     return "";
   } catch {
@@ -223,10 +232,76 @@ const refreshFromProfile = async (keyword: string, userSkills: string[]) => {
 
 export default function MergeSkillsPage() {
   const [profile, setProfile] = useState<ProfileData>({ position: "", skills: [] });
+  const [activeRole, setActiveRole] = useState(() => resolveCareerRole());
   const [ranked, setRanked] = useState<RankedJob[]>([]);
   const [refreshNote, setRefreshNote] = useState("");
+  const [reindexNote, setReindexNote] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshingRole, setIsRefreshingRole] = useState(false);
+  const [isReindexingJobs, setIsReindexingJobs] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+  const roleOptions = useMemo(() => mergeRoleOptions(
+    [profile.position, activeRole],
+    CAREER_MARKET_ROLE_OPTIONS,
+  ), [profile.position, activeRole]);
+
+  const refreshRoleAnalysis = async (role: string, userSkills: string[]) => {
+    setIsRefreshingRole(true);
+    setLoadError(null);
+    try {
+      const note = await refreshFromProfile(role, userSkills);
+      setRefreshNote(note);
+      setReindexNote("");
+      const rankedData = await loadRanked(role, userSkills);
+      setRanked(rankedData);
+    } catch (error: any) {
+      console.error("Refresh from profile failed:", error);
+      if (error?.message === "unauthorized") {
+        setLoadError("Sign in to load your profile data.");
+      } else {
+        setLoadError("Unable to refresh role analysis.");
+      }
+    } finally {
+      setIsRefreshingRole(false);
+    }
+  };
+
+  const reindexJobs = async () => {
+    if (isReindexingJobs) return;
+    setIsReindexingJobs(true);
+    setLoadError(null);
+    setReindexNote("");
+    try {
+      const res = await fetch(`${API_BASE}/jobs/reindex`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeader() },
+        body: JSON.stringify({ onlyMissing: true, limit: 500 }),
+        cache: "no-store",
+      });
+      if (res.status === 401) {
+        setLoadError("Sign in to reindex job skills.");
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setLoadError(data?.detail || "Job reindex failed.");
+        return;
+      }
+      const data = await res.json().catch(() => null);
+      const updated = Number(data?.updated ?? 0);
+      const skipped = Number(data?.skipped ?? 0);
+      setReindexNote(`Reindexed ${updated} jobs (skipped ${skipped}).`);
+      const rankedData = await loadRanked(searchKeyword, userSkills);
+      setRanked(rankedData);
+    } catch {
+      setLoadError("Job reindex failed (network error).");
+    } finally {
+      setIsReindexingJobs(false);
+    }
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -237,18 +312,20 @@ export default function MergeSkillsPage() {
         const profileData = await loadProfileData();
         if (ignore) return;
         setProfile(profileData);
+        const resolvedRole = resolveCareerRole(profileData.position);
+        setActiveRole(resolvedRole);
 
         let note = "";
         try {
-          note = await refreshFromProfile(profileData.position, profileData.skills);
+          note = await refreshFromProfile(resolvedRole, profileData.skills);
         } catch (error) {
           console.error("Refresh from profile failed:", error);
-          note = "Auto-refresh failed (python/selenium); showing last saved data.";
+          note = "Auto-refresh failed; showing last saved data.";
         }
         if (ignore) return;
         setRefreshNote(note);
 
-        const rankedData = await loadRanked();
+        const rankedData = await loadRanked(resolvedRole, profileData.skills);
         if (ignore) return;
         setRanked(rankedData);
       } catch (error: any) {
@@ -272,284 +349,246 @@ export default function MergeSkillsPage() {
     };
   }, []);
 
-  const searchKeyword = profile.position || "software engineer";
+  const searchKeyword = resolveCareerRole(activeRole, profile.position);
   const userSkills = profile.skills;
-  const topSkills = summarizeSkills(ranked);
   const average = avgMatch(ranked);
-  const withAnySkills = ranked.filter((j) => (j.skills_found ?? []).length > 0).length;
   const coverage = Math.round(coveragePercent(ranked));
   const topMissingSkills = topMissing(ranked);
-  const uniqueSkills = uniqueSkillCount(ranked);
+  const uniqueSkillsCount = uniqueSkillCount(ranked);
   const avgSkillsFound = calcAverageCount(ranked, "skills_found");
   const avgMissing = calcAverageCount(ranked, "missing");
   const strongMatches = ranked.filter((j) => (j.match_percent ?? 0) >= 80).length;
-  const sortedByMatch = [...ranked].sort(
-    (a, b) => (b.match_percent ?? 0) - (a.match_percent ?? 0),
-  );
-  const bestMatch = sortedByMatch[0];
-  const lowestMatch = sortedByMatch[sortedByMatch.length - 1];
-  const recommendations = buildRecommendations(ranked, profile.skills);
+
   const timelineEntries = Object.entries(buildCareerTimeline(ranked, topMissingSkills));
 
+  const skillCategories = useMemo(() => categorizeSkills(profile.skills), [profile.skills]);
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
+  };
+
   return (
-    <div className={siderStyles.siderLayout}>
+    <div className="flex min-h-screen bg-background">
       <AppSider variant="light" />
-      <div className={siderStyles.siderContent}>
-        <div className={styles.page}>
-          <div className={styles.gradientOne} />
-          <div className={styles.gradientTwo} />
-          <div className={styles.container}>
-            {isLoading ? (
-              <div className={styles.skeletonPage}>
-                <div className={`${styles.skeletonCard} ${styles.skeletonHero}`} />
-                <div className={`${styles.skeletonCard} ${styles.skeletonRowBlock}`} />
-                <div className={`${styles.skeletonCard} ${styles.skeletonRowBlock}`} />
-                <div className={`${styles.skeletonCard} ${styles.skeletonRowBlock}`} />
-                <div className={`${styles.skeletonCard} ${styles.skeletonListRow}`} />
-              </div>
-            ) : (
-              <>
-                <header className={styles.hero}>
-          <div className={styles.heroText}>
-            <p className={styles.kicker}>Skill radar</p>
-            <h1 className={styles.title}>Skill story from your scraped jobs</h1>
-            <p className={styles.lead}>
-              A colorful snapshot of how every role aligns with your profile: strengths, gaps, and the
-              skills showing up most often.
-            </p>
-            <div className={styles.heroChips}>
-              <span className={styles.glowChip}>Role: {searchKeyword}</span>
-              <span className={styles.glowChip}>Top skills: {topSkills.length}</span>
-              <span className={styles.glowChip}>Gaps flagged: {topMissingSkills.length}</span>
-              <span className={styles.glowChip}>Strong fits: {strongMatches}</span>
-              {loadError ? <span className={styles.glowChip}>{loadError}</span> : null}
-              {refreshNote ? <span className={styles.glowChip}>{refreshNote}</span> : null}
-            </div>
-          </div>
-          <div className={styles.heroOrb}>
-            <div className={styles.orbRing}>
-              <div className={styles.orbCore}>
-                <p className={styles.orbLabel}>Avg match</p>
-                <p className={styles.orbValue}>{Math.round(average)}%</p>
-                <p className={styles.orbHint}>{ranked.length} ranked jobs</p>
-              </div>
-            </div>
-            <div className={styles.orbFooter}>
-              <div>
-                <p className={styles.heroLabel}>Coverage</p>
-                <p className={styles.heroNumber}>{coverage}%</p>
-              </div>
-              <div className={styles.heroLine} />
-              <div>
-                <p className={styles.heroLabel}>Strong fits</p>
-                <p className={styles.heroNumber}>{strongMatches}</p>
-              </div>
-            </div>
-          </div>
-                </header>
+      <main className="flex-1 ml-20 lg:ml-64 transition-all duration-300 p-8 lg:p-12">
+        <div className="max-w-screen-2xl mx-auto space-y-12">
 
-                <section className={styles.stats}>
-          <div className={styles.statCard}>
-            <p className={styles.statLabel}>Your skills</p>
-            {userSkills.length === 0 ? (
-              <p className={styles.muted}>No skills saved yet.</p>
-            ) : (
-              <div className={styles.skillChips}>
-                {userSkills.map((skill) => (
-                  <span key={skill} className={styles.skillChipSoft}>
-                    {skill}
-                  </span>
-                ))}
+          <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-primary font-bold uppercase tracking-wider text-xs">
+                <Sparkles size={14} />
+                <span>Career Intelligence</span>
               </div>
-            )}
-          </div>
-                </section>
-
-                <section className={styles.stats}>
-          <div className={styles.statCard}>
-            <p className={styles.statLabel}>Jobs with skills</p>
-            <p className={styles.statValue}>{withAnySkills}</p>
-            <p className={styles.statHint}>Out of {ranked.length} ranked ads</p>
-            <div className={styles.statBar}>
-              <div className={styles.statFill} style={{ width: `${coverage}%` }} />
-            </div>
-          </div>
-          <div className={styles.statCard}>
-            <p className={styles.statLabel}>Unique skills spotted</p>
-            <p className={styles.statValue}>{uniqueSkills}</p>
-            <p className={styles.statHint}>Across all roles</p>
-          </div>
-          <div className={styles.statCard}>
-            <p className={styles.statLabel}>Avg skills per ad</p>
-            <p className={styles.statValue}>{avgSkillsFound.toFixed(1)}</p>
-            <p className={styles.statHint}>Signals extracted per job</p>
-          </div>
-          <div className={styles.statCard}>
-            <p className={styles.statLabel}>Avg missing per ad</p>
-            <p className={styles.statValue}>{avgMissing.toFixed(1)}</p>
-            <p className={styles.statHint}>Gaps to focus on</p>
-          </div>
-                </section>
-
-                <section className={styles.highlightRow}>
-          <div className={styles.highlightCard}>
-            <p className={styles.cardTitle}>Best match</p>
-            {bestMatch ? (
-              <>
-                <p className={styles.highlightRole}>
-                  {bestMatch.position ?? "Untitled role"} <span>→ {bestMatch.match_percent}%</span>
+              <h1 className="text-4xl font-black tracking-tight text-foreground">Skill Radar</h1>
+              <p className="text-muted-foreground text-lg max-w-2xl font-medium">
+                Analyze your skill alignment against live job market data for <span className="text-foreground font-bold">{searchKeyword}</span> roles.
+              </p>
+              {(refreshNote || reindexNote) && (
+                <p className="text-sm text-muted-foreground/80 font-medium">
+                  {[refreshNote, reindexNote].filter(Boolean).join(" • ")}
                 </p>
-                <p className={styles.employer}>{bestMatch.employer ?? "Unknown employer"}</p>
-                <div className={styles.chips}>
-                  {(bestMatch.overlap ?? []).slice(0, 8).map((skill) => (
-                    <span key={skill} className={styles.matchChip}>
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className={styles.muted}>No ranked data yet.</p>
-            )}
-          </div>
-          <div className={styles.highlightCardSoft}>
-            <p className={styles.cardTitle}>Toughest match</p>
-            {lowestMatch ? (
-              <>
-                <p className={styles.highlightRole}>
-                  {lowestMatch.position ?? "Untitled role"}{" "}
-                  <span>→ {lowestMatch.match_percent ?? 0}%</span>
-                </p>
-                <p className={styles.employer}>{lowestMatch.employer ?? "Unknown employer"}</p>
-                <div className={styles.chips}>
-                  {(lowestMatch.missing ?? []).slice(0, 8).map((skill) => (
-                    <span key={skill} className={styles.missingChip}>
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className={styles.muted}>No ranked data yet.</p>
-            )}
-          </div>
-                </section>
-
-                <section className={styles.stats}>
-          <div className={styles.darkPanel}>
-            <div className={styles.sectionHeader}>
-              <p className={styles.sectionKicker}>Recommendations</p>
+              )}
             </div>
-            {recommendations.length === 0 ? (
-              <p className={styles.muted}>No recommendations yet.</p>
-            ) : (
-              <div className={styles.recommendationList}>
-                {recommendations.slice(0, 6).map((rec) => (
-                  <div key={rec} className={styles.recommendationItem}>
-                    {rec}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-                </section>
 
-                <section className={styles.stats}>
-          <div className={styles.darkPanel}>
-            <div className={styles.sectionHeader}>
-              <p className={styles.sectionKicker}>Roadmap</p>
-              <p className={styles.sectionTitle}>Career timeline</p>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-card border border-border p-2 rounded-2xl shadow-sm">
+              <div className="flex items-center gap-2 px-3 border-r border-border/50">
+                <Search size={16} className="text-muted-foreground" />
+                <select
+                  className="bg-transparent border-none text-sm font-bold focus:ring-0 cursor-pointer min-w-[160px]"
+                  value={searchKeyword}
+                  onChange={(e) => setActiveRole(e.target.value)}
+                >
+                  {roleOptions.map((role) => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={() => refreshRoleAnalysis(searchKeyword, userSkills)}
+                disabled={isRefreshingRole || isLoading}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-primary/20 transition-all disabled:opacity-50"
+              >
+                <RefreshCcw size={16} className={cn(isRefreshingRole && "animate-spin")} />
+                {isRefreshingRole ? "Analyzing..." : "Refresh Data"}
+              </button>
+              <button
+                onClick={reindexJobs}
+                disabled={isReindexingJobs || isLoading}
+                className="flex items-center justify-center gap-2 px-4 py-2 bg-muted text-foreground rounded-xl text-sm font-bold hover:bg-muted/70 transition-all disabled:opacity-50"
+                title="Re-extract skills from stored full job text (no scraping)"
+              >
+                <Wrench size={16} className={cn(isReindexingJobs && "animate-spin")} />
+                {isReindexingJobs ? "Reindexing..." : "Fix Matching"}
+              </button>
             </div>
-            {timelineEntries.length === 0 ? (
-              <p className={styles.muted}>No roadmap yet.</p>
-            ) : (
-              <div className={styles.timelineGrid}>
-                {timelineEntries.map(([key, data]) => (
-                  <div key={key} className={styles.timelineCard}>
-                    <p className={styles.timelineLabel}>{key.replace("_", " ")}</p>
-                    <p className={styles.timelineBody}>{data.focus ?? "Focus"}</p>
-                    <p className={styles.timelineMeta}>Opportunities: {data.opportunities ?? 0}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-                </section>
+          </header>
 
-                <section className={styles.list}>
-          {ranked.length === 0 ? (
-            <div className={styles.empty}>
-              <p>No ranked data found.</p>
-              <p className={styles.muted}>Run the pipeline to create ranked jobs.</p>
+          {loadError && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-4 flex items-center gap-3 text-destructive text-sm font-medium animate-in fade-in slide-in-from-top-2">
+              <AlertCircle size={18} />
+              {loadError}
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-pulse">
+              <div className="col-span-1 md:col-span-2 h-[400px] bg-muted rounded-3xl" />
+              <div className="space-y-4">
+                <div className="h-[120px] bg-muted rounded-3xl" />
+                <div className="h-[120px] bg-muted rounded-3xl" />
+                <div className="h-[120px] bg-muted rounded-3xl" />
+              </div>
             </div>
           ) : (
-            ranked.map((job, idx) => {
-              const skills = job.skills_found ?? [];
-              const missing = job.missing ?? [];
-              const overlap = job.overlap ?? [];
-              const pct = Math.round(job.match_percent ?? 0);
-              return (
-                <article key={`${job.ref ?? "job"}-${idx}`} className={styles.card}>
-                  <div className={styles.cardHeader}>
-                    <div>
-                      <p className={styles.ref}>{job.ref ?? "No ref"}</p>
-                      <h2 className={styles.jobTitle}>{job.position ?? "Untitled role"}</h2>
-                      <p className={styles.employer}>{job.employer ?? "Unknown employer"}</p>
-                    </div>
-                    <div className={styles.scoreBadge}>
-                      <span className={styles.scoreNumber}>{pct}%</span>
-                      <span className={styles.scoreLabel}>match</span>
+            <>
+              <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="lg:col-span-4">
+                  <ScoreCard
+                    score={average}
+                    label="Skill Match Score"
+                    subtext={`Based on analysis of ${ranked.length} recent job advertisements.`}
+                  />
+                </div>
+                <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <MetricBlock
+                    icon={Target}
+                    label="Market Coverage"
+                    value={`${coverage}%`}
+                    hint={`${ranked.filter(j => (j.skills_found?.length ?? 0) > 0).length} jobs with skills`}
+                  />
+                  <MetricBlock
+                    icon={Sparkles}
+                    label="Strong Fits"
+                    value={strongMatches}
+                    hint="Jobs with 80%+ match"
+                    trend="High"
+                  />
+                  <MetricBlock
+                    icon={Briefcase}
+                    label="Total Analyzed"
+                    value={ranked.length}
+                    hint="Scraped job postings"
+                  />
+                  <MetricBlock
+                    icon={Layers}
+                    label="Unique Skills"
+                    value={uniqueSkillsCount}
+                    hint="Spotted across market"
+                  />
+                  <MetricBlock
+                    icon={Search}
+                    label="Avg Skills/Job"
+                    value={avgSkillsFound.toFixed(1)}
+                    hint="Technical signals found"
+                  />
+                  <MetricBlock
+                    icon={AlertCircle}
+                    label="Avg Gaps/Job"
+                    value={avgMissing.toFixed(1)}
+                    hint="Skills to prioritize"
+                  />
+                </div>
+              </section>
+
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
+
+                <div className="xl:col-span-1 space-y-8">
+                  <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
+                    <h2 className="text-xl font-black tracking-tight mb-6">Your Skillset</h2>
+                    <div className="space-y-6">
+                      {Object.entries(skillCategories).map(([cat, skills]) => {
+                        if (skills.length === 0) return null;
+                        const isExpanded = expandedCategories[cat] || false;
+                        const visibleSkills = isExpanded ? skills : skills.slice(0, 8);
+
+                        return (
+                          <div key={cat} className="space-y-3">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{cat}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {visibleSkills.map(skill => (
+                                <SkillTag key={skill} name={skill} />
+                              ))}
+                              {skills.length > 8 && (
+                                <button
+                                  onClick={() => toggleCategory(cat)}
+                                  className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1 mt-1"
+                                >
+                                  {isExpanded ? (
+                                    <>Show less <ChevronUp size={12} /></>
+                                  ) : (
+                                    <>+{skills.length - 8} more <ChevronDown size={12} /></>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
+                </div>
 
-                  <div className={styles.progress}>
-                    <div className={styles.progressFill} style={{ width: `${pct}%` }} />
+                <div className="xl:col-span-2 space-y-8">
+                  <div className="bg-card border border-border rounded-3xl p-6 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-6">
+                      <h2 className="text-xl font-black tracking-tight">Career Roadmap</h2>
+                      <p className="text-xs text-muted-foreground font-medium">
+                        Short, medium, and long-term focus based on your current skill profile.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                      {timelineEntries.map(([key, data], idx) => (
+                        <RoadmapStep
+                          key={key}
+                          timeline={key.replace("_", " ")}
+                          focus={data.focus || ""}
+                          opportunities={data.opportunities || 0}
+                          skills={data.recommended_skills}
+                          tip={data.mentor_tip}
+                          active={idx === 0}
+                        />
+                      ))}
+                    </div>
                   </div>
+                </div>
+              </div>
 
-                  <div className={styles.skillsRow}>
-                    <p className={styles.subLabel}>Extracted skills</p>
-                    {skills.length === 0 ? (
-                      <span className={styles.muted}>None found</span>
+              <div className="space-y-6 mt-8">
+                <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-black tracking-tight">Market Matches</h2>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-muted-foreground">Sort by:</span>
+                        <span className="text-xs font-bold text-primary cursor-pointer hover:underline">Match %</span>
+                      </div>
+                    </div>
+
+                    {ranked.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-20 bg-muted/20 rounded-3xl border-2 border-dashed border-border">
+                        <Briefcase size={40} className="text-muted-foreground mb-4 opacity-50" />
+                        <p className="text-lg font-bold text-muted-foreground">No matches found</p>
+                        <p className="text-sm text-muted-foreground/60">Try refreshing your profile or role.</p>
+                      </div>
                     ) : (
-                      <div className={styles.chips}>
-                        {skills.map((skill) => {
-                          const isMatch = overlap.includes(skill);
-                          const isMissing = missing.includes(skill);
-                          const cls = isMatch
-                            ? styles.matchChip
-                            : isMissing
-                              ? styles.missingChip
-                              : styles.chip;
-                          return (
-                            <span key={skill} className={cls}>
-                              {skill}
-                            </span>
-                          );
-                        })}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {ranked.map((job, idx) => (
+                          <JobCard
+                            key={`${job.ref}-${idx}`}
+                            title={job.position || "Untitled Role"}
+                            company={job.employer || "Private Company"}
+                            matchScore={Math.round(job.match_percent || 0)}
+                            skills={job.skills_found || []}
+                            url={job.url}
+                            overlap={job.overlap}
+                            missing={job.missing}
+                          />
+                        ))}
                       </div>
                     )}
                   </div>
-
-                  <div className={styles.cardFooter}>
-                    {job.url ? (
-                      <a href={job.url} className={styles.link} target="_blank" rel="noreferrer">
-                        View on TopJobs
-                      </a>
-                    ) : (
-                      <span className={styles.muted}>No external link</span>
-                    )}
-                  </div>
-                </article>
-              );
-            })
+            </>
           )}
-                </section>
-              </>
-            )}
-          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
-

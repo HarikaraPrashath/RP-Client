@@ -73,6 +73,66 @@
   margin-top: 8px;
 }
 
+.roleSelectorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-top: 6px;
+}
+
+.roleSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: min(320px, 100%);
+}
+
+.roleSelectorLabel {
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.roleSelect {
+  min-height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.roleRefreshButton {
+  min-height: 42px;
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  background: linear-gradient(120deg, rgba(59, 130, 246, 0.12), rgba(236, 72, 153, 0.12));
+  color: #0f172a;
+  border-radius: 14px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.roleRefreshButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.18);
+}
+
+.roleRefreshButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+  transform: none;
+}
+
 .glowChip {
   background: linear-gradient(120deg, rgba(59, 130, 246, 0.16), rgba(236, 72, 153, 0.18));
   color: #0f172a;
@@ -610,6 +670,7 @@
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -711,5 +772,13 @@
   .cardHeader {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .roleSelector {
+    min-width: 100%;
+  }
+
+  .roleRefreshButton {
+    width: 100%;
   }
 }
