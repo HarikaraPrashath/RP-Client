@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Lock } from "lucide-react";
 import {
   ChevronDown,
   Sparkles,
@@ -50,27 +51,47 @@ export default function Home() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         const token = parsedUser?.token;
-        const name = parsedUser?.user?.name || parsedUser?.name;
         const email = parsedUser?.user?.email || parsedUser?.email;
-
-        if (token && name) {
+        const nameFallback = email ? email.split("@")[0] : "User";
+        const name = parsedUser?.user?.name || parsedUser?.name || nameFallback;
+        if (token) {
           setUser({ name, token, email });
-          setLoading(false);
-        } else {
-          router.push("/login");
         }
       } catch (e) {
-        router.push("/login");
+        // ignore, user stays null
       }
-    } else {
-      router.push("/login");
     }
-  }, [router]);
+    setLoading(false);
+  }, []);
+
+  // Helper: render a service button — locked when not logged in
+  const ServiceButton = ({ href, label = "Try Service" }: { href: string; label?: string }) => {
+    if (user) {
+      return (
+        <Link
+          href={href}
+          className="inline-flex items-center justify-center gap-2 mt-6 w-full px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+        >
+          {label}
+        </Link>
+      );
+    }
+    return (
+      <button
+        type="button"
+        onClick={() => router.push("/login")}
+        className="inline-flex items-center justify-center gap-2 mt-6 w-full px-6 py-2 bg-gray-200 text-gray-400 text-center rounded-lg font-semibold cursor-pointer hover:bg-primary/10 hover:text-primary transition-all duration-300 group/btn"
+        title="Login required to access this service"
+      >
+        <Lock className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+        Login to Access
+      </button>
+    );
+  };
 
   if (loading) {
     return (
@@ -79,8 +100,6 @@ export default function Home() {
       </div>
     );
   }
-
-  if (!user) return null;
 
   return (
     <main className="min-h-screen bg-background">
@@ -416,12 +435,7 @@ export default function Home() {
                     </li>
                   </ul>
                 </div>
-                <Link
-                  href="/career-guide"
-                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
-                >
-                  Try Service
-                </Link>
+                <ServiceButton href="/career-guide" />
               </div>
             </div>
 
@@ -458,12 +472,7 @@ export default function Home() {
                     </li>
                   </ul>
                 </div>
-                <Link
-                  href="/career-preparation"
-                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
-                >
-                  Try Service
-                </Link>
+                <ServiceButton href="/career-preparation" />
               </div>
             </div>
 
@@ -501,12 +510,7 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <Link
-                  href="/login"
-                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
-                >
-                  Try Service
-                </Link>
+                <ServiceButton href="/career-market" />
               </div>
             </div>
 
@@ -544,12 +548,7 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <Link
-                  href="/Personality-career"
-                  className="inline-block mt-6 px-6 py-2 bg-gradient-to-r from-primary to-accent text-white text-center rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
-                >
-                  Try Service
-                </Link>
+                <ServiceButton href="/Personality-career" />
               </div>
             </div>
           </div>
