@@ -145,6 +145,98 @@ export const generateRecommendationReport = (user: any, profile: any) => {
     currentY += 40;
   }
 
+  // --- 4. Market Dynamics & Competitive Analysis ---
+  if (currentY > 750) { doc.addPage(); currentY = 50; }
+  currentY = addSectionTitle("IV. Market Intelligence & Skill Radar", currentY);
+
+  const market = profile?.careerMarket;
+  const allTrend = market?.allTrend;
+  const mergeSkills = market?.mergeSkills;
+
+  // --- Data Extraction & Synthesis ---
+  const targetRole = mergeSkills?.career || "your target role";
+  const matchScore = mergeSkills?.averageMatch ? Math.round(mergeSkills.averageMatch) : 0;
+  const coverage = mergeSkills?.marketCoverage ? Math.round(mergeSkills.marketCoverage) : 0;
+  
+  const targetTrend = allTrend?.topPromising?.find((p: any) => 
+    p.name.toLowerCase().includes(targetRole.toLowerCase()) || 
+    targetRole.toLowerCase().includes(p.name.toLowerCase())
+  );
+  const growth = targetTrend ? Math.round(targetTrend.growth) : 18;
+  const industry = targetTrend ? targetTrend.name : "Technology";
+
+  let missingSkill = "key technologies";
+  let allRecSkills: string[] = [];
+  if (mergeSkills?.roadmap) {
+    allRecSkills = Object.values(mergeSkills.roadmap).flatMap((r: any) => r.recommended_skills || []);
+    if (allRecSkills.length > 0) missingSkill = allRecSkills[0];
+  }
+
+  let urgentSkill = missingSkill;
+  let isRising = false;
+  if (allTrend?.rising && allRecSkills.length > 0) {
+    const risingTerms = allTrend.rising.map((r: any) => r.term.toLowerCase());
+    const risingGaps = allRecSkills.filter((s: string) => risingTerms.includes(s.toLowerCase()));
+    if (risingGaps.length > 0) {
+      urgentSkill = risingGaps[0];
+      isRising = true;
+    }
+  }
+
+  const userSkills = profile?.profile?.skills || [];
+  const advantageSkill = userSkills.length > 0 ? userSkills[0] : "your core technical foundation";
+
+  // A. Executive Summary: You vs. The Market
+  if (currentY > 700) { doc.addPage(); currentY = 50; }
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(30, 58, 138);
+  doc.text("A. Executive Summary: You vs. The Market", 40, currentY);
+  currentY += 15;
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(0);
+  doc.setFontSize(10);
+  const execSummary = `Your current background gives you a ${matchScore}% readiness for ${targetRole}. This is an excellent position, as the market for ${targetRole} is currently experiencing a +${growth}% surge. You have strong market coverage (${coverage}%), but bridging the gap in ${missingSkill} will significantly increase your competitiveness.`;
+  const splitExec = doc.splitTextToSize(execSummary, pageWidth - 80);
+  doc.text(splitExec, 40, currentY);
+  currentY += (splitExec.length * 13) + 15;
+
+  // B. High Value Gap & Your Market Edge
+  if (currentY > 700) { doc.addPage(); currentY = 50; }
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(220, 38, 38); // Red
+  doc.text("High Value Gap:", 40, currentY);
+  
+  doc.setTextColor(16, 185, 129); // Emerald
+  doc.text("Your Market Edge:", pageWidth / 2, currentY);
+  currentY += 15;
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(0);
+  doc.setFontSize(10);
+  
+  const gapText = `You are missing ${urgentSkill}. This skill is currently a ${isRising ? "rising" : "high-demand"} technology in the global market. Learning it now will give you an immediate competitive advantage.`;
+  const splitGap = doc.splitTextToSize(gapText, (pageWidth / 2) - 50);
+  doc.text(splitGap, 40, currentY);
+
+  const edgeText = `You already possess solid experience in ${advantageSkill}, which is currently categorized as a high-demand asset in the top-promising ${industry} sector.`;
+  const splitEdge = doc.splitTextToSize(edgeText, (pageWidth / 2) - 50);
+  doc.text(splitEdge, pageWidth / 2, currentY);
+  
+  const maxLines = Math.max(splitGap.length, splitEdge.length);
+  currentY += (maxLines * 13) + 20;
+
+
+
+  if (!allTrend && !mergeSkills) {
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.text("No market intelligence data found. Please complete the All-Trend and Skill Radar assessments.", 40, currentY);
+    currentY += 30;
+  }
+
   // --- Synthesis ---
   if (currentY > 750) { doc.addPage(); currentY = 50; }
   doc.setFont("helvetica", "bold");
@@ -155,7 +247,16 @@ export const generateRecommendationReport = (user: any, profile: any) => {
   doc.setFont("helvetica", "italic");
   doc.setTextColor(0);
   doc.setFontSize(10);
-  const conclusion = `The synergy between your academic background (${topGuide}) and your emotional intelligence profile (${topEmotion?.career || "General"}) creates a unique competitive advantage. By following the learning roadmap above, you will not only gain the technical skills required for the market but also leverage your natural behavioral strengths to excel in high-pressure environments.`;
+  
+  const marketSummary = mergeSkills 
+    ? `Your alignment for the "${mergeSkills.career}" role is currently at ${Math.round(mergeSkills.averageMatch)}%. `
+    : "Your market alignment analysis is pending. ";
+  const promiseSummary = allTrend?.topPromising?.[0]
+    ? `The market shows high momentum for paths like ${allTrend.topPromising[0].name}. `
+    : "";
+
+  const conclusion = `The synergy between your academic background (${topGuide}) and your emotional intelligence profile (${topEmotion?.career || "General"}) creates a unique competitive advantage. ${marketSummary}${promiseSummary}By following the strategic roadmap and focusing on the identified high-growth technologies, you will not only gain the technical skills required for the market but also leverage your natural behavioral strengths to excel in high-pressure environments.`;
+  
   const splitConclusion = doc.splitTextToSize(conclusion, pageWidth - 80);
   doc.text(splitConclusion, 40, currentY);
 

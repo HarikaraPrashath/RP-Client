@@ -39,6 +39,7 @@ import {
   LabelList
 } from "recharts";
 import { MetricBlock, SkillTag } from "../../../components/market/merge-skill-components";
+import SaveToProfileButton from "../../../components/market/save-to-profile-button";
 
 export type TrendItem = {
   term: string;
@@ -164,25 +165,45 @@ const StatCard = ({ title, items, tone, icon: Icon, description }: {
 
 const SkillTrendExplorer = ({ history, skills }: { history: TrendEntry[], skills: string[] }) => {
   const [selectedSkill, setSelectedSkill] = useState(skills[0] || "");
-  const [range, setRange] = useState<"1D" | "5D" | "1M" | "1Y" | "Max">("1M");
-  
+  const [range, setRange] = useState("1M");
+
+  // Dynamically derive years that exist in the history data
+  const availableYears = useMemo(() => {
+    const years = new Set(history.map(h => new Date(h.ranAt).getFullYear()));
+    return Array.from(years).sort();
+  }, [history]);
+
+  // Which years actually have data for the selected skill
+  const yearsWithData = useMemo(() => {
+    return new Set(
+      history
+        .filter(h => {
+          const count = h.skillCounts?.[selectedSkill] || h.skillCounts?.[selectedSkill.toLowerCase()] || 0;
+          return Number(count) > 0;
+        })
+        .map(h => new Date(h.ranAt).getFullYear())
+    );
+  }, [history, selectedSkill]);
+
   const skillHistory = useMemo(() => {
     if (!selectedSkill) return [];
-    
+
     const now = new Date();
     const filteredHistory = history.filter(h => {
       const date = new Date(h.ranAt);
       const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
-      
+
       if (range === "1D") return diffDays <= 1;
       if (range === "5D") return diffDays <= 5;
       if (range === "1M") return diffDays <= 30;
       if (range === "1Y") return diffDays <= 365;
-      return true; // Max
+      if (range === "Max") return true;
+      const yr = parseInt(range, 10);
+      if (!isNaN(yr)) return date.getFullYear() === yr;
+      return true;
     });
 
     const aggregated: Record<string, number> = {};
-    
     filteredHistory.forEach(h => {
       const date = new Date(h.ranAt);
       const key = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -198,8 +219,10 @@ const SkillTrendExplorer = ({ history, skills }: { history: TrendEntry[], skills
     return [...skillHistory].sort((a, b) => b.count - a.count)[0];
   }, [skillHistory]);
 
+  const timeRanges = ["1D", "5D", "1M", "1Y", "Max"];
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -210,15 +233,16 @@ const SkillTrendExplorer = ({ history, skills }: { history: TrendEntry[], skills
           <h3 className="text-2xl font-black tracking-tight text-slate-900">Skill Momentum</h3>
           <p className="text-sm text-slate-500 font-medium">Historical timeline for a specific skill</p>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex gap-2 p-1 bg-slate-50 rounded-xl border border-slate-100">
-            {(["1D", "5D", "1M", "1Y", "Max"] as const).map((r) => (
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Time-range group */}
+          <div className="flex gap-1 p-1 bg-slate-50 rounded-xl border border-slate-100">
+            {timeRanges.map((r) => (
               <button
                 key={r}
                 onClick={() => setRange(r)}
                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${
-                  range === r 
-                    ? "bg-white text-primary shadow-sm border border-slate-200" 
+                  range === r
+                    ? "bg-white text-primary shadow-sm border border-slate-200"
                     : "text-slate-400 hover:text-slate-600"
                 }`}
               >
@@ -226,7 +250,37 @@ const SkillTrendExplorer = ({ history, skills }: { history: TrendEntry[], skills
               </button>
             ))}
           </div>
-          <select 
+
+          {/* Dynamic year group */}
+          {availableYears.length > 0 && (
+            <>
+              <span className="w-px h-5 bg-slate-200 rounded-full hidden sm:block" />
+              <div className="flex gap-1 p-1 bg-slate-50 rounded-xl border border-slate-100">
+                {availableYears.map((yr) => {
+                  const hasData = yearsWithData.has(yr);
+                  const isActive = range === String(yr);
+                  return (
+                    <button
+                      key={yr}
+                      onClick={() => hasData && setRange(String(yr))}
+                      title={hasData ? `Show ${yr}` : `No data for ${selectedSkill} in ${yr}`}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${
+                        isActive
+                          ? "bg-white text-primary shadow-sm border border-slate-200"
+                          : hasData
+                          ? "text-slate-400 hover:text-slate-600 cursor-pointer"
+                          : "text-slate-200 cursor-not-allowed"
+                      }`}
+                    >
+                      {yr}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          <select
             value={selectedSkill}
             onChange={(e) => setSelectedSkill(e.target.value)}
             className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-3 text-sm font-bold outline-none focus:ring-4 focus:ring-primary/5 transition-all"
@@ -357,18 +411,7 @@ export default function AllTrendClient({ summary, history }: AllTrendClientProps
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6"
           >
-            <div className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/10 text-primary text-xs font-black uppercase tracking-widest shadow-sm">
-              <Sparkles size={16} className="text-amber-500" />
-              Career Mentor AI Insights
-            </div>
-            <h1 className="text-6xl lg:text-8xl font-black tracking-tighter leading-[0.85] text-slate-900">
-              The <span className="text-primary italic">Future</span> <br/> 
-              of Work
-            </h1>
-            <p className="text-slate-500 font-medium max-w-xl text-xl leading-relaxed">
-              We've analyzed thousands of real-world job postings to help you choose the most <span className="text-slate-900 font-bold underline decoration-primary/30 decoration-4 underline-offset-4">promising path</span>. Don't just learn—specialize.
-            </p>
-            <div className="flex flex-wrap gap-4 pt-4">
+            <div className="flex flex-wrap gap-4 pt-4 items-center">
               <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white shadow-xl border border-slate-100">
                 <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-sm font-bold text-slate-700">Live Market Signals</span>
@@ -377,6 +420,18 @@ export default function AllTrendClient({ summary, history }: AllTrendClientProps
                 <Search size={16} className="text-primary" />
                 <span className="text-sm font-bold">8,400+ Job Signals</span>
               </div>
+              
+              <SaveToProfileButton 
+                type="allTrend"
+                label="Save Market Insights"
+                data={{
+                  topPromising: topPromising.map(p => ({ name: p.name, growth: p.growth, promise: p.promise })),
+                  rising: summary.skills.rising.slice(0, 5),
+                  emerging: summary.skills.emerging.slice(0, 5),
+                  windowDays: summary.windowDays,
+                  snapshotCount: summary.snapshotCount
+                }}
+              />
             </div>
           </motion.div>
 

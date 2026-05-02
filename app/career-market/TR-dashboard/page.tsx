@@ -244,7 +244,10 @@ export default async function TrDashboardPage() {
             </div>
             <div>
               <div className={styles.heroBadge}>Live snapshot</div>
-              <SaveToProfileButton studentGap={student} topSkills={topSkills} career={career} />
+              <SaveToProfileButton 
+                type="trDashboard" 
+                data={{ career, studentGap: student, topSkills: topSkills.slice(0, 10) }} 
+              />
             </div>
           </div>
 
