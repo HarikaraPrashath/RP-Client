@@ -16,6 +16,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { authHeader } from "../../../lib/auth";
+import SaveToProfileButton from "../../../components/market/save-to-profile-button";
 import AppSider from "../../../components/market/app-sider";
 import {
   CAREER_MARKET_ROLE_OPTIONS,
@@ -420,6 +421,18 @@ export default function MergeSkillsPage() {
                 <Wrench size={16} className={cn(isReindexingJobs && "animate-spin")} />
                 {isReindexingJobs ? "Reindexing..." : "Fix Matching"}
               </button>
+              
+              <SaveToProfileButton 
+                type="mergeSkills"
+                label="Save Radar"
+                data={{
+                  career: searchKeyword,
+                  averageMatch: average,
+                  marketCoverage: coverage,
+                  topMissing: topMissingSkills,
+                  roadmap: buildCareerTimeline(ranked, topMissingSkills)
+                }}
+              />
             </div>
           </header>
 

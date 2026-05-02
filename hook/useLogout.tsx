@@ -1,7 +1,9 @@
+import { useRouter } from "next/navigation";
 import { useAuthContext } from "./useAuthContext";
 
 export const useLogout = () => {
   const { dispatch } = useAuthContext();
+  const router = useRouter();
 
   const logout = () => {
     //remove storage
@@ -10,7 +12,7 @@ export const useLogout = () => {
     //dispatch logout action
     dispatch({ type: "LOGOUT" });
     setTimeout(() => {
-      window.location.reload();
+      router.push("/");
     }, 200);
   };
 

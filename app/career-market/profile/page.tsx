@@ -2,8 +2,9 @@
 import { EditOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { authHeader } from "../../../lib/auth";
+import { useLogout } from "../../../hook/useLogout";
 import AppSider from "../../../components/market/app-sider";
 import siderStyles from "../../../components/market/app-sider.module.css";
 
@@ -611,6 +612,20 @@ const Timeline = ({
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { logout } = useLogout();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const settingsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setIsSettingsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const defaultBasics: Basics = {
     firstName: "",
     lastName: "",
@@ -700,12 +715,12 @@ export default function ProfilePage() {
 
   const cvMeta = cvFile
     ? [
-        cvFile.originalName,
-        cvFile.size ? formatSize(cvFile.size) : "",
-        cvFile.uploadedAt ? new Date(cvFile.uploadedAt).toLocaleDateString() : "",
-      ]
-        .filter(Boolean)
-        .join(" - ")
+      cvFile.originalName,
+      cvFile.size ? formatSize(cvFile.size) : "",
+      cvFile.uploadedAt ? new Date(cvFile.uploadedAt).toLocaleDateString() : "",
+    ]
+      .filter(Boolean)
+      .join(" - ")
     : "";
   const cvViewUrl = cvFile ? `${API_BASE}${cvFile.viewUrl}` : "";
 
@@ -797,6 +812,8 @@ export default function ProfilePage() {
         setRecommendations(Array.isArray(data?.recommendations) ? data.recommendations : []);
       } catch {
         // No-op; use local defaults.
+      } finally {
+        if (!ignore) setIsPageLoading(false);
       }
     };
 
@@ -917,8 +934,8 @@ export default function ProfilePage() {
       editingExperienceIndex === null
         ? [...experiences, experienceDraft]
         : experiences.map((item, index) =>
-            index === editingExperienceIndex ? experienceDraft : item
-          );
+          index === editingExperienceIndex ? experienceDraft : item
+        );
     setExperiences(nextExperiences);
     setExperienceDraft(emptyExperience);
     setShowExperienceForm(false);
@@ -933,8 +950,8 @@ export default function ProfilePage() {
       editingEducationIndex === null
         ? [...educationItems, educationDraft]
         : educationItems.map((item, index) =>
-            index === editingEducationIndex ? educationDraft : item
-          );
+          index === editingEducationIndex ? educationDraft : item
+        );
     setEducationItems(nextEducation);
     setEducationDraft(emptyEducation);
     setShowEducationForm(false);
@@ -993,8 +1010,8 @@ export default function ProfilePage() {
       editingRecommendationIndex === null
         ? [...recommendations, recommendationDraft]
         : recommendations.map((item, index) =>
-            index === editingRecommendationIndex ? recommendationDraft : item
-          );
+          index === editingRecommendationIndex ? recommendationDraft : item
+        );
     setRecommendations(nextRecommendations);
     setRecommendationDraft(emptyRecommendation);
     setShowRecommendationForm(false);
@@ -1083,6 +1100,31 @@ export default function ProfilePage() {
     Partial<Record<SkillGroupKey, boolean>>
   >({});
 
+  if (isPageLoading) {
+    return (
+      <div className={siderStyles.siderLayout}>
+        <AppSider variant="light" />
+        <div className={siderStyles.siderContent}>
+          <div className="min-h-screen bg-muted/40 flex flex-col items-center justify-center">
+            <div className="relative flex justify-center items-center">
+              <div className="absolute animate-ping w-24 h-24 rounded-full bg-blue-400 opacity-20"></div>
+              <div className="absolute animate-pulse w-20 h-20 rounded-full bg-indigo-400 opacity-40"></div>
+              <div className="relative z-10 w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-xl shadow-blue-500/30 animate-bounce">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+            </div>
+            <div className="mt-10 space-y-2 text-center">
+              <h3 className="text-xl font-extrabold text-gray-800 tracking-tight">Gathering Your Profile</h3>
+              <p className="text-sm text-gray-500 font-medium animate-pulse">Loading your skills and experiences...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={siderStyles.siderLayout}>
       <AppSider variant="light" />
@@ -1092,7 +1134,6 @@ export default function ProfilePage() {
             <Card className="p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-xs font-medium text-primary">AI-powered profile builder</p>
                   <h2 className="mt-1 text-base font-semibold tracking-tight">Auto-fill from your CV</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Paste your resume once. Weâ€™ll pre-fill sections and keep your profile consistent.
@@ -1134,13 +1175,49 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" onClick={resetSections} title="Reset sections">
-                    Reset
-                  </Button>
-                  <Button variant="secondary" onClick={openBasicsModal}>
-                    <EditOutlined /> Edit profile
-                  </Button>
+                <div className="relative" ref={settingsRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsSettingsOpen((prev) => !prev)}
+                    className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-background hover:bg-muted transition-colors"
+                    title="Settings"
+                    aria-label="Open settings menu"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+
+                  {isSettingsOpen && (
+                    <div className="absolute right-0 top-11 z-50 w-44 rounded-xl border border-border bg-background shadow-lg py-1 animate-in fade-in slide-in-from-top-2">
+                      <button
+                        type="button"
+                        onClick={() => { openBasicsModal(); setIsSettingsOpen(false); }}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-muted transition-colors"
+                      >
+                        <EditOutlined className="text-muted-foreground" />
+                        Edit Profile
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { resetSections(); setIsSettingsOpen(false); }}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-muted transition-colors text-muted-foreground"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        Reset Sections
+                      </button>
+                      <div className="my-1 border-t border-border" />
+                      <button
+                        type="button"
+                        onClick={() => { logout(); setIsSettingsOpen(false); }}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-500 transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Logout
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1522,10 +1599,10 @@ export default function ProfilePage() {
                           project.details.find((d) => !d.label && isLikelyDescription(d.text));
                         const techStack = techDetail?.text
                           ? techDetail.text
-                              .split(/,|Â·|\|/)
-                              .map((s) => s.trim())
-                              .filter(Boolean)
-                              .slice(0, 6)
+                            .split(/,|Â·|\|/)
+                            .map((s) => s.trim())
+                            .filter(Boolean)
+                            .slice(0, 6)
                           : [];
 
                         return (
@@ -1758,10 +1835,10 @@ export default function ProfilePage() {
                         {cvLoading
                           ? "Fetching your most recent upload."
                           : cvError
-                          ? cvError
-                          : cvFile
-                          ? cvMeta
-                          : "Upload a CV to store it here."}
+                            ? cvError
+                            : cvFile
+                              ? cvMeta
+                              : "Upload a CV to store it here."}
                       </p>
                       <div className="mt-3 flex items-center gap-2">
                         {!cvLoading && !cvError && cvFile ? (

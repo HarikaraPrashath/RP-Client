@@ -164,7 +164,7 @@ export default function Home() {
             </Link> */}
           </div>
           {user ? (
-            <Link href="/profile">
+            <Link href="/recommendation">
               <div className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 {`Welcome, ${user.name.split(" ")[0]}!`}
               </div>
@@ -510,7 +510,7 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <ServiceButton href="/career-market" />
+                <ServiceButton href="/career-market/profile" />
               </div>
             </div>
 

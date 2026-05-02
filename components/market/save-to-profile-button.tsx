@@ -3,13 +3,13 @@
 import { authHeader } from "../../lib/auth";
 
 export default function SaveToProfileButton({
-  studentGap,
-  topSkills,
-  career
+  data,
+  type,
+  label = "Save Insights to Profile"
 }: {
-  studentGap: any;
-  topSkills: any;
-  career: string;
+  data: any;
+  type: 'allTrend' | 'mergeSkills' | 'trDashboard';
+  label?: string;
 }) {
   const onSaveToProfile = async () => {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
@@ -22,11 +22,11 @@ export default function SaveToProfileButton({
       if (!resGet.ok) throw new Error("Failed to get profile");
       const profileData = await resGet.json();
 
-      profileData.careerMarket = {
-        career,
-        studentGap,
-        topSkills: topSkills.slice(0, 10)
-      };
+      if (!profileData.careerMarket) {
+        profileData.careerMarket = {};
+      }
+
+      profileData.careerMarket[type] = data;
 
       const putHeaders = { 
         "Content-Type": "application/json", 
@@ -39,7 +39,7 @@ export default function SaveToProfileButton({
         body: JSON.stringify(profileData)
       });
       if (resPut.ok) {
-        alert("Success! Market Insights saved to your Profile.");
+        alert(`Success! ${type === 'allTrend' ? 'Market' : 'Skill'} Insights saved to your Profile.`);
       } else {
         alert("Failed to save to profile.");
       }
@@ -63,7 +63,7 @@ export default function SaveToProfileButton({
         marginTop: "1rem"
       }}
     >
-      Save Insights to Profile
+      {label}
     </button>
   );
 }
