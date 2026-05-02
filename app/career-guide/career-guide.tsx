@@ -89,9 +89,22 @@ export default function Home() {
     {
       id: 1,
       sender: "bot",
-      text: '👋 Welcome to CareerPath AI!\nI\'ll help you discover your ideal career based on your skills, personality, and interests.\n\nType **"start"** when you\'re ready to begin.', timestamp: new Date().toLocaleTimeString(),
+      text: '👋 Welcome to CareerPath AI!\nI\'ll help you discover your ideal career based on your skills, personality, and interests.\n\nType **"start"** when you\'re ready to begin.',
+      timestamp: "",
     },
   ]);
+
+  useEffect(() => {
+    setMessages((prev) => {
+      if (!prev || prev.length === 0) return prev;
+      const first = prev[0];
+      if (first && !first.timestamp) {
+        const updated = { ...first, timestamp: new Date().toLocaleTimeString() };
+        return [updated, ...prev.slice(1)];
+      }
+      return prev;
+    });
+  }, []);
 
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -709,7 +722,17 @@ export default function Home() {
         if (llmGuidance) {
           const llmLines = llmGuidance
             .split(/\n|•/)
-            .map((line) => line.trim())
+            .map((line) => {
+              const trimmed = line.trim();
+              // Convert markdown '###' headers to bold
+              if (trimmed.startsWith("### ")) {
+                return `**${trimmed.replace(/^### /, "")}**`;
+              }
+              if (trimmed.startsWith("#### ")) {
+                return `**${trimmed.replace(/^#### /, "")}**`;
+              }
+              return trimmed;
+            })
             .filter(Boolean);
           addBotMessage(
             "🧠 **Model Guidance:**\n\n" +
@@ -721,13 +744,18 @@ export default function Home() {
         if (Object.keys(dynamicSuggestions).length > 0) {
           const bullets = dynamicSuggestions.bullets ?? [];
           const modules = dynamicSuggestions.modules ?? [];
+          // Helper for clean field output
+          const cleanField = (val: string | undefined) => {
+            if (val === undefined || val === null || val.trim() === "" || val === "–") return "Not specified";
+            return val;
+          };
           addBotMessage(
             `💡 **Dynamic Suggestions:**\n` +
-            `**Plan Title:** ${dynamicSuggestions.title || "–"}\n\n` +
-            `**Audience:** ${dynamicSuggestions.audience || "–"}\n\n` +
-            `**Semester:** ${dynamicSuggestions.semester || "–"}\n\n` +
-            `**GPA Band:** ${dynamicSuggestions.gpa_band || "–"}\n` +
-            `**Specialization:** ${dynamicSuggestions.specialization || "–"}\n\n` +
+            `**Plan Title:** ${cleanField(dynamicSuggestions.title)}\n\n` +
+            `**Audience:** ${cleanField(dynamicSuggestions.audience)}\n\n` +
+            `**Semester:** ${cleanField(dynamicSuggestions.semester)}\n\n` +
+            `**GPA Band:** ${cleanField(dynamicSuggestions.gpa_band)}\n` +
+            `**Specialization:** ${cleanField(dynamicSuggestions.specialization)}\n\n` +
             `**Matches Top-1 Role:** ${dynamicSuggestions.specialization_matches_top1 ? "✅ Yes" : "❌ No"}\n\n` +
             `**Key Actions:**\n\n` +
             bullets.map((b: string) => `• ${b}`).join("\n\n") +
