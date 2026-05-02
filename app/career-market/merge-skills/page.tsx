@@ -66,9 +66,9 @@ const categorizeSkills = (skills: string[]) => {
 
   skills.forEach(skill => {
     const s = skill.toLowerCase();
-    if (languages.some(l => s.includes(l))) categories.Languages.push(skill);
-    else if (frameworks.some(f => s.includes(f))) categories["Frameworks & Libraries"].push(skill);
-    else if (tools.some(t => s.includes(t))) categories["Tools & Platforms"].push(skill);
+    if (languages.some(l => s === l || s.split(/\s+/).includes(l))) categories.Languages.push(skill);
+    else if (frameworks.some(f => s === f || s.split(/\s+/).includes(f))) categories["Frameworks & Libraries"].push(skill);
+    else if (tools.some(t => s === t || s.split(/\s+/).includes(t))) categories["Tools & Platforms"].push(skill);
     else categories.Other.push(skill);
   });
 
@@ -175,11 +175,17 @@ const loadProfileData = async (): Promise<ProfileData> => {
     }
     if (!res.ok) return { position: "", skills: [] };
     const doc = await res.json();
-    const skills = Array.isArray(doc?.skills) ? doc.skills : [];
+    const rawSkills = Array.isArray(doc?.skills) ? doc.skills : [];
+    // Robustly split any combined skill strings
+    const skills = Array.from(new Set(
+      rawSkills.flatMap((s: unknown) => 
+        typeof s === "string" ? s.split(/[\n,;\u2022·]|\s{2,}/).map(i => i.trim()).filter(Boolean) : []
+      )
+    ));
     const position = typeof doc?.basics?.position === "string" ? doc.basics.position : "";
     return {
       position: position.trim(),
-      skills: skills.map((s: unknown) => (typeof s === "string" ? s.trim() : "")).filter(Boolean),
+      skills: skills as string[],
     };
   } catch (error) {
     throw error;

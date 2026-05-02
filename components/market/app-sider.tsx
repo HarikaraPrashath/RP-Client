@@ -39,6 +39,12 @@ const navItems = [
     description: "Parse and save CV",
     icon: FileSearch,
   },
+  {
+    href: "/career-market/all-trend",
+    label: "All Trend",
+    description: "Deep market insights",
+    icon: LayoutDashboard,
+  },
 ];
 
 const isActiveRoute = (pathname: string | null, href: string) => {

@@ -642,6 +642,9 @@ export default function ProfilePage() {
   const [educationDraft, setEducationDraft] = useState<Education>(emptyEducation);
   const [editingEducationIndex, setEditingEducationIndex] = useState<number | null>(null);
 
+  const [editingExperienceIndex, setEditingExperienceIndex] = useState<number | null>(null);
+  const [editingRecommendationIndex, setEditingRecommendationIndex] = useState<number | null>(null);
+
   const [skills, setSkills] = useState<string[]>([]);
   const [showSkillsForm, setShowSkillsForm] = useState(false);
   const [skillsDraft, setSkillsDraft] = useState("");
@@ -910,10 +913,16 @@ export default function ProfilePage() {
     const hasContent =
       experienceDraft.role.trim() || experienceDraft.company.trim() || experienceDraft.summary.trim();
     if (!hasContent) return;
-    const nextExperiences = [...experiences, experienceDraft];
+    const nextExperiences =
+      editingExperienceIndex === null
+        ? [...experiences, experienceDraft]
+        : experiences.map((item, index) =>
+            index === editingExperienceIndex ? experienceDraft : item
+          );
     setExperiences(nextExperiences);
     setExperienceDraft(emptyExperience);
     setShowExperienceForm(false);
+    setEditingExperienceIndex(null);
     persistProfile({ experiences: nextExperiences });
   };
 
@@ -934,10 +943,7 @@ export default function ProfilePage() {
   };
 
   const saveSkills = () => {
-    const parsed = skillsDraft
-      .split(",")
-      .map((skill) => skill.trim())
-      .filter(Boolean);
+    const parsed = parseLineItems(skillsDraft);
     if (parsed.length === 0) return;
     setSkills(parsed);
     setShowSkillsForm(false);
@@ -983,10 +989,16 @@ export default function ProfilePage() {
   const saveRecommendation = () => {
     const hasContent = recommendationDraft.quote.trim() || recommendationDraft.author.trim();
     if (!hasContent) return;
-    const nextRecommendations = [...recommendations, recommendationDraft];
+    const nextRecommendations =
+      editingRecommendationIndex === null
+        ? [...recommendations, recommendationDraft]
+        : recommendations.map((item, index) =>
+            index === editingRecommendationIndex ? recommendationDraft : item
+          );
     setRecommendations(nextRecommendations);
     setRecommendationDraft(emptyRecommendation);
     setShowRecommendationForm(false);
+    setEditingRecommendationIndex(null);
     persistProfile({ recommendations: nextRecommendations });
   };
 
@@ -1531,7 +1543,7 @@ export default function ProfilePage() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => openProjectEdit(project.startIndex, project.endIndex)}
+                                  onClick={() => openProjectEdit(project)}
                                 >
                                   Edit
                                 </Button>
