@@ -615,6 +615,7 @@ export default function ProfilePage() {
   const { logout } = useLogout();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
+  const [showCVAd, setShowCVAd] = useState(true);
   const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -1125,27 +1126,39 @@ export default function ProfilePage() {
     );
   }
 
+  const isProfileIncomplete = skills.length === 0 && experiences.length === 0 && educationItems.length === 0;
+  const shouldShowAd = showCVAd && isProfileIncomplete;
+
   return (
     <div className={siderStyles.siderLayout}>
       <AppSider variant="light" />
       <div className={siderStyles.siderContent}>
         <div className="min-h-screen bg-muted/40">
           <div className="mx-auto max-w-6xl px-4 py-6 lg:px-6">
-            <Card className="p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="mt-1 text-base font-semibold tracking-tight">Auto-fill from your CV</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Paste your resume once. Weâ€™ll pre-fill sections and keep your profile consistent.
-                  </p>
+            {shouldShowAd && (
+              <Card className="p-5 relative mb-6">
+                <button 
+                  onClick={() => setShowCVAd(false)}
+                  className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Close ad"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pr-8">
+                  <div>
+                    <h2 className="mt-1 text-base font-semibold tracking-tight">Auto-fill from your CV</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Paste your resume once. We’ll pre-fill sections and keep your profile consistent.
+                    </p>
+                  </div>
+                  <Link href="/career-market/cv_extracter">
+                    <Button variant="primary">Open CV extractor</Button>
+                  </Link>
                 </div>
-                <Link href="/career-market/cv_extracter">
-                  <Button variant="primary">Open CV extractor</Button>
-                </Link>
-              </div>
-            </Card>
+              </Card>
+            )}
 
-            <Card className="mt-6 p-5">
+            <Card className="p-5">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-4">
                   <div className="relative">
