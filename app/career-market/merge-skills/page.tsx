@@ -164,24 +164,6 @@ const buildCareerTimeline = (
   };
 };
 
-const matchBuckets = (jobs: RankedJob[]) => {
-  const ranges = [
-    { label: "0-19%", min: 0, max: 19 },
-    { label: "20-39%", min: 20, max: 39 },
-    { label: "40-59%", min: 40, max: 59 },
-    { label: "60-79%", min: 60, max: 79 },
-    { label: "80-100%", min: 80, max: 100 },
-  ];
-
-  return ranges.map((r) => {
-    const count = jobs.filter((job) => {
-      const pct = job.match_percent ?? 0;
-      return pct >= r.min && pct <= r.max;
-    }).length;
-    return { ...r, count };
-  });
-};
-
 const loadProfileData = async (): Promise<ProfileData> => {
   try {
     const res = await fetch(`${API_BASE}/profile`, { cache: "no-store", headers: authHeader() });
@@ -238,40 +220,6 @@ const refreshFromProfile = async (keyword: string, userSkills: string[]) => {
     return "Auto-refresh failed (backend error); showing last saved data.";
   }
 };
-
-const BarChart = ({
-  data,
-  max = Math.max(1, Math.max(...data.map((d) => d.count))),
-  label,
-  showLabel = false,
-}: {
-  data: { label: string; count: number }[];
-  max?: number;
-  label?: string;
-  showLabel?: boolean;
-}) => (
-  <div className={styles.barWrap}>
-    {showLabel ? (
-      <div className={styles.barHeader}>
-        <p className={styles.statLabel}>{label ?? "Chart"}</p>
-      </div>
-    ) : null}
-    <div className={styles.barArea}>
-      {data.map((d, idx) => {
-        const width = max === 0 ? 0 : (d.count / max) * 100;
-        return (
-          <div key={`${d.label}-${idx}`} className={styles.barRow}>
-            <span className={styles.barLabel}>{d.label}</span>
-            <div className={styles.barTrack}>
-              <div className={styles.barFill} style={{ width: `${width}%` }} />
-            </div>
-            <span className={styles.barCount}>{d.count}</span>
-          </div>
-        );
-      })}
-    </div>
-  </div>
-);
 
 export default function MergeSkillsPage() {
   const [profile, setProfile] = useState<ProfileData>({ position: "", skills: [] });
@@ -331,7 +279,6 @@ export default function MergeSkillsPage() {
   const withAnySkills = ranked.filter((j) => (j.skills_found ?? []).length > 0).length;
   const coverage = Math.round(coveragePercent(ranked));
   const topMissingSkills = topMissing(ranked);
-  const buckets = matchBuckets(ranked);
   const uniqueSkills = uniqueSkillCount(ranked);
   const avgSkillsFound = calcAverageCount(ranked, "skills_found");
   const avgMissing = calcAverageCount(ranked, "missing");
@@ -441,43 +388,6 @@ export default function MergeSkillsPage() {
             <p className={styles.statLabel}>Avg missing per ad</p>
             <p className={styles.statValue}>{avgMissing.toFixed(1)}</p>
             <p className={styles.statHint}>Gaps to focus on</p>
-          </div>
-                </section>
-
-                <section className={styles.chartsRow}>
-          <div className={styles.chartCard}>
-            <div className={styles.cardHead}>
-              <p className={styles.cardTitle}>Match distribution</p>
-              <span className={styles.pill}>shape of the funnel</span>
-            </div>
-            <BarChart data={buckets} />
-          </div>
-          <div className={styles.chartCard}>
-            <div className={styles.cardHead}>
-              <p className={styles.cardTitle}>Top extracted</p>
-              <span className={styles.pill}>most repeated</span>
-            </div>
-            <BarChart
-              data={topSkills.map(({ skill, count }) => ({ label: skill, count }))}
-              max={Math.max(1, Math.max(...topSkills.map((s) => s.count), 0))}
-            />
-          </div>
-          <div className={styles.chartCard}>
-            <div className={styles.cardHead}>
-              <p className={styles.cardTitle}>Top missing</p>
-              <span className={styles.pill}>where to upskill</span>
-            </div>
-            <div className={styles.skillChips}>
-              {topMissingSkills.length === 0 ? (
-                <span className={styles.muted}>No missing yet</span>
-              ) : (
-                topMissingSkills.map((item) => (
-                  <span key={item.skill} className={styles.skillChipSoft}>
-                    {item.skill} <span className={styles.skillCount}>A-{item.count}</span>
-                  </span>
-                ))
-              )}
-            </div>
           </div>
                 </section>
 

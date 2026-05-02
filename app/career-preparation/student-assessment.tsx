@@ -236,7 +236,7 @@ function StudentAssessment() {
       stressManagement: '',
       learningStyle: '',
       internship: '',
-      projects: '',
+      projects: 0,
       certifications: ''
     }
   });
@@ -450,7 +450,7 @@ function StudentAssessment() {
     if (!career.stressManagement.trim()) newErrors.stressManagement = 'Stress management approach is required';
     if (!career.learningStyle.trim()) newErrors.learningStyle = 'Learning style is required';
     if (!career.internship.trim()) newErrors.internship = 'Internship experience is required';
-    if (!career.projects.trim()) newErrors.projects = 'Projects information is required';
+    if (career.projects === undefined || career.projects < 0) newErrors.projects = 'Number of projects is required';
     if (!career.certifications.trim()) newErrors.certifications = 'Certifications information is required';
     
     setErrors(prev => ({ ...prev, career: newErrors }));
@@ -574,8 +574,12 @@ function StudentAssessment() {
     }));
   };
 
-  const handleCareerChange = (field: string, value: string) => {
-    const formattedValue = value.trim();
+  const handleCareerChange = (field: string, value: string | number) => {
+    let formattedValue: string | number = value;
+    if (typeof value === 'string') {
+      formattedValue = value.trim();
+    }
+    
     console.log(`Career Change - Field: ${field}, Value: ${formattedValue}`);
     
     setAssessmentData(prev => ({
@@ -1139,15 +1143,16 @@ function StudentAssessment() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Real World Projects Completed</label>
-          <textarea
+          <label className="block text-sm font-medium text-gray-700 mb-2">Real World Projects Completed (Count)</label>
+          <input
+            type="number"
             value={assessmentData.career.projects}
-            onChange={(e) => handleCareerChange('projects', e.target.value)}
+            onChange={(e) => handleCareerChange('projects', parseInt(e.target.value) || 0)}
             className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               errors.career.projects ? 'border-red-500' : 'border-gray-300'
             }`}
-            rows={3}
-            placeholder="Describe your real world projects..."
+            placeholder="Enter number of projects completed"
+            min="0"
             required
           />
           {errors.career.projects && (

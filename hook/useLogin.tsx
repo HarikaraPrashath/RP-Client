@@ -41,6 +41,14 @@ export const useLogin = () => {
 
       // Save user to local storage
       localStorage.setItem("user", JSON.stringify(json));
+      // If the backend returned a bearer token (DB token), save it for Authorization header
+      try {
+        if ((json as any).token) {
+          localStorage.setItem("authToken", (json as any).token);
+        }
+      } catch (e) {
+        // ignore storage errors
+      }
       dispatch({ type: "LOGIN", payload: json }); // give return
       setIsLoading(false);
 

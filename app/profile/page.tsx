@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLogout } from "../../hook/useLogout";
+import { generateRecommendationReport } from "../../lib/recommendation-generator";
+import { authHeader } from "../../lib/auth";
 
 // Types
 interface User {
@@ -19,7 +21,7 @@ interface Tab {
 // Constants
 const TABS: Tab[] = [
   { id: "career", label: "Career Guide" },
-  { id: "prediction", label: "Career Prediction" },
+  { id: "prep", label: "Career Preparation" },
   { id: "emotional", label: "Emotional Intel" },
   { id: "market", label: "Market Trends" },
 ];
@@ -29,12 +31,13 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<string>("career");
   const [isLoading, setIsLoading] = useState(true);
+  const [profileData, setProfileData] = useState<any>(null);
 
   useEffect(() => {
     loadUserFromStorage();
   }, []);
 
-  const loadUserFromStorage = (): void => {
+  const loadUserFromStorage = async (): Promise<void> => {
     try {
       const storedUser = localStorage.getItem("user");
       
@@ -48,8 +51,24 @@ export default function ProfilePage() {
       const email = parsedUser.email || parsedUser.user?.email;
 
       setUser({ name, email });
+
+      // Fetch aggregated profile from backend
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+      const res = await fetch(`${apiBase}/profile`, { 
+        credentials: "include",
+        headers: { ...authHeader() }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProfileData(data);
+      } else {
+        console.warn("Failed to fetch profile data", res.status);
+        if (res.status === 401) {
+          // session expired
+        }
+      }
     } catch (error) {
-      console.error("Failed to parse user from localStorage:", error);
+      console.error("Failed to parse user / load profile:", error);
     } finally {
       setIsLoading(false);
     }
@@ -103,6 +122,7 @@ export default function ProfilePage() {
       <ProfileBanner 
         user={user} 
         initial={getUserInitial()} 
+        profileData={profileData}
       />
 
       {/* Main Content */}
@@ -116,7 +136,7 @@ export default function ProfilePage() {
 
         {/* Tab Content */}
         <div className="mt-8">
-          <TabContent activeTab={activeTab} />
+          <TabContent activeTab={activeTab} profileData={profileData} />
         </div>
 
         {/* Home Button */}
@@ -212,9 +232,10 @@ function Header({ userName, onLogout }: HeaderProps) {
 interface ProfileBannerProps {
   user: User;
   initial: string;
+  profileData?: any;
 }
 
-function ProfileBanner({ user, initial }: ProfileBannerProps) {
+function ProfileBanner({ user, initial, profileData }: ProfileBannerProps) {
   return (
     <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -232,6 +253,12 @@ function ProfileBanner({ user, initial }: ProfileBannerProps) {
             <p className="text-blue-100 mt-1">
               {user.email || "No email provided"}
             </p>
+            <button
+               onClick={() => generateRecommendationReport(user, profileData)}
+               className="mt-4 px-6 py-2 bg-white text-indigo-700 font-semibold rounded-lg hover:bg-gray-100 transition shadow-sm"
+            >
+              Recommendation report
+            </button>
           </div>
         </div>
       </div>
@@ -270,64 +297,119 @@ function TabNavigation({ tabs, activeTab, onTabChange }: TabNavigationProps) {
 
 interface TabContentProps {
   activeTab: string;
+  profileData?: any;
 }
 
-function TabContent({ activeTab }: TabContentProps) {
+function TabContent({ activeTab, profileData }: TabContentProps) {
   switch (activeTab) {
     case "career":
-      return <CareerGuideContent />;
-    case "prediction":
-      return <CareerPredictionContent />;
+      return <CareerGuideContent data={profileData?.careerGuide} />;
+    case "prep":
+      return <CareerPredictionContent data={profileData?.careerPrep} />;
     case "emotional":
-      return <EmotionalIntelContent />;
+      return <EmotionalIntelContent data={profileData?.careerEmotion} />;
     case "market":
-      return <MarketTrendsContent />;
+      return <MarketTrendsContent data={profileData?.careerMarket} />;
     default:
       return null;
   }
 }
 
 // Tab content components
-function CareerGuideContent() {
+function CareerGuideContent({ data }: { data: any }) {
+  if (!data || Object.keys(data).length === 0) return <p className="text-gray-500">No Career Guide insights saved yet.</p>;
   return (
-    <section className="text-gray-700">
-      <h2 className="text-2xl font-semibold mb-4">Career Guide</h2>
-      <p className="text-lg">Career Guide content goes here.</p>
+    <section className="text-gray-700 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <h2 className="text-2xl font-semibold mb-4 text-blue-900">Career Guide Recommendation</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <p className="font-bold text-gray-500 uppercase text-xs">Top Match</p>
+          <p className="text-xl font-bold text-gray-900">{data.top_1_prediction}</p>
+        </div>
+        <div className="p-4 bg-gray-50 rounded-lg">
+           <p className="font-bold text-gray-500 uppercase text-xs">Other Matches</p>
+           <p className="text-gray-800">{data.top_3_predictions?.join(", ")}</p>
+        </div>
+      </div>
+      {data.guidance && (
+        <div className="mt-4 p-4 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg">
+          <p className="whitespace-pre-wrap">{data.guidance}</p>
+        </div>
+      )}
     </section>
   );
 }
 
-function CareerPredictionContent() {
+function CareerPredictionContent({ data }: { data: any }) {
+  if (!data || Object.keys(data).length === 0) return <p className="text-gray-500">No Preparation Roadmap saved yet.</p>;
   return (
-    <section className="text-gray-700">
-      <h2 className="text-2xl font-semibold mb-4">Career Prediction</h2>
-      <p className="text-lg">Career Prediction content goes here.</p>
+    <section className="text-gray-700 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <h2 className="text-2xl font-semibold mb-4 text-indigo-900">Personalized Learning Roadmap</h2>
+      {data.roadmap?.milestones?.map((m: any, idx: number) => (
+        <div key={idx} className="mb-4 flex items-start gap-4">
+           <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 font-bold">{idx + 1}</div>
+           <div>
+             <h3 className="font-bold text-lg">{m.title}</h3>
+             <p className="text-sm text-gray-500">{m.description}</p>
+             <div className="mt-2 flex gap-2 flex-wrap">
+               {m.skills?.map((skill: string) => (
+                 <span key={skill} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-xs">{skill}</span>
+               ))}
+             </div>
+           </div>
+        </div>
+      ))}
     </section>
   );
 }
 
-function EmotionalIntelContent() {
+function EmotionalIntelContent({ data }: { data: any }) {
+  if (!data || Object.keys(data).length === 0) return <p className="text-gray-500">No Emotional Insights saved yet.</p>;
+  const topCareer = data.topCareers?.[0];
   return (
-    <section className="text-gray-700">
-      <h2 className="text-2xl font-semibold mb-4">Emotional Intelligence</h2>
-      <p className="text-lg">Emotional Intelligence insights will appear here.</p>
+    <section className="text-gray-700 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <h2 className="text-2xl font-semibold mb-4 text-emerald-900">Emotional Intelligence Results</h2>
+      <p className="text-lg font-medium">Emotional Match: <span className="font-bold text-emerald-600">{topCareer?.career}</span> ({(topCareer?.confidence || 0) * 100}%)</p>
+      
+      <div className="mt-4">
+        <h3 className="font-bold mb-2">Qualitative Insights</h3>
+        <ul className="list-disc pl-5 space-y-1">
+          {data.insights?.map((ins: string, idx: number) => (
+            <li key={idx} className="text-gray-600">{ins}</li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
 
-function MarketTrendsContent() {
+function MarketTrendsContent({ data }: { data: any }) {
+  if (!data || Object.keys(data).length === 0) return <p className="text-gray-500">No Market Insights saved yet.</p>;
   return (
-    <section>
+    <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <h2 className="text-2xl font-semibold mb-6">Market Trends Overview</h2>
-      <div className="rounded-xl overflow-hidden shadow-lg bg-white">
-        <Image
-          src="/ccf3aca3-6970-4094-94ec-7b525a4523ee.png"
-          alt="Market trends visualization showing key industry insights"
-          width={1200}
-          height={600}
-          className="w-full h-auto"
-          priority
-        />
+      <div className="p-4 bg-gray-50 rounded-lg mb-4">
+        <p className="font-bold text-gray-500 uppercase text-xs">Role Focus</p>
+        <p className="text-xl font-bold text-gray-900">{data.career}</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+           <h3 className="font-bold mb-2">Current Skill Match</h3>
+           <div className="flex flex-wrap gap-2">
+             {data.studentGap?.have?.map((s: string) => (
+               <span key={s} className="px-2 py-1 bg-green-100 text-green-700 rounded-md text-sm">{s}</span>
+             ))}
+           </div>
+        </div>
+        <div>
+           <h3 className="font-bold mb-2">Skills to Acquire</h3>
+           <div className="flex flex-wrap gap-2">
+             {data.studentGap?.missing?.map((s: any) => (
+               <span key={s.skill} className="px-2 py-1 bg-orange-100 text-orange-700 rounded-md text-sm">{s.skill}</span>
+             ))}
+           </div>
+        </div>
       </div>
     </section>
   );

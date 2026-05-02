@@ -49,6 +49,9 @@ export const useRegister = () => {
 
       // Save user to local storage
       localStorage.setItem("user", JSON.stringify(json));
+      if (json.token) {
+        localStorage.setItem("authToken", json.token);
+      }
       dispatch({ type: "LOGIN", payload: json });
       setIsLoading(false);
       return { success: true, error: null };

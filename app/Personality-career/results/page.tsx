@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Loader2, Download, AlertCircle, Activity } from "lucide-react";
+import { Loader2, Download, AlertCircle, Activity, Save } from "lucide-react";
 import CareerCard from "@/components/components/features/results/CareerCard";
 import PersonalityRadar from "@/components/components/features/results/PersonalityRadar";
 import EmotionTimeline from "@/components/components/features/results/EmotionTimeline";
@@ -11,6 +11,7 @@ import { AnalysisResult } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils-r";
 import { motion } from "framer-motion";
+import { authHeader } from "../../../lib/auth";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -52,6 +53,42 @@ export default function ResultsPage() {
   const handleReset = () => {
     sessionStorage.removeItem('interviewResults');
     router.push('/Personality-career');
+  };
+
+  const onSaveToProfile = async () => {
+    if (!results) {
+      alert("No results to save.");
+      return;
+    }
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+    try {
+      const resGet = await fetch(apiBase + "/profile", { 
+        credentials: "include",
+        headers: { ...authHeader() }
+      });
+      if (!resGet.ok) throw new Error("Failed to get profile");
+      const profileData = await resGet.json();
+
+      profileData.careerEmotion = results;
+
+      const resPut = await fetch(apiBase + "/profile", {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          ...authHeader()
+        },
+        credentials: "include",
+        body: JSON.stringify(profileData)
+      });
+      if (resPut.ok) {
+        alert("Success! Your Emotion/Interview insights are saved to your Profile.");
+      } else {
+        alert("Failed to save to profile.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error saving profile.");
+    }
   };
 
   if (loading) {
@@ -101,6 +138,13 @@ export default function ResultsPage() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={onSaveToProfile}
+              variant="outline"
+              className="h-10 rounded-xl px-4 bg-blue-50 border-blue-200 text-blue-700 text-sm font-semibold hover:bg-blue-100 shadow-sm transition-all"
+            >
+              <Save className="w-4 h-4 mr-2" /> Save to Profile
+            </Button>
             <Button
               onClick={() => window.print()}
               variant="outline"

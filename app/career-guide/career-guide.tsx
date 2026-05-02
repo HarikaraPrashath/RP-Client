@@ -48,24 +48,72 @@ interface Message {
   timestamp: string;
 }
 
-const API_URL =
-  (process.env.NEXT_PUBLIC_API_URL) + "/predict-career";
+import { authHeader } from "../../lib/auth";
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+const API_URL = `${API_BASE}/predict-career`;
 console.log("Api public", API_URL)
 
 export default function Home() {
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        const name = parsedUser.name || parsedUser.user?.name || parsedUser.email || parsedUser.user?.email;
+        if (name) setUserName(name);
+      } else {
+        const token = localStorage.getItem("authToken");
+        if (token) setUserName("User");
+      }
+    } catch (err) {
+      // ignore
+    }
+  }, []);
+  // If we have a userName, update the initial bot welcome to include it
+  useEffect(() => {
+    if (!userName) return;
+    setMessages((prev) => {
+      if (!prev || prev.length === 0) return prev;
+      const first = prev[0];
+      if (first && typeof first.text === "string" && first.text.includes("Welcome")) {
+        const newText = `👋 Welcome, ${userName}!\nI\'ll help you discover your ideal career based on your skills, personality, and interests.\n\nType **\"start\"** when you\'re ready to begin.`;
+        return [{ ...first, text: newText }, ...prev.slice(1)];
+      }
+      return prev;
+    });
+  }, [userName]);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: "bot",
-      text: '👋 Welcome to CareerPath AI!\nI\'ll help you discover your ideal career based on your skills, personality, and interests.\n\nType **"start"** when you\'re ready to begin.', timestamp: new Date().toLocaleTimeString(),
+      text: '👋 Welcome to CareerPath AI!\nI\'ll help you discover your ideal career based on your skills, personality, and interests.\n\nType **"start"** when you\'re ready to begin.',
+      timestamp: "",
     },
   ]);
+
+  useEffect(() => {
+    setMessages((prev) => {
+      if (!prev || prev.length === 0) return prev;
+      const first = prev[0];
+      if (first && !first.timestamp) {
+        const updated = { ...first, timestamp: new Date().toLocaleTimeString() };
+        return [updated, ...prev.slice(1)];
+      }
+      return prev;
+    });
+  }, []);
 
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [step, setStep] = useState<Step>("welcome");
   const [currentQuestionNumber, setCurrentQuestionNumber] = useState(1);
   const [progress, setProgress] = useState(0);
+
+  // New state to hold the latest API result for saving
+  const [lastResult, setLastResult] = useState<any>(null);
 
   // store answers
   const [softSkills, setSoftSkills] = useState("");
@@ -229,6 +277,61 @@ export default function Home() {
     setRiaE(null);
     setRiaC(null);
   };
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const onSaveToProfile = async () => {
+    if (!lastResult) {
+      alert("Please complete an assessment first before saving to profile.");
+      return;
+    }
+
+    setIsSaving(true);
+    const apiBase = API_BASE;
+
+    try {
+      // Fetch existing profile
+      const getHeaders = { ...authHeader() };
+      const resGet = await fetch(`${apiBase}/profile`, { credentials: "include", headers: getHeaders });
+      if (!resGet.ok) {
+        if (resGet.status === 401) {
+          alert("Please log in to save your profile.");
+          setIsSaving(false);
+          return;
+        }
+        throw new Error(`Failed to get profile: ${resGet.status}`);
+      }
+
+      const profileData = await resGet.json();
+
+      // Append career guide result
+      profileData.careerGuide = lastResult;
+      console.log("Saving Career Guide insights to profile...", profileData.careerGuide);
+
+      // Update profile
+      const putHeaders = { "Content-Type": "application/json", ...authHeader() };
+      const resPut = await fetch(`${apiBase}/profile`, {
+        method: "PUT",
+        headers: putHeaders,
+        credentials: "include",
+        body: JSON.stringify(profileData),
+      });
+
+      if (resPut.ok) {
+        alert("Success! Career Guide insights saved to your Profile.");
+      } else {
+        const txt = await resPut.text().catch(() => "");
+        console.error("Failed to save profile", resPut.status, txt);
+        alert("Failed to save to profile.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error saving profile.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isThinking) return;
@@ -579,6 +682,7 @@ export default function Home() {
         if (!res.ok) throw new Error("Network response was not ok");
 
         const data = await res.json();
+        setLastResult(data);
 
         const top1 = data.top_1_prediction;
         const top3 = data.top_3_predictions ?? [];
@@ -618,7 +722,17 @@ export default function Home() {
         if (llmGuidance) {
           const llmLines = llmGuidance
             .split(/\n|•/)
-            .map((line) => line.trim())
+            .map((line) => {
+              const trimmed = line.trim();
+              // Convert markdown '###' headers to bold
+              if (trimmed.startsWith("### ")) {
+                return `**${trimmed.replace(/^### /, "")}**`;
+              }
+              if (trimmed.startsWith("#### ")) {
+                return `**${trimmed.replace(/^#### /, "")}**`;
+              }
+              return trimmed;
+            })
             .filter(Boolean);
           addBotMessage(
             "🧠 **Model Guidance:**\n\n" +
@@ -630,13 +744,18 @@ export default function Home() {
         if (Object.keys(dynamicSuggestions).length > 0) {
           const bullets = dynamicSuggestions.bullets ?? [];
           const modules = dynamicSuggestions.modules ?? [];
+          // Helper for clean field output
+          const cleanField = (val: string | undefined) => {
+            if (val === undefined || val === null || val.trim() === "" || val === "–") return "Not specified";
+            return val;
+          };
           addBotMessage(
             `💡 **Dynamic Suggestions:**\n` +
-            `**Plan Title:** ${dynamicSuggestions.title || "–"}\n\n` +
-            `**Audience:** ${dynamicSuggestions.audience || "–"}\n\n` +
-            `**Semester:** ${dynamicSuggestions.semester || "–"}\n\n` +
-            `**GPA Band:** ${dynamicSuggestions.gpa_band || "–"}\n` +
-            `**Specialization:** ${dynamicSuggestions.specialization || "–"}\n\n` +
+            `**Plan Title:** ${cleanField(dynamicSuggestions.title)}\n\n` +
+            `**Audience:** ${cleanField(dynamicSuggestions.audience)}\n\n` +
+            `**Semester:** ${cleanField(dynamicSuggestions.semester)}\n\n` +
+            `**GPA Band:** ${cleanField(dynamicSuggestions.gpa_band)}\n` +
+            `**Specialization:** ${cleanField(dynamicSuggestions.specialization)}\n\n` +
             `**Matches Top-1 Role:** ${dynamicSuggestions.specialization_matches_top1 ? "✅ Yes" : "❌ No"}\n\n` +
             `**Key Actions:**\n\n` +
             bullets.map((b: string) => `• ${b}`).join("\n\n") +
@@ -685,9 +804,12 @@ export default function Home() {
       </button>
 
       <button type="button"
-        className="w-full text-left px-4 py-3 rounded-xl items-center bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium transition"
+        onClick={onSaveToProfile}
+        disabled={isSaving}
+        className={`w-full text-left px-4 py-3 rounded-xl items-center bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium transition ${isSaving ? "opacity-50 cursor-not-allowed" : ""}`}
       >
-        <Import className="w-4 h-4 mr-2 inline" /> Save to Profile
+        <Import className={`w-4 h-4 mr-2 inline ${isSaving ? "animate-bounce" : ""}`} /> 
+        {isSaving ? "Saving..." : "Save to Profile"}
       </button>
 
       <button type="button"
@@ -710,7 +832,7 @@ export default function Home() {
     <div className="w-full max-w-6xl h-[90vh] bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-blue-200/30 flex flex-col overflow-hidden border border-slate-200">
       
       {/* Header */}
-      <ChatHeader currentQuestionNumber={currentQuestionNumber} progress={progress} />
+      <ChatHeader currentQuestionNumber={currentQuestionNumber} progress={progress} userName={userName} />
 
       {/* Chat Area */}
       <ChatArea
