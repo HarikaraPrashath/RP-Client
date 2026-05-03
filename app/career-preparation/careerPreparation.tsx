@@ -24,7 +24,10 @@ import {
   Calendar,
   LayoutDashboard,
   ChevronRight,
-  Home
+  Home,
+  Cloud,
+  Smartphone,
+  Settings
 } from 'lucide-react';
 
 function CareerPreparation() {
@@ -37,30 +40,62 @@ function CareerPreparation() {
     {
       id: 'data-science',
       title: 'Data Science',
-      description: 'Analyze complex data sets and extract meaningful insights to drive business decisions.',
       icon: <BarChart3 className="w-6 h-6" />,
       color: 'from-blue-500 to-indigo-600'
     },
     {
       id: 'cybersecurity',
       title: 'Cybersecurity',
-      description: 'Protect systems, networks, and programs from digital attacks and unauthorized access.',
       icon: <Shield className="w-6 h-6" />,
       color: 'from-green-500 to-teal-600'
     },
     {
       id: 'web-development',
       title: 'Web Development',
-      description: 'Build and maintain websites and web applications for various platforms and devices.',
       icon: <Zap className="w-6 h-6" />,
       color: 'from-blue-500 to-indigo-600'
     },
     {
       id: 'ai-engineering',
       title: 'AI Engineering',
-      description: 'Design, develop, and implement artificial intelligence models and systems.',
       icon: <Brain className="w-6 h-6" />,
       color: 'from-orange-500 to-red-600'
+    },
+    {
+      id: 'cloud-computing',
+      title: 'Cloud Computing',
+      icon: <Cloud className="w-6 h-6" />,
+      color: 'from-cyan-500 to-sky-600'
+    },
+    {
+      id: 'ux-ui-design',
+      title: 'UX/UI Design',
+      icon: <Lightbulb className="w-6 h-6" />,
+      color: 'from-pink-500 to-purple-600'
+    },
+    {
+      id: 'mobile-development',
+      title: 'Mobile Development',
+      icon: <Smartphone className="w-6 h-6" />,
+      color: 'from-blue-500 to-slate-600'
+    },
+    {
+      id: 'devops',
+      title: 'DevOps',
+      icon: <Settings className="w-6 h-6" />,
+      color: 'from-lime-500 to-emerald-600'
+    },
+    {
+      id: 'network-engineering',
+      title: 'Network Engineering',
+      icon: <Users className="w-6 h-6" />,
+      color: 'from-amber-500 to-orange-600'
+    },
+    {
+      id: 'software-testing',
+      title: 'Software Testing',
+      icon: <CheckCircle className="w-6 h-6" />,
+      color: 'from-violet-500 to-fuchsia-600'
     }
   ];
 
@@ -95,6 +130,7 @@ function CareerPreparation() {
     { id: 'dashboard', name: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/career-preparation' },
     { id: 'assessment', name: 'Student Assessment', icon: <FileText className="w-5 h-5" />, href: '/career-preparation/student-assessment' },
     { id: 'roadmap', name: 'Personalized Roadmap', icon: <Target className="w-5 h-5" />, href: '/career-preparation/personalized-roadmap' },
+    { id: 'schedule', name: 'Schedule Reminder', icon: <Calendar className="w-5 h-5" />, href: '/career-preparation/schedule-reminder' },
   ];
 
   return (
@@ -171,7 +207,7 @@ function CareerPreparation() {
         {/* Career Role Selection */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Choose Your Career Path</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {careerRoles.map((role) => (
               <div
                 key={role.id}
@@ -187,8 +223,7 @@ function CareerPreparation() {
                     {role.icon}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{role.title}</h3>
-                <p className="text-sm text-gray-600">{role.description}</p>
+                <h3 className="text-lg font-bold text-gray-900">{role.title}</h3>
               </div>
             ))}
           </div>
