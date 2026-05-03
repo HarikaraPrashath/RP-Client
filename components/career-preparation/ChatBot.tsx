@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User, Sparkles, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Sparkles, Loader2, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -23,20 +23,59 @@ const roleSpecificPrompts: Record<string, string[]> = {
     'How do I build a data science portfolio?',
     'What certifications help for data science roles?',
   ],
+
   'cybersecurity': [
     'What cybersecurity certifications should I get?',
     'How do I start a career in cybersecurity?',
     'What skills are needed for security analyst roles?',
   ],
+
   'web-development': [
     'What frontend frameworks should I learn?',
     'How do I build a full-stack portfolio?',
     'What are the best practices for web development?',
   ],
+
   'ai-engineering': [
     'What ML frameworks should I learn?',
     'How do I get started with AI engineering?',
     'What math skills do I need for AI?',
+  ],
+
+  'cloud-computing': [
+    'Which cloud platform should I learn first?',
+    'What certifications are useful for cloud computing?',
+    'How do I become a cloud engineer?',
+  ],
+
+  'ux-ui-design': [
+    'How do I create a UX/UI design portfolio?',
+    'What tools should I learn for UI design?',
+    'What skills are important for UX designers?',
+  ],
+
+  'mobile-development': [
+    'Should I learn Flutter or React Native?',
+    'How do I start Android app development?',
+    'What skills are needed for mobile developers?',
+  ],
+
+  'devops': [
+    'What DevOps tools should I learn first?',
+    'How do I become a DevOps engineer?',
+    'What is the role of Docker and Kubernetes in DevOps?',
+  ],
+
+  'network-engineering': [
+    'What certifications are best for network engineering?',
+    'What networking skills should beginners learn?',
+    'How do I start a career in network engineering?',
+  ],
+
+  'software-testing': [
+    'What tools are used in software testing?',
+    'How do I become a QA engineer?',
+    'What is the difference between manual and automation testing?',
   ],
 };
 
@@ -49,6 +88,7 @@ const defaultPrompts = [
 
 export default function ChatBot({ selectedRole = 'data-science' }: ChatBotProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -64,6 +104,11 @@ export default function ChatBot({ selectedRole = 'data-science' }: ChatBotProps)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleCloseChat = () => {
+    setIsOpen(false);
+    setIsMinimized(false);
   };
 
   useEffect(() => {
@@ -288,7 +333,10 @@ Is there a specific aspect of career preparation you'd like to explore further?`
       {/* Floating Button */}
       {!isOpen && (
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            setIsMinimized(false);
+          }}
           className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group"
           aria-label="Open chat"
         >
@@ -297,8 +345,40 @@ Is there a specific aspect of career preparation you'd like to explore further?`
         </button>
       )}
 
+      {/* Minimized Chat Bar */}
+      {isOpen && isMinimized && (
+        <div className="fixed bottom-6 right-6 z-50 w-[320px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+              <Bot className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">Career AI Assistant</h3>
+              <p className="text-xs text-gray-500">Minimized chat</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsMinimized(false)}
+              className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+              aria-label="Restore chat"
+            >
+              <Minus className="w-4 h-4 text-gray-700" />
+            </button>
+            <button
+              onClick={handleCloseChat}
+              className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-sm text-gray-700"
+              aria-label="Close chat"
+            >
+              <X className="w-4 h-4" />
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Chat Window */}
-      {isOpen && (
+      {isOpen && !isMinimized && (
         <div className="fixed bottom-6 right-6 z-50 w-[380px] h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 flex items-center justify-between">
@@ -314,12 +394,23 @@ Is there a specific aspect of career preparation you'd like to explore further?`
                 <p className="text-blue-100 text-xs">Always here to help</p>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
-            >
-              <X className="w-4 h-4 text-white" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsMinimized(true)}
+                className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+                aria-label="Minimize chat"
+              >
+                <Minus className="w-4 h-4 text-white" />
+              </button>
+              <button
+                onClick={handleCloseChat}
+                className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white text-sm"
+                aria-label="Close chat"
+              >
+                <X className="w-4 h-4" />
+                Close
+              </button>
+            </div>
           </div>
 
           {/* Messages Area */}

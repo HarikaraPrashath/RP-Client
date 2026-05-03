@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { authHeader } from '../../lib/auth';
-import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import { authHeader } from "../../lib/auth";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import {
   Brain,
   Target,
@@ -30,8 +30,8 @@ import {
   LayoutDashboard,
   ChevronRight,
   Home,
-  Save
-} from 'lucide-react';
+  Save,
+} from "lucide-react";
 
 interface AssessmentData {
   personalInfo: {
@@ -85,7 +85,7 @@ interface RoadmapMilestone {
   skills: string[];
   resources: {
     title: string;
-    type: 'course' | 'project' | 'certification' | 'article';
+    type: "course" | "project" | "certification" | "article";
     link?: string;
   }[];
   completed: boolean;
@@ -96,7 +96,7 @@ interface Course {
   title: string;
   description: string;
   duration: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  difficulty: "Beginner" | "Intermediate" | "Advanced";
   category: string;
   link?: string;
   completed: boolean;
@@ -112,8 +112,11 @@ interface CareerRoadmap {
 function PersonalizedRoadmap() {
   const router = useRouter();
   const pathname = usePathname();
-  const [assessmentData, setAssessmentData] = useState<AssessmentData | null>(null);
-  const [careerPrediction, setCareerPrediction] = useState<CareerPrediction | null>(null);
+  const [assessmentData, setAssessmentData] = useState<AssessmentData | null>(
+    null,
+  );
+  const [careerPrediction, setCareerPrediction] =
+    useState<CareerPrediction | null>(null);
   const [roadmap, setRoadmap] = useState<CareerRoadmap | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeMilestone, setActiveMilestone] = useState<string | null>(null);
@@ -121,50 +124,146 @@ function PersonalizedRoadmap() {
   const [showCourses, setShowCourses] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  const calculateInternshipQuality = (
+    data: AssessmentData,
+    predictedCareer: string,
+  ): number => {
+    let qualityScore = 50; // Base score
+
+    // Helper function to safely convert and check string values
+    const checkStringValue = (value: any): boolean => {
+      if (!value) return false;
+      const strValue = String(value).toLowerCase();
+      return strValue === "yes" || strValue === "true" || strValue === "1";
+    };
+
+    // Academic background factors
+    if (data.academicBackground?.gpa >= 3.5) qualityScore += 15;
+    else if (data.academicBackground?.gpa >= 3.0) qualityScore += 10;
+    else if (data.academicBackground?.gpa >= 2.5) qualityScore += 5;
+
+    if (data.academicBackground?.currentYear >= 3) qualityScore += 10;
+    else if (data.academicBackground?.currentYear >= 2) qualityScore += 5;
+
+    // Technical skills factors
+    const totalSkills =
+      (data.technicalSkills?.programming?.length || 0) +
+      (data.technicalSkills?.frameworks?.length || 0) +
+      (data.technicalSkills?.databases?.length || 0) +
+      (data.technicalSkills?.cloudPlatforms?.length || 0);
+
+    if (totalSkills >= 8) qualityScore += 15;
+    else if (totalSkills >= 5) qualityScore += 10;
+    else if (totalSkills >= 3) qualityScore += 5;
+
+    // Career information factors - using safe checking
+    if (checkStringValue(data.career?.internship)) qualityScore += 10;
+    if (checkStringValue(data.career?.projects)) qualityScore += 8;
+    if (checkStringValue(data.career?.certifications)) qualityScore += 7;
+
+    // Psychological traits
+    if (data.psychologicalTraits?.stressManagement === "High")
+      qualityScore += 5;
+    if (data.psychologicalTraits?.learningStyle === "Active") qualityScore += 3;
+
+    // Career interests alignment with predicted career
+    const careerLower = String(predictedCareer || "").toLowerCase();
+    const workEnv = String(
+      data.careerInterests?.workEnvironment || "",
+    ).toLowerCase();
+
+    if (careerLower.includes("cyber") && workEnv.includes("technical"))
+      qualityScore += 8;
+
+    if (
+      careerLower.includes("data") &&
+      data.technicalSkills?.programming?.some((p) =>
+        String(p || "")
+          .toLowerCase()
+          .includes("python"),
+      )
+    )
+      qualityScore += 8;
+
+    if (
+      careerLower.includes("web") &&
+      data.technicalSkills?.frameworks?.some((f) =>
+        String(f || "")
+          .toLowerCase()
+          .includes("react"),
+      )
+    )
+      qualityScore += 8;
+
+    // Ensure score is between 0 and 100
+    return Math.min(100, Math.max(0, qualityScore));
+  };
+
   useEffect(() => {
     // Load assessment data from sessionStorage
-    const savedAssessmentData = sessionStorage.getItem('assessmentData');
-    const savedCareerPrediction = sessionStorage.getItem('careerPrediction');
-    
+    const savedAssessmentData = sessionStorage.getItem("assessmentData");
+    const savedCareerPrediction = sessionStorage.getItem("careerPrediction");
+
     try {
       if (savedAssessmentData && savedCareerPrediction) {
         const parsedData: AssessmentData = JSON.parse(savedAssessmentData);
         const apiResponse = JSON.parse(savedCareerPrediction);
-        
-        console.log('📊 Using assessment data:');
-        console.log('Assessment Data:', parsedData);
-        console.log('API Response:', apiResponse);
-        
+
+        console.log("📊 Using assessment data:");
+        console.log("Assessment Data:", parsedData);
+        console.log("API Response:", apiResponse);
+
         setAssessmentData(parsedData);
-        
+
         // Convert API response to CareerPrediction format
         // Use dynamic values from API if available, otherwise use defaults
+        const dynamicInternshipQuality = calculateInternshipQuality(
+          parsedData,
+          apiResponse.predicted_career,
+        );
+
         const careerPrediction: CareerPrediction = {
-          role: apiResponse.predicted_career || 'Software Engineer',
+          role: apiResponse.predicted_career || "Software Engineer",
           matchPercentage: apiResponse.match_percentage || 85, // Use API value if available
-          description: apiResponse.description || `A professional role as a ${apiResponse.predicted_career || 'Software Engineer'} based on your assessment.`,
-          keySkills: apiResponse.key_skills || ['Programming', 'Problem Solving', 'Communication', 'Teamwork'], // Use API skills if available
-          internshipQuality: apiResponse.internship_quality || 75, // Use API value if available
-          growthOutlook: apiResponse.growth_outlook || 'High growth potential' // Use API value if available
+          description:
+            apiResponse.description ||
+            `A professional role as a ${apiResponse.predicted_career || "Software Engineer"} based on your assessment.`,
+          keySkills: apiResponse.key_skills || [
+            "Programming",
+            "Problem Solving",
+            "Communication",
+            "Teamwork",
+          ], // Use API skills if available
+          internshipQuality:
+            apiResponse.internship_quality || dynamicInternshipQuality, // Use API value if available, otherwise calculate dynamically
+          growthOutlook: apiResponse.growth_outlook || "High growth potential", // Use API value if available
         };
-        
+
         setCareerPrediction(careerPrediction);
-        
+
         // Generate roadmap based on prediction
-        const generatedRoadmap = generateCareerRoadmap(parsedData, careerPrediction);
+        const generatedRoadmap = generateCareerRoadmap(
+          parsedData,
+          careerPrediction,
+        );
         setRoadmap(generatedRoadmap);
-        
+
         // Generate recommended courses
-        const recommendedCourses = generateRecommendedCourses(parsedData, careerPrediction);
+        const recommendedCourses = generateRecommendedCourses(
+          parsedData,
+          careerPrediction,
+        );
         setCourses(recommendedCourses);
         setLoading(false);
       } else {
         // If no assessment data, redirect to assessment page
-        console.log('❌ No assessment data found, redirecting to assessment page');
-        router.push('/career-preparation/student-assessment');
+        console.log(
+          "❌ No assessment data found, redirecting to assessment page",
+        );
+        router.push("/career-preparation/student-assessment");
       }
     } catch (error) {
-      console.error('❌ Error processing session data:', error);
+      console.error("❌ Error processing session data:", error);
       setLoading(false);
     }
   }, [router]);
@@ -172,72 +271,110 @@ function PersonalizedRoadmap() {
   const generateCareerPrediction = (data: AssessmentData): CareerPrediction => {
     // This is a simplified algorithm for demonstration
     // In a real application, this would involve more complex ML algorithms
-    
+
     const roles = [
       {
-        name: 'Data Scientist',
-        description: 'Analyze complex data sets and extract meaningful insights to drive business decisions.',
-        keySkills: ['Python', 'Statistics', 'Machine Learning', 'Data Visualization'],
-        averageSalary: '$95,000 - $130,000',
-        growthOutlook: 'Very High (31% growth by 2030)'
+        name: "Data Scientist",
+        description:
+          "Analyze complex data sets and extract meaningful insights to drive business decisions.",
+        keySkills: [
+          "Python",
+          "Statistics",
+          "Machine Learning",
+          "Data Visualization",
+        ],
+        averageSalary: "$95,000 - $130,000",
+        growthOutlook: "Very High (31% growth by 2030)",
       },
       {
-        name: 'Cybersecurity Analyst',
-        description: 'Protect systems, networks, and programs from digital attacks and unauthorized access.',
-        keySkills: ['Network Security', 'Risk Assessment', 'Incident Response', 'Security Tools'],
-        averageSalary: '$85,000 - $120,000',
-        growthOutlook: 'High (33% growth by 2030)'
+        name: "Cybersecurity Analyst",
+        description:
+          "Protect systems, networks, and programs from digital attacks and unauthorized access.",
+        keySkills: [
+          "Network Security",
+          "Risk Assessment",
+          "Incident Response",
+          "Security Tools",
+        ],
+        averageSalary: "$85,000 - $120,000",
+        growthOutlook: "High (33% growth by 2030)",
       },
       {
-        name: 'AI Engineer',
-        description: 'Design, develop, and implement artificial intelligence models and systems.',
-        keySkills: ['Machine Learning', 'Deep Learning', 'Python', 'Neural Networks'],
-        averageSalary: '$110,000 - $150,000',
-        growthOutlook: 'Very High (38% growth by 2030)'
+        name: "AI Engineer",
+        description:
+          "Design, develop, and implement artificial intelligence models and systems.",
+        keySkills: [
+          "Machine Learning",
+          "Deep Learning",
+          "Python",
+          "Neural Networks",
+        ],
+        averageSalary: "$110,000 - $150,000",
+        growthOutlook: "Very High (38% growth by 2030)",
       },
       {
-        name: 'Software Engineer',
-        description: 'Design, develop, and maintain software applications and systems.',
-        keySkills: ['Programming', 'Algorithms', 'Software Architecture', 'Debugging'],
-        averageSalary: '$90,000 - $130,000',
-        growthOutlook: 'High (22% growth by 2030)'
-      }
+        name: "Software Engineer",
+        description:
+          "Design, develop, and maintain software applications and systems.",
+        keySkills: [
+          "Programming",
+          "Algorithms",
+          "Software Architecture",
+          "Debugging",
+        ],
+        averageSalary: "$90,000 - $130,000",
+        growthOutlook: "High (22% growth by 2030)",
+      },
     ];
 
     // Simple scoring based on skills and interests
     let bestMatch = roles[0];
     let highestScore = 0;
 
-    roles.forEach(role => {
+    roles.forEach((role) => {
       let score = 0;
-      
+
       // Check if work environment matches the role
       if (data.careerInterests.workEnvironment) {
         // Add score based on work environment preference
         score += 20;
       }
-      
+
       // Check if career information is provided
-      if (data.career.stressManagement && data.career.learningStyle && data.career.internship && data.career.projects && data.career.certifications) {
+      if (
+        data.career.stressManagement &&
+        data.career.learningStyle &&
+        data.career.internship &&
+        data.career.projects &&
+        data.career.certifications
+      ) {
         // Add score for having complete career information
         score += 15;
       }
-      
+
       // Check technical skills match
-      role.keySkills.forEach(skill => {
+      role.keySkills.forEach((skill) => {
         if (
-          data.technicalSkills.programming.some(p => p.toLowerCase().includes(skill.toLowerCase())) ||
-          data.technicalSkills.frameworks.some(f => f.toLowerCase().includes(skill.toLowerCase())) ||
-          data.technicalSkills.databases.some(d => d.toLowerCase().includes(skill.toLowerCase())) ||
-          data.technicalSkills.cloudPlatforms.some(c => c.toLowerCase().includes(skill.toLowerCase()))
+          data.technicalSkills.programming.some((p) =>
+            p.toLowerCase().includes(skill.toLowerCase()),
+          ) ||
+          data.technicalSkills.frameworks.some((f) =>
+            f.toLowerCase().includes(skill.toLowerCase()),
+          ) ||
+          data.technicalSkills.databases.some((d) =>
+            d.toLowerCase().includes(skill.toLowerCase()),
+          ) ||
+          data.technicalSkills.cloudPlatforms.some((c) =>
+            c.toLowerCase().includes(skill.toLowerCase()),
+          )
         ) {
           score += 10;
         }
       });
-      
+
       // Add some randomness for demo purposes
       score += Math.floor(Math.random() * 20);
-      
+
       if (score > highestScore) {
         highestScore = score;
         bestMatch = role;
@@ -250,250 +387,403 @@ function PersonalizedRoadmap() {
       description: bestMatch.description,
       keySkills: bestMatch.keySkills,
       internshipQuality: Math.min(95, 70 + Math.floor(Math.random() * 25)),
-      growthOutlook: bestMatch.growthOutlook
+      growthOutlook: bestMatch.growthOutlook,
     };
   };
 
-  const generateCareerRoadmap = (data: AssessmentData, prediction: CareerPrediction): CareerRoadmap => {
+  const generateCareerRoadmap = (
+    data: AssessmentData,
+    prediction: CareerPrediction,
+  ): CareerRoadmap => {
     // Generate a personalized roadmap based on the career prediction
     const baseMilestones: RoadmapMilestone[] = [
       {
-        id: 'foundation',
-        title: 'Build Strong Foundation',
-        description: 'Master the core concepts and skills required for your career path.',
-        duration: '2-3 months',
-        skills: ['Core Programming', 'Computer Science Fundamentals', 'Problem Solving'],
-        resources: [
-          { title: 'Harvard CS50: Introduction to Computer Science', type: 'course' },
-          { title: 'Python for Everybody by University of Michigan', type: 'course' },
-          { title: 'The Complete Web Developer Bootcamp', type: 'course' },
-          { title: 'Build a Simple Calculator Project', type: 'project' },
-          { title: 'Computer Science Essentials by edX', type: 'certification' },
-          { title: 'Programming Fundamentals Article Series', type: 'article' }
+        id: "foundation",
+        title: "Build Strong Foundation",
+        description:
+          "Master the core concepts and skills required for your career path.",
+        duration: "2-3 months",
+        skills: [
+          "Core Programming",
+          "Computer Science Fundamentals",
+          "Problem Solving",
         ],
-        completed: false
+        resources: [
+          {
+            title: "Harvard CS50: Introduction to Computer Science",
+            type: "course",
+          },
+          {
+            title: "Python for Everybody by University of Michigan",
+            type: "course",
+          },
+          { title: "The Complete Web Developer Bootcamp", type: "course" },
+          { title: "Build a Simple Calculator Project", type: "project" },
+          {
+            title: "Computer Science Essentials by edX",
+            type: "certification",
+          },
+          { title: "Programming Fundamentals Article Series", type: "article" },
+        ],
+        completed: false,
       },
       {
-        id: 'technical',
-        title: 'Develop Technical Expertise',
-        description: 'Gain in-depth knowledge of the technologies and tools used in your field.',
-        duration: '3-4 months',
+        id: "technical",
+        title: "Develop Technical Expertise",
+        description:
+          "Gain in-depth knowledge of the technologies and tools used in your field.",
+        duration: "3-4 months",
         skills: (prediction.keySkills || []).slice(0, 3),
         resources: [
-          { title: 'Advanced Data Structures and Algorithms', type: 'course' },
-          { title: 'Database Design and Management', type: 'course' },
-          { title: 'Cloud Computing Fundamentals', type: 'course' },
-          { title: 'Build a Full-Stack Application', type: 'project' },
-          { title: 'AWS Certified Developer Associate', type: 'certification' },
-          { title: 'Tech Industry Trends Report', type: 'article' }
+          { title: "Advanced Data Structures and Algorithms", type: "course" },
+          { title: "Database Design and Management", type: "course" },
+          { title: "Cloud Computing Fundamentals", type: "course" },
+          { title: "Build a Full-Stack Application", type: "project" },
+          { title: "AWS Certified Developer Associate", type: "certification" },
+          { title: "Tech Industry Trends Report", type: "article" },
         ],
-        completed: false
+        completed: false,
       },
       {
-        id: 'practical',
-        title: 'Gain Practical Experience',
-        description: 'Apply your knowledge through real-world projects and experiences.',
-        duration: '4-6 months',
-        skills: ['Project Management', 'Team Collaboration', 'Real-world Problem Solving'],
-        resources: [
-          { title: 'Capstone Project: Build a Complete System', type: 'project' },
-          { title: 'Open Source Contribution Guide', type: 'course' },
-          { title: 'Agile Project Management', type: 'course' },
-          { title: 'Internship Preparation Workshop', type: 'course' },
-          { title: 'Freelance Platform Setup Guide', type: 'article' },
-          { title: 'Team Collaboration Tools Mastery', type: 'certification' }
+        id: "practical",
+        title: "Gain Practical Experience",
+        description:
+          "Apply your knowledge through real-world projects and experiences.",
+        duration: "4-6 months",
+        skills: [
+          "Project Management",
+          "Team Collaboration",
+          "Real-world Problem Solving",
         ],
-        completed: false
+        resources: [
+          {
+            title: "Capstone Project: Build a Complete System",
+            type: "project",
+          },
+          { title: "Open Source Contribution Guide", type: "course" },
+          { title: "Agile Project Management", type: "course" },
+          { title: "Internship Preparation Workshop", type: "course" },
+          { title: "Freelance Platform Setup Guide", type: "article" },
+          { title: "Team Collaboration Tools Mastery", type: "certification" },
+        ],
+        completed: false,
       },
       {
-        id: 'specialization',
-        title: 'Specialize and Advance',
-        description: 'Develop specialized skills and expertise in your chosen area.',
-        duration: '6-8 months',
-        skills: ['Specialized Technologies', 'Advanced Techniques', 'Industry Best Practices'],
-        resources: [
-          { title: 'Advanced Machine Learning Specialization', type: 'course' },
-          { title: 'Cybersecurity Professional Certificate', type: 'certification' },
-          { title: 'AI Engineering Masterclass', type: 'course' },
-          { title: 'Software Architecture Patterns', type: 'course' },
-          { title: 'Industry Conference Proceedings', type: 'article' },
-          { title: 'Build a Specialized Tech Project', type: 'project' }
+        id: "specialization",
+        title: "Specialize and Advance",
+        description:
+          "Develop specialized skills and expertise in your chosen area.",
+        duration: "6-8 months",
+        skills: [
+          "Specialized Technologies",
+          "Advanced Techniques",
+          "Industry Best Practices",
         ],
-        completed: false
+        resources: [
+          { title: "Advanced Machine Learning Specialization", type: "course" },
+          {
+            title: "Cybersecurity Professional Certificate",
+            type: "certification",
+          },
+          { title: "AI Engineering Masterclass", type: "course" },
+          { title: "Software Architecture Patterns", type: "course" },
+          { title: "Industry Conference Proceedings", type: "article" },
+          { title: "Build a Specialized Tech Project", type: "project" },
+        ],
+        completed: false,
       },
       {
-        id: 'professional',
-        title: 'Launch Your Career',
-        description: 'Prepare for and launch your professional career in your chosen field.',
-        duration: '2-3 months',
-        skills: ['Resume Building', 'Interview Skills', 'Professional Networking'],
-        resources: [
-          { title: 'Technical Interview Preparation', type: 'course' },
-          { title: 'Professional Resume Building Workshop', type: 'course' },
-          { title: 'Networking for Tech Professionals', type: 'course' },
-          { title: 'Personal Branding for Developers', type: 'course' },
-          { title: 'Industry-Recognized Certification', type: 'certification' },
-          { title: 'Job Search Strategies in Tech', type: 'article' }
+        id: "professional",
+        title: "Launch Your Career",
+        description:
+          "Prepare for and launch your professional career in your chosen field.",
+        duration: "2-3 months",
+        skills: [
+          "Resume Building",
+          "Interview Skills",
+          "Professional Networking",
         ],
-        completed: false
-      }
+        resources: [
+          { title: "Technical Interview Preparation", type: "course" },
+          { title: "Professional Resume Building Workshop", type: "course" },
+          { title: "Networking for Tech Professionals", type: "course" },
+          { title: "Personal Branding for Developers", type: "course" },
+          { title: "Industry-Recognized Certification", type: "certification" },
+          { title: "Job Search Strategies in Tech", type: "article" },
+        ],
+        completed: false,
+      },
     ];
 
     return {
-      title: `${prediction?.role || 'Career'} Career Path`,
-      description: `A personalized roadmap to become a successful ${prediction?.role || 'professional'} based on your skills, interests, and goals.`,
-      totalDuration: '17-24 months',
-      milestones: baseMilestones
+      title: `${prediction?.role || "Career"} Career Path`,
+      description: `A personalized roadmap to become a successful ${prediction?.role || "professional"} based on your skills, interests, and goals.`,
+      totalDuration: "17-24 months",
+      milestones: baseMilestones,
     };
   };
 
-  const generateRecommendedCourses = (data: AssessmentData, prediction: CareerPrediction): Course[] => {
+  const generateRecommendedCourses = (
+    data: AssessmentData,
+    prediction: CareerPrediction,
+  ): Course[] => {
     // Generate courses based on career prediction and assessment data
     const baseCourses: Course[] = [
       {
-        id: 'intro-course',
-        title: 'Introduction to Computer Science',
-        description: 'Learn the fundamentals of computer science and programming.',
-        duration: '4 weeks',
-        difficulty: 'Beginner',
-        category: 'Fundamentals',
-        link: 'https://www.edx.org/course/introduction-computer-science-harvardx-cs50x',
-        completed: false
+        id: "intro-course",
+        title: "Introduction to Computer Science",
+        description:
+          "Learn the fundamentals of computer science and programming.",
+        duration: "4 weeks",
+        difficulty: "Beginner",
+        category: "Fundamentals",
+        link: "https://www.edx.org/course/introduction-computer-science-harvardx-cs50x",
+        completed: false,
       },
       {
-        id: 'programming-course',
-        title: 'Programming Fundamentals',
-        description: 'Master the core programming concepts and problem-solving techniques.',
-        duration: '6 weeks',
-        difficulty: 'Beginner',
-        category: 'Programming',
-        link: 'https://www.coursera.org/learn/python-for-everybody',
-        completed: false
+        id: "programming-course",
+        title: "Programming Fundamentals",
+        description:
+          "Master the core programming concepts and problem-solving techniques.",
+        duration: "6 weeks",
+        difficulty: "Beginner",
+        category: "Programming",
+        link: "https://www.coursera.org/learn/python-for-everybody",
+        completed: false,
       },
       {
-        id: 'data-structures',
-        title: 'Data Structures and Algorithms',
-        description: 'Understand essential data structures and algorithms for efficient programming.',
-        duration: '8 weeks',
-        difficulty: 'Intermediate',
-        category: 'Computer Science',
-        link: 'https://www.coursera.org/learn/data-structures',
-        completed: false
+        id: "data-structures",
+        title: "Data Structures and Algorithms",
+        description:
+          "Understand essential data structures and algorithms for efficient programming.",
+        duration: "8 weeks",
+        difficulty: "Intermediate",
+        category: "Computer Science",
+        link: "https://www.coursera.org/learn/data-structures",
+        completed: false,
       },
       {
-        id: 'web-development',
-        title: 'Web Development Basics',
-        description: 'Learn to build modern web applications using HTML, CSS, and JavaScript.',
-        duration: '10 weeks',
-        difficulty: 'Beginner',
-        category: 'Web Development',
-        link: 'https://www.udemy.com/course/the-complete-web-developer-in-2020/',
-        completed: false
+        id: "web-development",
+        title: "Web Development Basics",
+        description:
+          "Learn to build modern web applications using HTML, CSS, and JavaScript.",
+        duration: "10 weeks",
+        difficulty: "Beginner",
+        category: "Web Development",
+        link: "https://www.udemy.com/course/the-complete-web-developer-in-2020/",
+        completed: false,
       },
       {
-        id: 'database-course',
-        title: 'Database Management Systems',
-        description: 'Learn how to design, implement, and manage databases effectively.',
-        duration: '6 weeks',
-        difficulty: 'Intermediate',
-        category: 'Databases',
-        link: 'https://www.coursera.org/learn/databases',
-        completed: false
-      }
+        id: "database-course",
+        title: "Database Management Systems",
+        description:
+          "Learn how to design, implement, and manage databases effectively.",
+        duration: "6 weeks",
+        difficulty: "Intermediate",
+        category: "Databases",
+        link: "https://www.coursera.org/learn/databases",
+        completed: false,
+      },
     ];
 
-    // Add role-specific courses
-    if (prediction.role === 'Data Scientist') {
+    // Add role-specific courses based on predicted career
+    const careerLower = prediction.role.toLowerCase();
+
+    if (
+      careerLower.includes("cybersecurity") ||
+      careerLower.includes("cyber")
+    ) {
       baseCourses.push(
         {
-          id: 'statistics-course',
-          title: 'Statistics for Data Science',
-          description: 'Master statistical concepts and methods for data analysis.',
-          duration: '8 weeks',
-          difficulty: 'Intermediate',
-          category: 'Data Science',
-          link: 'https://www.coursera.org/learn/statistics-with-python',
-          completed: false
+          id: "cyber-fundamentals",
+          title: "Cybersecurity Fundamentals",
+          description:
+            "Learn the core concepts of cybersecurity and information protection.",
+          duration: "8 weeks",
+          difficulty: "Intermediate",
+          category: "Cybersecurity",
+          link: "https://www.coursera.org/learn/introduction-cyber-security",
+          completed: false,
         },
         {
-          id: 'ml-course',
-          title: 'Machine Learning Fundamentals',
-          description: 'Introduction to machine learning algorithms and applications.',
-          duration: '12 weeks',
-          difficulty: 'Advanced',
-          category: 'Machine Learning',
-          link: 'https://www.coursera.org/learn/machine-learning',
-          completed: false
-        }
+          id: "network-security",
+          title: "Network Security and Ethical Hacking",
+          description:
+            "Understand network protocols, security measures, and ethical hacking techniques.",
+          duration: "10 weeks",
+          difficulty: "Advanced",
+          category: "Cybersecurity",
+          link: "https://www.coursera.org/learn/network-security",
+          completed: false,
+        },
+        {
+          id: "cyber-threats",
+          title: "Cyber Threats and Defense Strategies",
+          description:
+            "Learn about common cyber threats and how to defend against them.",
+          duration: "6 weeks",
+          difficulty: "Intermediate",
+          category: "Cybersecurity",
+          link: "https://www.udemy.com/course/cyber-security-threats/",
+          completed: false,
+        },
       );
-    } else if (prediction.role === 'Cybersecurity Analyst') {
+    } else if (
+      careerLower.includes("data scientist") ||
+      careerLower.includes("data science") ||
+      careerLower.includes("data analyst")
+    ) {
       baseCourses.push(
         {
-          id: 'security-fundamentals',
-          title: 'Cybersecurity Fundamentals',
-          description: 'Learn the core concepts of cybersecurity and information protection.',
-          duration: '8 weeks',
-          difficulty: 'Intermediate',
-          category: 'Cybersecurity',
-          link: 'https://www.coursera.org/learn/introduction-cyber-security',
-          completed: false
+          id: "data-analysis",
+          title: "Data Analysis with Python",
+          description:
+            "Master data analysis techniques using Python and pandas.",
+          duration: "8 weeks",
+          difficulty: "Intermediate",
+          category: "Data Science",
+          link: "https://www.coursera.org/learn/python-data-analysis",
+          completed: false,
         },
         {
-          id: 'network-security',
-          title: 'Network Security',
-          description: 'Understand network protocols and security measures.',
-          duration: '10 weeks',
-          difficulty: 'Advanced',
-          category: 'Cybersecurity',
-          link: 'https://www.coursera.org/learn/network-security',
-          completed: false
-        }
+          id: "machine-learning",
+          title: "Machine Learning Fundamentals",
+          description:
+            "Introduction to machine learning algorithms and applications.",
+          duration: "12 weeks",
+          difficulty: "Advanced",
+          category: "Machine Learning",
+          link: "https://www.coursera.org/learn/machine-learning",
+          completed: false,
+        },
+        {
+          id: "data-visualization",
+          title: "Data Visualization with Tableau",
+          description: "Create compelling data visualizations and dashboards.",
+          duration: "4 weeks",
+          difficulty: "Intermediate",
+          category: "Data Science",
+          link: "https://www.coursera.org/learn/data-visualization-tableau",
+          completed: false,
+        },
       );
-    } else if (prediction.role === 'AI Engineer') {
+    } else if (
+      careerLower.includes("ai engineer") ||
+      careerLower.includes("ai") ||
+      careerLower.includes("artificial intelligence")
+    ) {
       baseCourses.push(
         {
-          id: 'ai-fundamentals',
-          title: 'Artificial Intelligence Fundamentals',
-          description: 'Introduction to AI concepts, techniques, and applications.',
-          duration: '10 weeks',
-          difficulty: 'Intermediate',
-          category: 'Artificial Intelligence',
-          link: 'https://www.coursera.org/learn/artificial-intelligence',
-          completed: false
+          id: "ai-fundamentals",
+          title: "Artificial Intelligence Fundamentals",
+          description:
+            "Introduction to AI concepts, techniques, and applications.",
+          duration: "10 weeks",
+          difficulty: "Intermediate",
+          category: "Artificial Intelligence",
+          link: "https://www.coursera.org/learn/artificial-intelligence",
+          completed: false,
         },
         {
-          id: 'deep-learning',
-          title: 'Deep Learning and Neural Networks',
-          description: 'Advanced deep learning techniques and neural network architectures.',
-          duration: '12 weeks',
-          difficulty: 'Advanced',
-          category: 'Deep Learning',
-          link: 'https://www.coursera.org/learn/neural-networks-deep-learning',
-          completed: false
-        }
+          id: "deep-learning",
+          title: "Deep Learning and Neural Networks",
+          description:
+            "Advanced deep learning techniques and neural network architectures.",
+          duration: "12 weeks",
+          difficulty: "Advanced",
+          category: "Deep Learning",
+          link: "https://www.coursera.org/learn/neural-networks-deep-learning",
+          completed: false,
+        },
+        {
+          id: "computer-vision",
+          title: "Computer Vision with OpenCV",
+          description:
+            "Learn computer vision techniques and applications using OpenCV.",
+          duration: "8 weeks",
+          difficulty: "Advanced",
+          category: "AI/ML",
+          link: "https://www.udemy.com/course/computer-vision-opencv/",
+          completed: false,
+        },
       );
-    } else if (prediction.role === 'Software Engineer') {
+    } else if (
+      careerLower.includes("web developer") ||
+      careerLower.includes("web development") ||
+      careerLower.includes("frontend") ||
+      careerLower.includes("backend")
+    ) {
       baseCourses.push(
         {
-          id: 'software-design',
-          title: 'Software Design Patterns',
-          description: 'Learn common design patterns and best practices in software development.',
-          duration: '8 weeks',
-          difficulty: 'Intermediate',
-          category: 'Software Engineering',
-          link: 'https://www.coursera.org/learn/software-design',
-          completed: false
+          id: "fullstack-web",
+          title: "Full-Stack Web Development",
+          description:
+            "Build complete web applications with modern technologies.",
+          duration: "16 weeks",
+          difficulty: "Intermediate",
+          category: "Web Development",
+          link: "https://www.udemy.com/course/the-web-developer-bootcamp/",
+          completed: false,
         },
         {
-          id: 'system-design',
-          title: 'System Design Fundamentals',
-          description: 'Design scalable and efficient software systems.',
-          duration: '10 weeks',
-          difficulty: 'Advanced',
-          category: 'Software Engineering',
-          link: 'https://www.coursera.org/learn/system-design',
-          completed: false
-        }
+          id: "react-development",
+          title: "React.js Development",
+          description: "Master React.js for building dynamic user interfaces.",
+          duration: "8 weeks",
+          difficulty: "Intermediate",
+          category: "Frontend Development",
+          link: "https://www.coursera.org/learn/front-end-react",
+          completed: false,
+        },
+        {
+          id: "nodejs-backend",
+          title: "Node.js Backend Development",
+          description:
+            "Build scalable backend services with Node.js and Express.",
+          duration: "10 weeks",
+          difficulty: "Intermediate",
+          category: "Backend Development",
+          link: "https://www.udemy.com/course/nodejs-the-complete-guide/",
+          completed: false,
+        },
+      );
+    } else if (
+      careerLower.includes("software engineer") ||
+      careerLower.includes("software developer")
+    ) {
+      baseCourses.push(
+        {
+          id: "software-design",
+          title: "Software Design Patterns",
+          description:
+            "Learn common design patterns and best practices in software development.",
+          duration: "8 weeks",
+          difficulty: "Intermediate",
+          category: "Software Engineering",
+          link: "https://www.coursera.org/learn/software-design",
+          completed: false,
+        },
+        {
+          id: "system-design",
+          title: "System Design Fundamentals",
+          description: "Design scalable and efficient software systems.",
+          duration: "10 weeks",
+          difficulty: "Advanced",
+          category: "Software Engineering",
+          link: "https://www.coursera.org/learn/system-design",
+          completed: false,
+        },
+        {
+          id: "agile-development",
+          title: "Agile Software Development",
+          description:
+            "Master agile methodologies and practices for software development.",
+          duration: "6 weeks",
+          difficulty: "Intermediate",
+          category: "Software Engineering",
+          link: "https://www.coursera.org/learn/agile-software-development",
+          completed: false,
+        },
       );
     }
 
@@ -501,38 +791,41 @@ function PersonalizedRoadmap() {
   };
 
   const toggleCourseCompletion = (courseId: string) => {
-    const updatedCourses = courses.map(course => ({
+    const updatedCourses = courses.map((course) => ({
       ...course,
-      completed: course.id === courseId ? !course.completed : course.completed
+      completed: course.id === courseId ? !course.completed : course.completed,
     }));
     setCourses(updatedCourses);
   };
 
   const redirectToRoadmapSh = () => {
-    window.open('https://roadmap.sh', '_blank');
+    window.open("https://roadmap.sh", "_blank");
   };
 
   const toggleMilestoneCompletion = (milestoneId: string) => {
     if (!roadmap) return;
-    
-    const updatedMilestones = roadmap.milestones.map(milestone => ({
+
+    const updatedMilestones = roadmap.milestones.map((milestone) => ({
       ...milestone,
-      completed: milestone.id === milestoneId ? !milestone.completed : milestone.completed
+      completed:
+        milestone.id === milestoneId
+          ? !milestone.completed
+          : milestone.completed,
     }));
-    
+
     setRoadmap({
       ...roadmap,
-      milestones: updatedMilestones
+      milestones: updatedMilestones,
     });
   };
 
   const downloadRoadmap = () => {
     if (!roadmap || !careerPrediction) return;
-    
+
     // Create a new window for printing
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open("", "_blank");
     if (!printWindow) return;
-    
+
     // Create HTML content for the PDF
     const htmlContent = `
     <!DOCTYPE html>
@@ -622,7 +915,7 @@ function PersonalizedRoadmap() {
       
       <h2>Key Skills</h2>
       <div class="skills">
-        ${careerPrediction.keySkills.map(skill => `<span>${skill}</span>`).join(' • ')}
+        ${careerPrediction.keySkills.map((skill) => `<span>${skill}</span>`).join(" • ")}
       </div>
       
       <h2>Career Details</h2>
@@ -630,15 +923,19 @@ function PersonalizedRoadmap() {
       <p><strong>Internship Quality:</strong> ${careerPrediction.internshipQuality}%</p>
       
       <h2>Career Milestones</h2>
-      ${roadmap.milestones.map((milestone, index) => `
+      ${roadmap.milestones
+        .map(
+          (milestone, index) => `
         <div class="milestone">
           <h3>${index + 1}. ${milestone.title} (${milestone.duration})</h3>
           <p><strong>Description:</strong> ${milestone.description}</p>
-          <p><strong>Skills:</strong> ${milestone.skills.join(', ')}</p>
-          <p><strong>Resources:</strong> ${milestone.resources.map(r => r.title).join(', ')}</p>
-          <p><strong>Status:</strong> ${milestone.completed ? 'Completed' : 'Pending'}</p>
+          <p><strong>Skills:</strong> ${milestone.skills.join(", ")}</p>
+          <p><strong>Resources:</strong> ${milestone.resources.map((r) => r.title).join(", ")}</p>
+          <p><strong>Status:</strong> ${milestone.completed ? "Completed" : "Pending"}</p>
         </div>
-      `).join('')}
+      `,
+        )
+        .join("")}
       
       <div class="footer">
         *Generated by AI-Powered Career Guidance System*
@@ -651,7 +948,7 @@ function PersonalizedRoadmap() {
     </body>
     </html>
     `;
-    
+
     // Write the HTML content to the new window
     printWindow.document.write(htmlContent);
     printWindow.document.close();
@@ -659,22 +956,23 @@ function PersonalizedRoadmap() {
 
   const shareRoadmap = () => {
     if (!roadmap || !careerPrediction) return;
-    
+
     const shareText = `Check out my personalized career roadmap for becoming a ${careerPrediction.role}! Match: ${careerPrediction.matchPercentage}%. Total duration: ${roadmap.totalDuration}.`;
     const shareUrl = window.location.href;
-    
+
     // Create share URLs for different platforms
     const shareUrls = {
-      email: `mailto:?subject=My Personalized Career Roadmap&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`,
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
+      email: `mailto:?subject=My Personalized Career Roadmap&body=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
     };
-    
+
     // Create a simple share dialog
-    const shareDialog = document.createElement('div');
-    shareDialog.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    const shareDialog = document.createElement("div");
+    shareDialog.className =
+      "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
     shareDialog.innerHTML = `
       <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <h3 class="text-xl font-bold mb-4">Share Your Roadmap</h3>
@@ -724,11 +1022,11 @@ function PersonalizedRoadmap() {
         <button class="mt-4 w-full py-2 bg-gray-100 rounded-lg hover:bg-gray-200" onclick="this.parentElement.parentElement.remove()">Close</button>
       </div>
     `;
-    
+
     document.body.appendChild(shareDialog);
-    
+
     // Close dialog when clicking outside
-    shareDialog.addEventListener('click', (e) => {
+    shareDialog.addEventListener("click", (e) => {
       if (e.target === shareDialog) {
         shareDialog.remove();
       }
@@ -742,8 +1040,12 @@ function PersonalizedRoadmap() {
           <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
             <Brain className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Analyzing Your Assessment</h2>
-          <p className="text-gray-600">Generating your personalized career roadmap...</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Analyzing Your Assessment
+          </h2>
+          <p className="text-gray-600">
+            Generating your personalized career roadmap...
+          </p>
         </div>
       </div>
     );
@@ -753,10 +1055,16 @@ function PersonalizedRoadmap() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-8 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Data</h2>
-          <p className="text-gray-600 mb-4">We couldn't load your assessment data. Please try again.</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Error Loading Data
+          </h2>
+          <p className="text-gray-600 mb-4">
+            We couldn't load your assessment data. Please try again.
+          </p>
           <button
-            onClick={() => router.push('/career-preparation/student-assessment')}
+            onClick={() =>
+              router.push("/career-preparation/student-assessment")
+            }
             className="px-6 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600"
           >
             Return to Assessment
@@ -767,11 +1075,31 @@ function PersonalizedRoadmap() {
   }
 
   const sidebarItems = [
-    { id: 'dashboard', name: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/career-preparation' },
-    { id: 'assessment', name: 'Student Assessment', icon: <FileText className="w-5 h-5" />, href: '/career-preparation/student-assessment' },
-    { id: 'roadmap', name: 'Personalized Roadmap', icon: <Target className="w-5 h-5" />, href: '/career-preparation/personalized-roadmap' },
+    {
+      id: "dashboard",
+      name: "Dashboard",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      href: "/career-preparation",
+    },
+    {
+      id: "assessment",
+      name: "Student Assessment",
+      icon: <FileText className="w-5 h-5" />,
+      href: "/career-preparation/student-assessment",
+    },
+    {
+      id: "roadmap",
+      name: "Personalized Roadmap",
+      icon: <Target className="w-5 h-5" />,
+      href: "/career-preparation/personalized-roadmap",
+    },
+    {
+      id: "schedule",
+      name: "Schedule Reminder",
+      icon: <Calendar className="w-5 h-5" />,
+      href: "/career-preparation/schedule-reminder",
+    },
   ];
-
 
   const onSaveToProfile = async () => {
     if (!careerPrediction || !roadmap) {
@@ -782,27 +1110,27 @@ function PersonalizedRoadmap() {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
     try {
       const getHeaders = { ...authHeader() };
-      const resGet = await fetch(apiBase + "/profile", { 
+      const resGet = await fetch(apiBase + "/profile", {
         credentials: "include",
-        headers: getHeaders
+        headers: getHeaders,
       });
       if (!resGet.ok) throw new Error("Failed to get profile");
       const profileData = await resGet.json();
 
       profileData.careerPrep = {
         careerPrediction,
-        roadmap
+        roadmap,
       };
 
-      const putHeaders = { 
-        "Content-Type": "application/json", 
-        ...authHeader() 
+      const putHeaders = {
+        "Content-Type": "application/json",
+        ...authHeader(),
       };
       const resPut = await fetch(apiBase + "/profile", {
         method: "PUT",
         headers: putHeaders,
         credentials: "include",
-        body: JSON.stringify(profileData)
+        body: JSON.stringify(profileData),
       });
       if (resPut.ok) {
         alert("Success! Career Preparation roadmap saved to your Profile.");
@@ -832,7 +1160,7 @@ function PersonalizedRoadmap() {
             </div>
           </div>
         </div>
-        
+
         <nav className="p-4">
           <div className="space-y-1">
             {sidebarItems.map((item) => (
@@ -841,11 +1169,13 @@ function PersonalizedRoadmap() {
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   pathname === item.href
-                    ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? "bg-blue-50 text-blue-700 border-l-4 border-blue-700"
+                    : "text-gray-600 hover:bg-gray-100"
                 }`}
               >
-                <div className={`${pathname === item.href ? 'text-blue-700' : 'text-gray-500'}`}>
+                <div
+                  className={`${pathname === item.href ? "text-blue-700" : "text-gray-500"}`}
+                >
                   {item.icon}
                 </div>
                 <span className="font-medium">{item.name}</span>
@@ -855,15 +1185,15 @@ function PersonalizedRoadmap() {
               </Link>
             ))}
           </div>
-          
+
           <div className="mt-4 border-t border-gray-200">
-             <button
+            <button
               onClick={onSaveToProfile}
               disabled={isSaving}
-              className={`w-full flex items-center gap-3 px-4 py-3 mt-4 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors font-medium ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 mt-4 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors font-medium ${isSaving ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <Save className={`w-5 h-5 ${isSaving ? 'animate-bounce' : ''}`} />
-              <span>{isSaving ? 'Saving...' : 'Save to Profile'}</span>
+              <Save className={`w-5 h-5 ${isSaving ? "animate-bounce" : ""}`} />
+              <span>{isSaving ? "Saving..." : "Save to Profile"}</span>
             </button>
           </div>
 
@@ -878,14 +1208,14 @@ function PersonalizedRoadmap() {
           </div>
         </nav>
       </div>
-      
+
       {/* Mobile menu button */}
       <div className="md:hidden fixed bottom-4 right-4 z-10">
         <button className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white">
           <LayoutDashboard className="w-6 h-6" />
         </button>
       </div>
-      
+
       {/* Main Content */}
       <div className="flex-1 p-4 md:p-8 overflow-auto">
         <div className="max-w-6xl mx-auto">
@@ -898,344 +1228,457 @@ function PersonalizedRoadmap() {
               <ChevronLeft className="w-4 h-4 mr-2" />
               Back to Career Preparation
             </button>
-            
+
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Your Personalized Career Roadmap
             </h1>
             <p className="text-lg text-gray-600">
-              Based on your assessment, we've created a customized roadmap to help you become a {careerPrediction.role}.
+              Based on your assessment, we've created a customized roadmap to
+              help you become a {careerPrediction.role}.
             </p>
           </div>
 
-        {/* Career Prediction Card */}
-        <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm mb-8">
-          <div className="flex flex-col md:flex-row gap-8">
-            <div className="md:w-1/3">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4">
-                <Target className="w-12 h-12 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{careerPrediction.role}</h2>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full" 
-                    style={{ width: `${careerPrediction.matchPercentage}%` }}
-                  ></div>
+          {/* Career Prediction Card */}
+          <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm mb-8">
+            <div className="flex flex-col md:flex-row gap-8">
+              <div className="md:w-1/3">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4">
+                  <Target className="w-12 h-12 text-white" />
                 </div>
-                <span className="text-sm font-bold text-gray-900">{careerPrediction.matchPercentage}%</span>
-              </div>
-              <p className="text-gray-600 text-sm">Match with your profile</p>
-            </div>
-            
-            <div className="md:w-2/3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Description</h3>
-                  <p className="text-gray-600 text-sm mb-4">{careerPrediction.description}</p>
-                  
-                  <h3 className="font-bold text-gray-900 mb-2">Internship Quality</h3>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
-                        style={{ width: `${careerPrediction.internshipQuality}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-sm font-bold text-gray-900">{careerPrediction.internshipQuality}%</span>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  {careerPrediction.role}
+                </h2>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full"
+                      style={{ width: `${careerPrediction.matchPercentage}%` }}
+                    ></div>
                   </div>
+                  <span className="text-sm font-bold text-gray-900">
+                    {careerPrediction.matchPercentage}%
+                  </span>
                 </div>
-                
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-2">Key Skills</h3>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {(careerPrediction.keySkills || []).map((skill, index) => (
-                      <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                        {skill}
+                <p className="text-gray-600 text-sm">Match with your profile</p>
+              </div>
+
+              <div className="md:w-2/3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-2">
+                      Description
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4">
+                      {careerPrediction.description}
+                    </p>
+
+                    <h3 className="font-bold text-gray-900 mb-2">
+                      Internship Quality
+                    </h3>
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full"
+                          style={{
+                            width: `${careerPrediction.internshipQuality}%`,
+                          }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-bold text-gray-900">
+                        {careerPrediction.internshipQuality}%
                       </span>
-                    ))}
+                    </div>
                   </div>
-                  
-                  <h3 className="font-bold text-gray-900 mb-2">Growth Outlook</h3>
-                  <p className="text-gray-600 text-sm">{careerPrediction.growthOutlook}</p>
+
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-2">Key Skills</h3>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {(careerPrediction.keySkills || []).map(
+                        (skill, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                          >
+                            {skill}
+                          </span>
+                        ),
+                      )}
+                    </div>
+
+                    <h3 className="font-bold text-gray-900 mb-2">
+                      Growth Outlook
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {careerPrediction.growthOutlook}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Roadmap Overview */}
-        <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">{roadmap.title}</h2>
-            <div className="flex gap-3">
-              <button
-                onClick={downloadRoadmap}
-                className="px-4 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Download
-              </button>
-              <button
-                onClick={shareRoadmap}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 flex items-center gap-2"
-              >
-                <Share className="w-4 h-4" />
-                Share
-              </button>
+          {/* Roadmap Overview */}
+          <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {roadmap.title}
+              </h2>
+              <div className="flex gap-3">
+                <button
+                  onClick={downloadRoadmap}
+                  className="px-4 py-2 border border-gray-300 rounded-lg font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </button>
+                <button
+                  onClick={shareRoadmap}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 flex items-center gap-2"
+                >
+                  <Share className="w-4 h-4" />
+                  Share
+                </button>
+              </div>
+            </div>
+
+            <p className="text-gray-600 mb-6">{roadmap.description}</p>
+
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span>Total Duration: {roadmap.totalDuration}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                <span>5 Milestones</span>
+              </div>
             </div>
           </div>
-          
-          <p className="text-gray-600 mb-6">{roadmap.description}</p>
-          
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <span>Total Duration: {roadmap.totalDuration}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              <span>5 Milestones</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Roadmap Milestones */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-900">Your Career Journey</h2>
-          
-          {(roadmap?.milestones || []).map((milestone, index) => (
-            <div 
-              key={milestone.id}
-              className={`bg-white rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer ${
-                activeMilestone === milestone.id 
-                  ? 'border-blue-500 shadow-lg' 
-                  : 'border-gray-200 hover:border-gray-300'
-              } ${milestone.completed ? 'bg-green-50 border-green-200' : ''}`}
-              onClick={() => setActiveMilestone(activeMilestone === milestone.id ? null : milestone.id)}
-            >
-              <div className="flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  milestone.completed 
-                    ? 'bg-green-500' 
-                    : 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                }`}>
-                  {milestone.completed ? (
-                    <Check className="w-5 h-5 text-white" />
-                  ) : (
-                    <span className="text-white font-bold">{index + 1}</span>
-                  )}
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-bold text-gray-900">{milestone.title}</h3>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-600">{milestone.duration}</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleMilestoneCompletion(milestone.id);
-                        }}
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                          milestone.completed 
-                            ? 'bg-green-500 border-green-500' 
-                            : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                      >
-                        {milestone.completed && <Check className="w-3 h-3 text-white" />}
-                      </button>
-                    </div>
+          {/* Roadmap Milestones */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Your Career Journey
+            </h2>
+
+            {(roadmap?.milestones || []).map((milestone, index) => (
+              <div
+                key={milestone.id}
+                className={`bg-white rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer ${
+                  activeMilestone === milestone.id
+                    ? "border-blue-500 shadow-lg"
+                    : "border-gray-200 hover:border-gray-300"
+                } ${milestone.completed ? "bg-green-50 border-green-200" : ""}`}
+                onClick={() =>
+                  setActiveMilestone(
+                    activeMilestone === milestone.id ? null : milestone.id,
+                  )
+                }
+              >
+                <div className="flex items-start gap-4">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      milestone.completed
+                        ? "bg-green-500"
+                        : "bg-gradient-to-br from-blue-500 to-indigo-600"
+                    }`}
+                  >
+                    {milestone.completed ? (
+                      <Check className="w-5 h-5 text-white" />
+                    ) : (
+                      <span className="text-white font-bold">{index + 1}</span>
+                    )}
                   </div>
-                  
-                  <p className="text-gray-600 mb-4">{milestone.description}</p>
-                  
-                  <div className="mb-4">
-                    <h4 className="font-bold text-gray-900 mb-2">Skills to Develop</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {milestone.skills.map((skill, skillIndex) => (
-                        <span key={skillIndex} className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                          {skill}
+
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {milestone.title}
+                      </h3>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-600">
+                          {milestone.duration}
                         </span>
-                      ))}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleMilestoneCompletion(milestone.id);
+                          }}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            milestone.completed
+                              ? "bg-green-500 border-green-500"
+                              : "border-gray-300 hover:border-gray-400"
+                          }`}
+                        >
+                          {milestone.completed && (
+                            <Check className="w-3 h-3 text-white" />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {activeMilestone === milestone.id && (
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-2">Recommended Resources</h4>
-                      <div className="space-y-2">
-                        {milestone.resources.map((resource, resourceIndex) => (
-                          <div key={resourceIndex} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                              resource.type === 'course' ? 'bg-blue-100 text-blue-600' :
-                              resource.type === 'project' ? 'bg-green-100 text-green-600' :
-                              resource.type === 'certification' ? 'bg-purple-100 text-purple-600' :
-                              'bg-yellow-100 text-yellow-600'
-                            }`}>
-                              {resource.type === 'course' && <BookOpen className="w-4 h-4" />}
-                              {resource.type === 'project' && <Target className="w-4 h-4" />}
-                              {resource.type === 'certification' && <Award className="w-4 h-4" />}
-                              {resource.type === 'article' && <FileText className="w-4 h-4" />}
-                            </div>
-                            <div className="flex-1">
-                              <h5 className="font-medium text-gray-900">{resource.title}</h5>
-                              <p className="text-xs text-gray-600 capitalize">{resource.type}</p>
-                            </div>
-                            <button
-                              onClick={() => {
-                                // Open appropriate website based on resource type
-                                if (resource.type === 'course') {
-                                  window.open('https://www.coursera.org', '_blank');
-                                } else if (resource.type === 'project') {
-                                  window.open('https://github.com', '_blank');
-                                } else if (resource.type === 'certification') {
-                                  window.open('https://www.coursera.org/professional-certificates', '_blank');
-                                } else {
-                                  window.open('https://medium.com', '_blank');
-                                }
-                              }}
-                              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
-                            >
-                              Learn More <ArrowRight className="w-3 h-3" />
-                            </button>
-                          </div>
+
+                    <p className="text-gray-600 mb-4">
+                      {milestone.description}
+                    </p>
+
+                    <div className="mb-4">
+                      <h4 className="font-bold text-gray-900 mb-2">
+                        Skills to Develop
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {milestone.skills.map((skill, skillIndex) => (
+                          <span
+                            key={skillIndex}
+                            className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                          >
+                            {skill}
+                          </span>
                         ))}
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
 
-        {/* Recommended Courses Section */}
-        <div className="mt-12 bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Recommended Courses</h2>
-            <button
-              onClick={() => setShowCourses(!showCourses)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 flex items-center gap-2"
-            >
-              {showCourses ? 'Hide Courses' : 'Show Courses'} <Play className="w-4 h-4" />
-            </button>
-          </div>
-          
-          <p className="text-gray-600 mb-6">
-            Based on your career path as a {careerPrediction.role}, we've selected these courses to help you develop the necessary skills.
-          </p>
-          
-          {showCourses && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(courses || []).map((course) => (
-                <div
-                  key={course.id}
-                  className={`border-2 rounded-xl p-6 transition-all duration-300 ${
-                    course.completed
-                      ? 'bg-green-50 border-green-200'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-1">{course.title}</h3>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          course.difficulty === 'Beginner' ? 'bg-blue-100 text-blue-800' :
-                          course.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {course.difficulty}
-                        </span>
-                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                          {course.category}
-                        </span>
+                    {activeMilestone === milestone.id && (
+                      <div>
+                        <h4 className="font-bold text-gray-900 mb-2">
+                          Recommended Resources
+                        </h4>
+                        <div className="space-y-2">
+                          {milestone.resources.map(
+                            (resource, resourceIndex) => (
+                              <div
+                                key={resourceIndex}
+                                className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                              >
+                                <div
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                    resource.type === "course"
+                                      ? "bg-blue-100 text-blue-600"
+                                      : resource.type === "project"
+                                        ? "bg-green-100 text-green-600"
+                                        : resource.type === "certification"
+                                          ? "bg-purple-100 text-purple-600"
+                                          : "bg-yellow-100 text-yellow-600"
+                                  }`}
+                                >
+                                  {resource.type === "course" && (
+                                    <BookOpen className="w-4 h-4" />
+                                  )}
+                                  {resource.type === "project" && (
+                                    <Target className="w-4 h-4" />
+                                  )}
+                                  {resource.type === "certification" && (
+                                    <Award className="w-4 h-4" />
+                                  )}
+                                  {resource.type === "article" && (
+                                    <FileText className="w-4 h-4" />
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="font-medium text-gray-900">
+                                    {resource.title}
+                                  </h5>
+                                  <p className="text-xs text-gray-600 capitalize">
+                                    {resource.type}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    // Open appropriate website based on resource type
+                                    if (resource.type === "course") {
+                                      window.open(
+                                        "https://www.coursera.org",
+                                        "_blank",
+                                      );
+                                    } else if (resource.type === "project") {
+                                      window.open(
+                                        "https://github.com",
+                                        "_blank",
+                                      );
+                                    } else if (
+                                      resource.type === "certification"
+                                    ) {
+                                      window.open(
+                                        "https://www.coursera.org/professional-certificates",
+                                        "_blank",
+                                      );
+                                    } else {
+                                      window.open(
+                                        "https://medium.com",
+                                        "_blank",
+                                      );
+                                    }
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                                >
+                                  Learn More <ArrowRight className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ),
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{course.description}</p>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Clock className="w-4 h-4 mr-1" />
-                        <span>{course.duration}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <button
-                        onClick={() => toggleCourseCompletion(course.id)}
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mb-2 ${
-                          course.completed
-                            ? 'bg-green-500 border-green-500'
-                            : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                      >
-                        {course.completed && <Check className="w-3 h-3 text-white" />}
-                      </button>
-                      <span className="text-xs text-gray-500">
-                        {course.completed ? 'Completed' : 'Mark Complete'}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700">
-                      {course.completed ? 'Course Completed!' : 'Start Learning'}
-                    </span>
-                    <button
-                      onClick={() => course.link && window.open(course.link, '_blank')}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
-                    >
-                      Start Course <ArrowRight className="w-3 h-3" />
-                    </button>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Roadmap.sh Recommendation */}
-          <div className="mt-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div>
-                <h3 className="text-xl font-bold mb-2">Need More Learning Resources?</h3>
-                <p className="text-indigo-100">
-                  Check out roadmap.sh for comprehensive learning roadmaps across various tech domains.
-                </p>
               </div>
+            ))}
+          </div>
+
+          {/* Recommended Courses Section */}
+          <div className="mt-12 bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Recommended Courses
+              </h2>
               <button
-                onClick={redirectToRoadmapSh}
-                className="px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors flex items-center gap-2 whitespace-nowrap"
+                onClick={() => setShowCourses(!showCourses)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 flex items-center gap-2"
               >
-                Visit roadmap.sh <ArrowRight className="w-4 h-4" />
+                {showCourses ? "Hide Courses" : "Show Courses"}{" "}
+                <Play className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-gray-600 mb-6">
+              Based on your career path as a {careerPrediction.role}, we've
+              selected these courses to help you develop the necessary skills.
+            </p>
+
+            {showCourses && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {(courses || []).map((course) => (
+                  <div
+                    key={course.id}
+                    className={`border-2 rounded-xl p-6 transition-all duration-300 ${
+                      course.completed
+                        ? "bg-green-50 border-green-200"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-1">
+                          {course.title}
+                        </h3>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span
+                            className={`px-2 py-1 text-xs rounded-full ${
+                              course.difficulty === "Beginner"
+                                ? "bg-blue-100 text-blue-800"
+                                : course.difficulty === "Intermediate"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {course.difficulty}
+                          </span>
+                          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                            {course.category}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">
+                          {course.description}
+                        </p>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Clock className="w-4 h-4 mr-1" />
+                          <span>{course.duration}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <button
+                          onClick={() => toggleCourseCompletion(course.id)}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mb-2 ${
+                            course.completed
+                              ? "bg-green-500 border-green-500"
+                              : "border-gray-300 hover:border-gray-400"
+                          }`}
+                        >
+                          {course.completed && (
+                            <Check className="w-3 h-3 text-white" />
+                          )}
+                        </button>
+                        <span className="text-xs text-gray-500">
+                          {course.completed ? "Completed" : "Mark Complete"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-gray-700">
+                        {course.completed
+                          ? "Course Completed!"
+                          : "Start Learning"}
+                      </span>
+                      <button
+                        onClick={() =>
+                          course.link && window.open(course.link, "_blank")
+                        }
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+                      >
+                        Start Course <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Roadmap.sh Recommendation */}
+            <div className="mt-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold mb-2">
+                    Need More Learning Resources?
+                  </h3>
+                  <p className="text-indigo-100">
+                    Check out roadmap.sh for comprehensive learning roadmaps
+                    across various tech domains.
+                  </p>
+                </div>
+                <button
+                  onClick={redirectToRoadmapSh}
+                  className="px-6 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-colors flex items-center gap-2 whitespace-nowrap"
+                >
+                  Visit roadmap.sh <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Next Steps */}
+          <div className="mt-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-8 text-white">
+            <h2 className="text-2xl font-bold mb-4">
+              Ready to Begin Your Journey?
+            </h2>
+            <p className="mb-6 text-blue-100">
+              Start with the first milestone in your personalized roadmap and
+              track your progress as you develop the skills needed for your
+              dream career.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => {
+                  setShowCourses(true);
+                  // Open the first course if available
+                  if (courses.length > 0 && courses[0].link) {
+                    window.open(courses[0].link, "_blank");
+                  } else {
+                    window.open("https://www.coursera.org", "_blank");
+                  }
+                }}
+                className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+              >
+                Start First Course <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => router.push("/career-preparation/schedule-reminder")}
+                className="px-6 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors"
+              >
+                Schedule Reminder
               </button>
             </div>
           </div>
         </div>
-
-        {/* Next Steps */}
-        <div className="mt-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">Ready to Begin Your Journey?</h2>
-          <p className="mb-6 text-blue-100">
-            Start with the first milestone in your personalized roadmap and track your progress as you develop the skills needed for your dream career.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={() => {
-                setShowCourses(true);
-                // Open the first course if available
-                if (courses.length > 0 && courses[0].link) {
-                  window.open(courses[0].link, '_blank');
-                } else {
-                  window.open('https://www.coursera.org', '_blank');
-                }
-              }}
-              className="px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
-            >
-              Start First Course <ArrowRight className="w-4 h-4" />
-            </button>
-            <button className="px-6 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors">
-              Schedule Reminder
-            </button>
-          </div>
-        </div>
-      </div>
       </div>
     </div>
   );
