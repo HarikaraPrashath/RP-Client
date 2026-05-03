@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -67,10 +68,14 @@ export default function AppSider({ variant }: { variant?: "light" }) {
     >
       <div className="p-6 flex items-center justify-between">
         {!collapsed && (
-          <div className="flex flex-col">
-            <span className="text-xl font-bold text-primary tracking-tight">Career Hub</span>
-            <span className="text-xs text-muted-foreground uppercase tracking-widest font-medium">Focused tools</span>
-          </div>
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 relative">
+              <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent transition">
+              Mentora
+            </span>
+          </Link>
         )}
         {collapsed && <LayoutDashboard className="w-8 h-8 text-primary mx-auto" />}
       </div>
