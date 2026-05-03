@@ -88,29 +88,47 @@ interface ValidationErrors {
   };
 }
 
-const programmingLanguages = [
-  'Python', 'JavaScript', 'Java', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Swift', 'Kotlin',
-  'TypeScript', 'Rust', 'Scala', 'Perl', 'MATLAB', 'R', 'SQL', 'HTML/CSS', 'Bash', 'PowerShell'
+const softwareDevelopment = [
+  'Python', 'JavaScript', 'TypeScript', 'Java', 'C', 'C++', 'C#', 'PHP', 'Ruby', 'Go',
+  'Swift', 'Kotlin', 'Rust', 'Scala', 'HTML5', 'CSS3', 'React', 'Next.js', 'Vue.js',
+  'Angular', 'Svelte', 'Node.js', 'Express.js', 'NestJS', 'Django', 'Flask', 'FastAPI',
+  'Spring Boot', 'Laravel', 'ASP.NET', '.NET Core', 'REST API', 'GraphQL',
+  'Microservices', 'JWT Authentication', 'OAuth', 'Git', 'GitHub', 'GitLab',
+  'Webpack', 'Vite', 'Tailwind CSS', 'Bootstrap', 'Material UI', 'Redux'
 ];
 
-const databaseSkills = [
-  'MySQL', 'PostgreSQL', 'MongoDB', 'Oracle', 'SQL Server', 'Redis', 'Firebase',
-  'SQLite', 'Cassandra', 'DynamoDB', 'Elasticsearch', 'Neo4j', 'MariaDB'
+const dataAndAI = [
+  'SQL', 'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'Firebase', 'Pandas', 'NumPy',
+  'Matplotlib', 'SciPy', 'Jupyter Notebook', 'Tableau', 'Power BI', 'Excel',
+  'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'Keras',
+  'Scikit-learn', 'OpenCV', 'Natural Language Processing', 'LLMs', 'Hugging Face',
+  'LangChain', 'OpenAI API', 'ChatGPT', 'Claude', 'Gemini', 'Prompt Engineering',
+  'RAG', 'AI Agents', 'Vector Databases', 'Pinecone', 'FAISS'
 ];
 
-const frameworks = [
-  'React', 'Angular', 'Vue.js', 'Django', 'Flask', 'Spring', 'Node.js', 'Express.js', '.NET',
-  'Next.js', 'Nuxt.js', 'Laravel', 'Ruby on Rails', 'ASP.NET', 'Flutter', 'React Native', 'TensorFlow'
+const cloudAndDevOps = [
+  'AWS', 'Microsoft Azure', 'Google Cloud Platform', 'Docker', 'Kubernetes',
+  'Jenkins', 'GitHub Actions', 'GitLab CI/CD', 'Terraform', 'Ansible', 'Helm',
+  'Prometheus', 'Grafana', 'Nginx', 'Apache', 'Linux', 'Ubuntu', 'CentOS',
+  'CI/CD', 'Infrastructure as Code', 'Cloudflare', 'Vercel', 'Netlify',
+  'DigitalOcean', 'Heroku', 'Firebase Hosting'
+];
+const cybersecurityAndNetworking = [
+  'Kali Linux', 'Metasploit', 'Nmap', 'Wireshark', 'Burp Suite', 'Splunk',
+  'SIEM', 'Firewalls', 'Penetration Testing', 'Ethical Hacking', 'Encryption',
+  'IAM', 'Cloud Security', 'SOC', 'Incident Response', 'OWASP', 'TCP/IP',
+  'DNS', 'DHCP', 'VPN', 'Routing', 'Switching', 'Cisco', 'Juniper',
+  'Fortinet', 'Load Balancing', 'Network Security', 'MikroTik'
 ];
 
-const tools = [
-  'Git', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'Google Cloud', 'Jira', 'Figma',
-  'VS Code', 'IntelliJ IDEA', 'Postman', 'Slack', 'Trello', 'Confluence', 'Jenkins', 'GitLab'
-];
-
-const cloudPlatforms = [
-  'Amazon Web Services (AWS)', 'Microsoft Azure', 'Google Cloud Platform (GCP)',
-  'IBM Cloud', 'Oracle Cloud', 'Alibaba Cloud', 'Heroku', 'DigitalOcean'
+const designAndEmergingTech = [
+  'Figma', 'Adobe XD', 'Photoshop', 'Illustrator', 'Canva', 'Sketch',
+  'Wireframing', 'Prototyping', 'User Research', 'Design Systems', 'Typography',
+  'Blockchain', 'Ethereum', 'Solidity', 'Web3.js', 'Smart Contracts', 'DeFi',
+  'Arduino', 'Raspberry Pi', 'ESP32', 'Embedded Systems', 'IoT', 'MQTT',
+  'PCB Design', 'Robotics', 'Unity', 'Unreal Engine', 'Blender', 'ARKit',
+  'ARCore', 'Virtual Reality', 'Augmented Reality', 'Google Analytics',
+  'SEO Tools', 'SEMrush', 'Ahrefs', 'Content Strategy'
 ];
 
 const methodologies = [
@@ -236,7 +254,7 @@ function StudentAssessment() {
       stressManagement: '',
       learningStyle: '',
       internship: '',
-      projects: 0,
+      projects: '',
       certifications: ''
     }
   });
@@ -450,7 +468,7 @@ function StudentAssessment() {
     if (!career.stressManagement.trim()) newErrors.stressManagement = 'Stress management approach is required';
     if (!career.learningStyle.trim()) newErrors.learningStyle = 'Learning style is required';
     if (!career.internship.trim()) newErrors.internship = 'Internship experience is required';
-    if (career.projects === undefined || career.projects < 0) newErrors.projects = 'Number of projects is required';
+    if (career.projects === undefined || career.projects ) newErrors.projects = 'Number of projects is required';
     if (!career.certifications.trim()) newErrors.certifications = 'Certifications information is required';
     
     setErrors(prev => ({ ...prev, career: newErrors }));
@@ -761,11 +779,8 @@ function StudentAssessment() {
             onChange={(e) => handlePersonalInfoChange('gender', e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="">Select gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
-            <option value="non-binary">Non-binary</option>
-            <option value="prefer-not-to-say">Prefer not to say</option>
           </select>
         </div>
         
@@ -813,7 +828,6 @@ function StudentAssessment() {
             }`}
             required
           >
-            <option value="">Select education level</option>
             <option value="high-school">High School</option>
             <option value="associate">Associate Degree</option>
             <option value="bachelor">Bachelor's Degree</option>
@@ -835,7 +849,6 @@ function StudentAssessment() {
             }`}
             required
           >
-            <option value="">Select your major</option>
             {majorOptions.map((major) => (
               <option key={major} value={major}>{major}</option>
             ))}
@@ -876,7 +889,6 @@ function StudentAssessment() {
             }`}
             required
           >
-            <option value="">Select academic year</option>
             <option value="1">1st Year</option>
             <option value="2">2nd Year</option>
             <option value="3">3rd Year</option>
@@ -891,7 +903,6 @@ function StudentAssessment() {
             onChange={(e) => handleAcademicChange('currentSemester', e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="">Select semester</option>
             <option value="1">Semester 1</option>
             <option value="2">Semester 2</option>
           </select>
@@ -909,7 +920,7 @@ function StudentAssessment() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">Programming Languages</label>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {programmingLanguages.map((lang) => (
+            {softwareDevelopment.map((lang) => (
               <label key={lang} className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -930,7 +941,7 @@ function StudentAssessment() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">Databases</label>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {databaseSkills.map((db) => (
+            {dataAndAI.map((db) => (
               <label key={db} className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -947,7 +958,7 @@ function StudentAssessment() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">Frameworks & Libraries</label>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {frameworks.map((framework) => (
+            {cloudAndDevOps.map((framework) => (
               <label key={framework} className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -965,7 +976,7 @@ function StudentAssessment() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">Cloud Platforms</label>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {cloudPlatforms.map((platform) => (
+            {cybersecurityAndNetworking.map((platform) => (
               <label key={platform} className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -996,7 +1007,6 @@ function StudentAssessment() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           >
-            <option value="">Select stress management approach</option>
             <option value="excellent">Excellent - Thrive under pressure</option>
             <option value="good">Good - Manage stress effectively</option>
             <option value="moderate">Moderate - Need some support</option>
@@ -1012,7 +1022,6 @@ function StudentAssessment() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           >
-            <option value="">Select learning style</option>
             <option value="visual">Visual - Learn through seeing</option>
             <option value="auditory">Auditory - Learn through listening</option>
             <option value="kinesthetic">Kinesthetic - Learn by doing</option>
@@ -1039,7 +1048,6 @@ function StudentAssessment() {
             }`}
             required
           >
-            <option value="">Select preferred work environment</option>
             <option value="startup">Startup - Fast-paced, dynamic</option>
             <option value="corporate">Corporate - Structured, established</option>
             <option value="remote">Remote - Work from anywhere</option>
@@ -1061,7 +1069,6 @@ function StudentAssessment() {
             }`}
             required
           >
-            <option value="">Select work-life balance preference</option>
             <option value="career-focused">Career-focused - Willing to work extra hours</option>
             <option value="balanced">Balanced - Equal priority to work and personal life</option>
             <option value="life-focused">Life-focused - Strict work hours boundaries</option>
@@ -1090,7 +1097,6 @@ function StudentAssessment() {
             }`}
             required
           >
-            <option value="">Select your stress management approach</option>
             <option value="excellent">Excellent - Thrive under pressure</option>
             <option value="good">Good - Manage stress effectively</option>
             <option value="moderate">Moderate - Need some support</option>
@@ -1111,7 +1117,6 @@ function StudentAssessment() {
             }`}
             required
           >
-            <option value="">Select your learning style</option>
             <option value="kinesthetic">Kinesthetic - Learn by doing</option>
             <option value="auditory">Auditory - Learn through listening</option>
             <option value="visual">Visual - Learn through seeing</option>
@@ -1133,7 +1138,6 @@ function StudentAssessment() {
             }`}
             required
           >
-            <option value="">Select your internship experience</option>
             <option value="yes">Yes</option>
             <option value="no">No</option>
           </select>
@@ -1170,7 +1174,6 @@ function StudentAssessment() {
             }`}
             required
           >
-            <option value="">Select your certification</option>
             <option value="google">Google</option>
             <option value="aws">AWS</option>
             <option value="azure">Azure</option>
