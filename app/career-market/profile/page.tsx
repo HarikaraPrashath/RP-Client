@@ -51,13 +51,6 @@ type BestMatch = {
 };
 type TopMatch = BestMatch;
 
-type CvFile = {
-  id: string;
-  originalName: string;
-  size: number;
-  uploadedAt: string | null;
-  viewUrl: string;
-};
 
 type Basics = {
   firstName: string;
@@ -83,6 +76,10 @@ type ProfilePayload = {
   projects: string[];
   certifications: string[];
   recommendations: Recommendation[];
+  careerGuide?: any;
+  careerPrep?: any;
+  careerMarket?: any;
+  careerEmotion?: any;
 };
 
 const emptyExperience: Experience = {
@@ -673,15 +670,16 @@ export default function ProfilePage() {
   const [showCertificationsForm, setShowCertificationsForm] = useState(false);
   const [certificationsDraft, setCertificationsDraft] = useState("");
 
-  const [cvFile, setCvFile] = useState<CvFile | null>(null);
-  const [cvLoading, setCvLoading] = useState(true);
-  const [cvError, setCvError] = useState<string | null>(null);
 
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [showRecommendationForm, setShowRecommendationForm] = useState(false);
   const [recommendationDraft, setRecommendationDraft] = useState<Recommendation>(
     emptyRecommendation
   );
+  const [careerGuide, setCareerGuide] = useState<any>(null);
+  const [careerPrep, setCareerPrep] = useState<any>(null);
+  const [careerMarket, setCareerMarket] = useState<any>(null);
+  const [careerEmotion, setCareerEmotion] = useState<any>(null);
   const [isProjectEditOpen, setIsProjectEditOpen] = useState(false);
   const [projectEditDraft, setProjectEditDraft] = useState("");
   const [projectEditRange, setProjectEditRange] = useState<{
@@ -714,16 +712,6 @@ export default function ProfilePage() {
     return `${(kb / 1024).toFixed(2)} MB`;
   };
 
-  const cvMeta = cvFile
-    ? [
-      cvFile.originalName,
-      cvFile.size ? formatSize(cvFile.size) : "",
-      cvFile.uploadedAt ? new Date(cvFile.uploadedAt).toLocaleDateString() : "",
-    ]
-      .filter(Boolean)
-      .join(" - ")
-    : "";
-  const cvViewUrl = cvFile ? `${API_BASE}${cvFile.viewUrl}` : "";
 
   const persistProfile = async (overrides?: Partial<ProfilePayload>) => {
     const payload: ProfilePayload = {
@@ -811,6 +799,10 @@ export default function ProfilePage() {
         setProjects(Array.isArray(data?.projects) ? data.projects : []);
         setCertifications(Array.isArray(data?.certifications) ? data.certifications : []);
         setRecommendations(Array.isArray(data?.recommendations) ? data.recommendations : []);
+        setCareerGuide(data?.careerGuide || null);
+        setCareerPrep(data?.careerPrep || null);
+        setCareerMarket(data?.careerMarket || null);
+        setCareerEmotion(data?.careerEmotion || null);
       } catch {
         // No-op; use local defaults.
       } finally {
@@ -824,35 +816,6 @@ export default function ProfilePage() {
     };
   }, []);
 
-  useEffect(() => {
-    let ignore = false;
-    const loadCv = async () => {
-      setCvLoading(true);
-      setCvError(null);
-      try {
-        const res = await fetch(`${API_BASE}/cv`);
-        if (!res.ok) {
-          throw new Error("Failed to load CV");
-        }
-        const data = await res.json();
-        if (ignore) return;
-        setCvFile(data?.file ?? null);
-      } catch {
-        if (!ignore) {
-          setCvError("Unable to load CV.");
-        }
-      } finally {
-        if (!ignore) {
-          setCvLoading(false);
-        }
-      }
-    };
-
-    loadCv();
-    return () => {
-      ignore = true;
-    };
-  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -1835,39 +1798,29 @@ export default function ProfilePage() {
                   </div>
                 </SectionCard>
 
-                <SectionCard title="CV" description="Keep your latest resume handy.">
+
+                <SectionCard title="Recommendations" description="Tailored career guidance and insights.">
                   <div className="flex items-start gap-3">
-                    <div className="grid size-10 place-items-center rounded-xl bg-primary/10 text-xs font-semibold text-primary ring-1 ring-primary/15">
-                      CV
+                    <div className="grid size-10 place-items-center rounded-xl bg-indigo-500/10 text-xs font-semibold text-indigo-600 ring-1 ring-indigo-500/15">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">
-                        {cvLoading ? "Loading CV" : cvFile ? "Latest CV" : "No CV uploaded"}
+                        {careerGuide?.top_1_prediction ? "AI Career Guide" : "No recommendations"}
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {cvLoading
-                          ? "Fetching your most recent upload."
-                          : cvError
-                            ? cvError
-                            : cvFile
-                              ? cvMeta
-                              : "Upload a CV to store it here."}
+                        {careerGuide?.top_1_prediction 
+                          ? `Top match: ${careerGuide.top_1_prediction}`
+                          : "Get tailored roadmaps and market insights."}
                       </p>
-                      <div className="mt-3 flex items-center gap-2">
-                        {!cvLoading && !cvError && cvFile ? (
-                          <a href={cvViewUrl} target="_blank" rel="noreferrer">
-                            <Button size="sm" variant="secondary">
-                              View
-                            </Button>
-                          </a>
-                        ) : null}
-                        {!cvLoading && !cvError && !cvFile ? (
-                          <Link href="/career-market/cv_extracter">
-                            <Button size="sm" variant="primary">
-                              Upload
-                            </Button>
-                          </Link>
-                        ) : null}
+                      <div className="mt-3">
+                        <Link href="/recommendation">
+                          <Button size="sm" variant="primary" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-indigo-200 shadow-lg">
+                            {careerGuide?.top_1_prediction ? "Open Insights" : "Generate Now"}
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </div>
