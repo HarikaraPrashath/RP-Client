@@ -165,7 +165,14 @@ const StatCard = ({ title, items, tone, icon: Icon, description }: {
 
 const SkillTrendExplorer = ({ history, skills }: { history: TrendEntry[], skills: string[] }) => {
   const [selectedSkill, setSelectedSkill] = useState(skills[0] || "");
+  const [selectedKeyword, setSelectedKeyword] = useState("All Roles");
   const [range, setRange] = useState("1M");
+
+  // Dynamically derive keywords that exist in the history data
+  const availableKeywords = useMemo(() => {
+    const kws = new Set(history.map(h => h.keyword).filter(Boolean) as string[]);
+    return ["All Roles", ...Array.from(kws).sort()];
+  }, [history]);
 
   // Dynamically derive years that exist in the history data
   const availableYears = useMemo(() => {
@@ -173,23 +180,27 @@ const SkillTrendExplorer = ({ history, skills }: { history: TrendEntry[], skills
     return Array.from(years).sort();
   }, [history]);
 
-  // Which years actually have data for the selected skill
+  // Which years actually have data for the selected skill and keyword
   const yearsWithData = useMemo(() => {
     return new Set(
       history
         .filter(h => {
+          if (selectedKeyword !== "All Roles" && h.keyword !== selectedKeyword) return false;
           const count = h.skillCounts?.[selectedSkill] || h.skillCounts?.[selectedSkill.toLowerCase()] || 0;
           return Number(count) > 0;
         })
         .map(h => new Date(h.ranAt).getFullYear())
     );
-  }, [history, selectedSkill]);
+  }, [history, selectedSkill, selectedKeyword]);
 
   const skillHistory = useMemo(() => {
     if (!selectedSkill) return [];
 
     const now = new Date();
     const filteredHistory = history.filter(h => {
+      // Keyword filter
+      if (selectedKeyword !== "All Roles" && h.keyword !== selectedKeyword) return false;
+
       const date = new Date(h.ranAt);
       const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
 
@@ -212,7 +223,7 @@ const SkillTrendExplorer = ({ history, skills }: { history: TrendEntry[], skills
     });
 
     return Object.entries(aggregated).map(([date, count]) => ({ date, count }));
-  }, [history, selectedSkill, range]);
+  }, [history, selectedSkill, selectedKeyword, range]);
 
   const peak = useMemo(() => {
     if (skillHistory.length === 0) return null;
@@ -280,13 +291,23 @@ const SkillTrendExplorer = ({ history, skills }: { history: TrendEntry[], skills
             </>
           )}
 
-          <select
-            value={selectedSkill}
-            onChange={(e) => setSelectedSkill(e.target.value)}
-            className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-3 text-sm font-bold outline-none focus:ring-4 focus:ring-primary/5 transition-all"
-          >
-            {skills.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <div className="flex gap-3">
+            <select
+              value={selectedKeyword}
+              onChange={(e) => setSelectedKeyword(e.target.value)}
+              className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-3 text-sm font-bold outline-none focus:ring-4 focus:ring-primary/5 transition-all"
+            >
+              {availableKeywords.map(k => <option key={k} value={k}>{k}</option>)}
+            </select>
+
+            <select
+              value={selectedSkill}
+              onChange={(e) => setSelectedSkill(e.target.value)}
+              className="bg-slate-50 border border-slate-100 rounded-2xl px-6 py-3 text-sm font-bold outline-none focus:ring-4 focus:ring-primary/5 transition-all"
+            >
+              {skills.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
         </div>
       </div>
 
