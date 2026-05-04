@@ -79,6 +79,8 @@ function ScheduleReminder() {
     recurringType: "weekly" as Reminder["recurringType"],
   });
 
+  // Load saved reminders from browser storage when the component mounts.
+  // This keeps the user's reminders persistent across page reloads.
   useEffect(() => {
     // Load reminders from localStorage
     const savedReminders = localStorage.getItem("careerReminders");
@@ -92,12 +94,16 @@ function ScheduleReminder() {
     }
   }, []);
 
+  // Persist reminder changes to localStorage whenever the reminder list updates.
+  // This ensures the latest reminders are stored locally for future visits.
   useEffect(() => {
     // Save reminders to localStorage whenever reminders change
     localStorage.setItem("careerReminders", JSON.stringify(reminders));
   }, [reminders]);
 
   // Check for upcoming reminders every minute
+  // Periodically check scheduled reminders and show notifications for upcoming events.
+  // This triggers browser or in-app alerts when reminders become due.
   useEffect(() => {
     const checkReminders = () => {
       const now = new Date();
@@ -142,6 +148,8 @@ function ScheduleReminder() {
     return () => clearInterval(interval);
   }, [reminders]);
 
+  // Handle add/edit reminder form submission.
+  // This creates a new reminder or updates an existing one, then resets the form.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -189,6 +197,8 @@ function ScheduleReminder() {
     setShowAddForm(false);
   };
 
+  // Load an existing reminder into the form for editing.
+  // This allows the user to update reminder details without creating a new entry.
   const handleEdit = (reminder: Reminder) => {
     setFormData({
       title: reminder.title,
@@ -205,18 +215,23 @@ function ScheduleReminder() {
     setShowAddForm(true);
   };
 
+  // Remove a reminder permanently after user confirmation.
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this reminder?")) {
       setReminders((prev) => prev.filter((r) => r.id !== id));
     }
   };
 
+  // Toggle the completed state of a reminder.
+  // This lets users mark tasks as done or undo completion.
   const toggleComplete = (id: string) => {
     setReminders((prev) =>
       prev.map((r) => (r.id === id ? { ...r, completed: !r.completed } : r)),
     );
   };
 
+  // Add an in-app notification and optionally show a browser notification.
+  // This is used for reminder alerts and message feedback in the UI.
   const showNotification = (
     title: string,
     message: string,
@@ -242,10 +257,12 @@ function ScheduleReminder() {
     }
   };
 
+  // Remove a notification from the visible list.
   const removeNotification = (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
+  // Choose icon based on reminder category for display in the UI.
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "task":
@@ -263,6 +280,7 @@ function ScheduleReminder() {
     }
   };
 
+  // Choose color classes based on reminder category for visual grouping.
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "task":
@@ -280,6 +298,7 @@ function ScheduleReminder() {
     }
   };
 
+  // Choose text color by priority so high-priority reminders stand out.
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
@@ -293,12 +312,14 @@ function ScheduleReminder() {
     }
   };
 
+  // Check if a reminder has already passed and is not completed.
   const isOverdue = (reminder: Reminder) => {
     if (reminder.completed) return false;
     const reminderDateTime = new Date(`${reminder.date}T${reminder.time}`);
     return reminderDateTime < new Date();
   };
 
+  // Check if a reminder is due within the next 24 hours and not completed.
   const isUpcoming = (reminder: Reminder) => {
     if (reminder.completed) return false;
     const reminderDateTime = new Date(`${reminder.date}T${reminder.time}`);
