@@ -101,7 +101,7 @@ export default function AppSider({ variant }: { variant?: "light" }) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-card border-r border-border transition-all duration-300 z-50 flex flex-col",
+        "sticky top-0 h-screen bg-card border-r border-border transition-all duration-300 z-50 flex flex-col",
         collapsed ? "w-20" : "w-64",
         variant === "light" ? "bg-background" : "bg-card"
       )}

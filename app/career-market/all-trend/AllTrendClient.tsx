@@ -6,7 +6,8 @@ import {
   Search,
   Globe,
   Zap,
-  Briefcase
+  Briefcase,
+  BarChart3
 } from "lucide-react";
 import {
   AreaChart,
@@ -294,88 +295,111 @@ export default function AllTrendClient({ summary, history }: AllTrendClientProps
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 selection:bg-primary/20">
-      <div className="max-w-[1500px] mx-auto p-4 lg:p-12 space-y-16">
+      <div className="max-w-[1600px] mx-auto p-6 lg:p-12 xl:p-20 space-y-20">
 
-        {/* HERO SECTION */}
-        <header className="grid grid-cols-1 xl:grid-cols-2 gap-12 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
-          >
-            <div className="flex flex-wrap gap-4 pt-4 items-center">
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white shadow-xl border border-slate-100">
-                <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-sm font-bold text-slate-700">Live Market Signals</span>
-              </div>
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white shadow-xl border border-slate-100 text-slate-700">
-                <Search size={16} className="text-primary" />
-                <span className="text-sm font-bold">8,400+ Job Signals</span>
+        {/* LIGHT PREMIUM HERO SECTION */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative rounded-[3rem] overflow-hidden bg-white text-slate-900 p-8 lg:p-12 shadow-xl shadow-slate-200/50 border border-slate-100"
+        >
+          {/* Background Decorative Elements */}
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary/5 rounded-full blur-[80px] pointer-events-none" />
+
+          <div className="relative z-10 grid grid-cols-1 xl:grid-cols-12 gap-12 items-center">
+            <div className="xl:col-span-7 space-y-8">
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-100">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Market Velocity Active</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-100">
+                  <Search size={14} className="text-primary" />
+                  <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">8,400+ Technical Signals</span>
+                </div>
               </div>
 
-              <SaveToProfileButton
-                type="allTrend"
-                label="Save Market Insights"
-                data={{
-                  topPromising: topPromising.map(p => ({ name: p.name, growth: p.growth, promise: p.promise })),
-                  rising: summary.skills.rising.slice(0, 5),
-                  emerging: summary.skills.emerging.slice(0, 5),
-                  windowDays: summary.windowDays,
-                  snapshotCount: summary.snapshotCount
-                }}
-              />
+              <div className="space-y-4">
+                <h1 className="text-4xl lg:text-6xl font-black tracking-tight leading-[1.1] text-slate-900">
+                  Track skill <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-600">momentum</span> over time
+                </h1>
+                <p className="text-lg text-slate-500 font-medium max-w-xl leading-relaxed">
+                  Each scrape saves a snapshot of job postings. Compare historical data to spot the skills and roles gaining momentum or fading out in real-time.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-6 pt-2">
+                <SaveToProfileButton
+                  type="allTrend"
+                  label="Export Market Report"
+                  data={{
+                    topPromising: topPromising.map(p => ({ name: p.name, growth: p.growth, promise: p.promise })),
+                    rising: summary.skills.rising.slice(0, 5),
+                    emerging: summary.skills.emerging.slice(0, 5),
+                    windowDays: summary.windowDays,
+                    snapshotCount: summary.snapshotCount
+                  }}
+                />
+                <div className="h-10 w-px bg-slate-100 hidden md:block" />
+                <div className="hidden md:block">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Last Updated</p>
+                  <p className="text-sm font-bold text-slate-600">{formatDate(summary.latestAt)}</p>
+                </div>
+              </div>
             </div>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white p-8 rounded-[3rem] shadow-2xl shadow-primary/10 border border-slate-100 relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <Zap size={200} />
-            </div>
-            <div className="relative z-10 grid grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Analysis window</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-slate-900">{summary.windowDays}</span>
-                  <span className="text-sm font-bold text-slate-500">Days</span>
+            <div className="xl:col-span-5">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 p-6 opacity-5">
+                  <Zap size={140} />
                 </div>
-                <div className="h-1.5 w-full bg-slate-100 rounded-full mt-4 overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 1.5 }} className="h-full bg-primary" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Data density</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-slate-900">{summary.snapshotCount}</span>
-                  <span className="text-sm font-bold text-slate-500">Events</span>
-                </div>
-                <div className="h-1.5 w-full bg-slate-100 rounded-full mt-4 overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: "85%" }} transition={{ duration: 1.5, delay: 0.2 }} className="h-full bg-emerald-500" />
-                </div>
-              </div>
-              <div className="col-span-2 pt-6 border-t border-slate-50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600">
-                      <Briefcase size={24} />
+
+                <div className="relative z-10 space-y-8">
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Analysis window</p>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-4xl font-black text-slate-900">{summary.windowDays}</span>
+                        <span className="text-xs font-bold text-slate-400 italic">Days</span>
+                      </div>
+                      <div className="h-1 w-full bg-slate-200 rounded-full mt-3 overflow-hidden">
+                        <motion.div initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 1.5 }} className="h-full bg-primary" />
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900">Market Coverage</h4>
-                      <p className="text-xs text-slate-500 font-medium">8 Key Industrial Sectors</p>
+                    <div className="space-y-2">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Data density</p>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-4xl font-black text-slate-900">{summary.snapshotCount}</span>
+                        <span className="text-xs font-bold text-slate-400 italic">Events</span>
+                      </div>
+                      <div className="h-1 w-full bg-slate-200 rounded-full mt-3 overflow-hidden">
+                        <motion.div initial={{ width: 0 }} animate={{ width: "85%" }} transition={{ duration: 1.5, delay: 0.2 }} className="h-full bg-emerald-500" />
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-black text-slate-900">{formatDate(summary.latestAt)}</p>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Snapshot Time</p>
+
+                  <div className="pt-6 border-t border-slate-200">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-primary shadow-sm">
+                        <BarChart3 size={24} />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-base">Market Coverage</h4>
+                        <p className="text-xs text-slate-500">8 Key Industrial Sectors Scanned</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </motion.div>
-        </header>
+          </div>
+        </motion.div>
 
         {/* PRIMARY ANALYTICS GRID */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
@@ -430,15 +454,15 @@ export default function AllTrendClient({ summary, history }: AllTrendClientProps
               viewport={{ once: true }}
               className="xl:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-8"
             >
-              {/* Declining Forecast */}
+              {/* Rising Forecast */}
               <div className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-xl shadow-emerald-100/50">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-                    <Briefcase size={24} />
+                    <Zap size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-slate-900">AI Rising Forecast </h3>
-                    <p className="text-xs text-slate-500 font-medium">Predicted cooling trends (Next 30 Days)</p>
+                    <h3 className="text-xl font-black text-slate-900">AI Momentum Forecast</h3>
+                    <p className="text-xs text-slate-500 font-medium">Predicted top growth (Next 30 Days)</p>
                   </div>
                 </div>
                 <div className="space-y-4">
@@ -448,7 +472,7 @@ export default function AllTrendClient({ summary, history }: AllTrendClientProps
                       <div className="flex items-center gap-3">
                         {s.coverage_pct && (
                           <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-[14px] font-black text-emerald-600">
-                            {s.coverage_pct.toFixed(0)}%
+                            {s.coverage_pct}%
                           </span>
                         )}
                       </div>
@@ -457,25 +481,26 @@ export default function AllTrendClient({ summary, history }: AllTrendClientProps
                 </div>
               </div>
 
-              {/* Rising Forecast */}
+              {/* Declining Forecast */}
               <div className="bg-white border border-slate-100 rounded-[3rem] p-10 shadow-xl shadow-rose-100/50">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-600">
-                    <Zap size={24} />
+                    <Briefcase size={24} />
                   </div>
                   <div>
                     <h3 className="text-xl font-black text-slate-900">AI Decline Warning</h3>
-                    <p className="text-xs text-slate-500 font-medium">Predicted top growth (Next 30 Days)</p>
+                    <p className="text-xs text-slate-500 font-medium">Predicted cooling trends (Next 30 Days)</p>
                   </div>
                 </div>
                 <div className="space-y-4">
+
                   {summary.forecasted?.rising.map((s) => (
                     <div key={s.skill_name} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
                       <span className="font-bold text-slate-700">{s.skill_name}</span>
                       <div className="flex items-center gap-3">
                         {s.coverage_pct && (
                           <span className="px-3 py-1 rounded-full bg-rose-500/10 text-[14px] font-black text-rose-600">
-                            {s.coverage_pct.toFixed(0)}%
+                            {s.coverage_pct}%
                           </span>
                         )}
                       </div>

@@ -371,7 +371,7 @@ export default function MergeSkillsPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <AppSider variant="light" />
-      <main className="flex-1 ml-20 lg:ml-64 transition-all duration-300 p-8 lg:p-12">
+      <main className="flex-1 transition-all duration-300 p-8 lg:p-12">
         <div className="max-w-screen-2xl mx-auto space-y-12">
 
           <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
