@@ -468,7 +468,13 @@ function StudentAssessment() {
     if (!career.stressManagement.trim()) newErrors.stressManagement = 'Stress management approach is required';
     if (!career.learningStyle.trim()) newErrors.learningStyle = 'Learning style is required';
     if (!career.internship.trim()) newErrors.internship = 'Internship experience is required';
-    if (career.projects === undefined || career.projects ) newErrors.projects = 'Number of projects is required';
+    if (
+      career.projects === undefined ||
+      career.projects === '' ||
+      Number(career.projects) < 0
+    ) {
+      newErrors.projects = 'Number of projects is required';
+    }
     if (!career.certifications.trim()) newErrors.certifications = 'Certifications information is required';
     
     setErrors(prev => ({ ...prev, career: newErrors }));
@@ -770,6 +776,7 @@ function StudentAssessment() {
   const renderPersonalInfo = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Personal Information</h2>
+      <p className="text-sm text-gray-600 mb-2">Select the option before answering the questions below.</p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -779,6 +786,7 @@ function StudentAssessment() {
             onChange={(e) => handlePersonalInfoChange('gender', e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
+            <option value="">Select gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
           </select>
@@ -816,6 +824,7 @@ function StudentAssessment() {
   const renderAcademicBackground = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Academic Background</h2>
+      <p className="text-sm text-gray-600 mb-2">Select the option before answering the questions below.</p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -828,6 +837,7 @@ function StudentAssessment() {
             }`}
             required
           >
+            <option value="">Select your education level</option>
             <option value="high-school">High School</option>
             <option value="associate">Associate Degree</option>
             <option value="bachelor">Bachelor's Degree</option>
@@ -849,6 +859,7 @@ function StudentAssessment() {
             }`}
             required
           >
+            <option value="">Select your major/field of study</option>
             {majorOptions.map((major) => (
               <option key={major} value={major}>{major}</option>
             ))}
@@ -889,6 +900,7 @@ function StudentAssessment() {
             }`}
             required
           >
+            <option value="">Select your academic year</option>
             <option value="1">1st Year</option>
             <option value="2">2nd Year</option>
             <option value="3">3rd Year</option>
@@ -903,6 +915,7 @@ function StudentAssessment() {
             onChange={(e) => handleAcademicChange('currentSemester', e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
+            <option value="">Select your current semester</option>
             <option value="1">Semester 1</option>
             <option value="2">Semester 2</option>
           </select>
@@ -915,6 +928,7 @@ function StudentAssessment() {
   const renderTechnicalSkills = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Technical Skills</h2>
+      <p className="text-sm text-gray-600 mb-2">Select the option before answering the technical skill questions below.</p>
       
       <div className="space-y-6">
         <div>
@@ -997,6 +1011,7 @@ function StudentAssessment() {
   const renderPsychologicalTraits = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Psychological Traits</h2>
+      <p className="text-sm text-gray-600 mb-2">Select the option before answering the psychological trait questions below.</p>
       
       <div className="space-y-6">
         <div>
@@ -1007,6 +1022,7 @@ function StudentAssessment() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           >
+            <option value="">Select your stress management style</option>
             <option value="excellent">Excellent - Thrive under pressure</option>
             <option value="good">Good - Manage stress effectively</option>
             <option value="moderate">Moderate - Need some support</option>
@@ -1022,6 +1038,7 @@ function StudentAssessment() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             required
           >
+            <option value="">Select your learning style</option>
             <option value="visual">Visual - Learn through seeing</option>
             <option value="auditory">Auditory - Learn through listening</option>
             <option value="kinesthetic">Kinesthetic - Learn by doing</option>
@@ -1036,6 +1053,7 @@ function StudentAssessment() {
   const renderCareerInterests = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Career Interests</h2>
+      <p className="text-sm text-gray-600 mb-2">Select the option before answering the questions below.</p>
       
       <div className="space-y-6">
         <div>
@@ -1048,6 +1066,7 @@ function StudentAssessment() {
             }`}
             required
           >
+            <option value="">Select your preferred work environment</option>
             <option value="startup">Startup - Fast-paced, dynamic</option>
             <option value="corporate">Corporate - Structured, established</option>
             <option value="remote">Remote - Work from anywhere</option>
@@ -1069,6 +1088,7 @@ function StudentAssessment() {
             }`}
             required
           >
+            <option value="">Select your work-life balance preference</option>
             <option value="career-focused">Career-focused - Willing to work extra hours</option>
             <option value="balanced">Balanced - Equal priority to work and personal life</option>
             <option value="life-focused">Life-focused - Strict work hours boundaries</option>
@@ -1085,6 +1105,7 @@ function StudentAssessment() {
   const renderCareer = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Career Information</h2>
+      <p className="text-sm text-gray-600 mb-2">Select the option before answering the questions below.</p>
       
       <div className="space-y-6">
         <div>
@@ -1097,6 +1118,7 @@ function StudentAssessment() {
             }`}
             required
           >
+            <option value="">Select your stress management approach</option>
             <option value="excellent">Excellent - Thrive under pressure</option>
             <option value="good">Good - Manage stress effectively</option>
             <option value="moderate">Moderate - Need some support</option>
@@ -1117,6 +1139,7 @@ function StudentAssessment() {
             }`}
             required
           >
+            <option value="">Select your learning style</option>
             <option value="kinesthetic">Kinesthetic - Learn by doing</option>
             <option value="auditory">Auditory - Learn through listening</option>
             <option value="visual">Visual - Learn through seeing</option>
@@ -1138,6 +1161,7 @@ function StudentAssessment() {
             }`}
             required
           >
+            <option value="">Select your internship experience</option>
             <option value="yes">Yes</option>
             <option value="no">No</option>
           </select>
@@ -1174,6 +1198,7 @@ function StudentAssessment() {
             }`}
             required
           >
+            <option value="">Select your certifications</option>
             <option value="google">Google</option>
             <option value="aws">AWS</option>
             <option value="azure">Azure</option>
