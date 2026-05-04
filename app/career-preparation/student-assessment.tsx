@@ -208,6 +208,8 @@ const QUESTIONS_PER_STEP = {
 function StudentAssessment() {
   const router = useRouter();
   const pathname = usePathname();
+
+  // Track which step the user is currently on in the multi-step assessment.
   const [currentStep, setCurrentStep] = useState(1);
   
   // Timer states
@@ -215,7 +217,8 @@ function StudentAssessment() {
   const [stepTimeRemaining, setStepTimeRemaining] = useState(TIME_PER_STEP);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [showTimeWarning, setShowTimeWarning] = useState(false);
-  
+
+  // Validation error state for each step and field.
   const [errors, setErrors] = useState<ValidationErrors>({
     personalInfo: {},
     academicBackground: {},
@@ -261,7 +264,8 @@ function StudentAssessment() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Timer effect
+  // Main countdown effect for the assessment.
+  // Decreases the overall time and the step-specific time every second.
   useEffect(() => {
     if (!isTimerRunning) return;
 
@@ -294,7 +298,7 @@ function StudentAssessment() {
     return () => clearInterval(timer);
   }, [isTimerRunning, currentStep]);
 
-  // Show warning when step time is low (30 seconds remaining)
+  // Show a warning when the current step is almost out of time.
   useEffect(() => {
     if (stepTimeRemaining <= 30) {
       setShowTimeWarning(true);
@@ -303,12 +307,16 @@ function StudentAssessment() {
     }
   }, [stepTimeRemaining]);
 
+  // Called when the full assessment time expires.
+  // Automatically submits whatever data is available.
   const handleTimeUp = useCallback(() => {
     setIsTimerRunning(false);
     // Auto-submit the form
     handleSubmit({ preventDefault: () => {} } as React.FormEvent);
   }, []);
 
+  // Called when a single step's timer expires.
+  // Advances the user to the next step if possible.
   const handleStepTimeUp = useCallback(() => {
     if (currentStep < STEPS_COUNT) {
       nextStep();
@@ -316,6 +324,7 @@ function StudentAssessment() {
   }, [currentStep]);
 
   // Format time for display (MM:SS)
+  // Format seconds into MM:SS for display in the timer UI.
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -393,7 +402,7 @@ function StudentAssessment() {
     return completed;
   };
 
-  // Validation functions
+  // Validation functions ensure each step has required answers before moving forward.
   const validatePersonalInfo = () => {
     const newErrors: ValidationErrors['personalInfo'] = {};
     
@@ -520,6 +529,8 @@ function StudentAssessment() {
     }));
   };
 
+  // Update a field in the academic background section.
+  // Trims strings and preserves number/array values.
   const handleAcademicChange = (field: string, value: string | number | string[]) => {
     // Format the value based on its type
     let formattedValue: string | number | string[] = value;
@@ -542,6 +553,7 @@ function StudentAssessment() {
     }));
   };
 
+  // Toggle a technical skill checkbox in the assessment state.
   const handleTechnicalSkillsChange = (category: keyof AssessmentData['technicalSkills'], skill: string) => {
     console.log(`Technical Skills Change - Category: ${category}, Skill: ${skill}`);
     
@@ -565,6 +577,7 @@ function StudentAssessment() {
   };
 
 
+  // Update psychological trait fields in the assessment.
   const handlePsychologicalChange = (trait: string, value: string) => {
     const formattedValue = value.trim();
     console.log(`Psychological Trait Change - Trait: ${trait}, Value: ${formattedValue}`);
@@ -578,6 +591,7 @@ function StudentAssessment() {
     }));
   };
 
+  // Update career interest selections (work environment / balance preferences).
   const handleCareerInterestChange = (field: string, value: string | string[]) => {
     // Format the value based on its type
     let formattedValue: string | string[] = value;
@@ -598,6 +612,7 @@ function StudentAssessment() {
     }));
   };
 
+  // Update career-specific fields such as internship experience or number of projects.
   const handleCareerChange = (field: string, value: string | number) => {
     let formattedValue: string | number = value;
     if (typeof value === 'string') {
@@ -615,6 +630,8 @@ function StudentAssessment() {
     }));
   };
 
+ // Handle the final form submission.
+ // Validates all steps, sends data to the backend, saves session values, and navigates to the roadmap.
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
@@ -672,6 +689,7 @@ function StudentAssessment() {
 };
 
 
+  // Move to the next step if current step validation passes.
   const nextStep = () => {
     if (validateCurrentStep() && currentStep < 5) {
       setCurrentStep(currentStep + 1);
@@ -680,6 +698,7 @@ function StudentAssessment() {
     }
   };
 
+  // Move to the previous step and reset the step timer.
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);

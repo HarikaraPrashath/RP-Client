@@ -33,9 +33,14 @@ import {
 function CareerPreparation() {
   const router = useRouter();
   const pathname = usePathname();
+
+  // Track the currently selected career role for the chatbot and UI highlights.
   const [selectedRole, setSelectedRole] = useState('data-science');
+
+  // Track which sidebar/tab is active, though this page is mostly a dashboard display.
   const [activeTab, setActiveTab] = useState('dashboard');
 
+  // Role cards shown on the dashboard for users to choose a career path.
   const careerRoles = [
     {
       id: 'data-science',
@@ -99,6 +104,7 @@ function CareerPreparation() {
     }
   ];
 
+  // Features shown in the right-hand panel describing the platform's capabilities.
   const roadmapFeatures = [
     {
       title: 'Skill Assessment',
@@ -122,10 +128,13 @@ function CareerPreparation() {
     }
   ];
 
+  // Navigate the user to the student assessment page.
+  // This is the main entry point for generating a personalized career roadmap.
   const handleTryService = () => {
     router.push('/career-preparation/student-assessment');
   };
 
+  // Sidebar links for navigation within the Career Preparation section.
   const sidebarItems = [
     { id: 'dashboard', name: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, href: '/career-preparation' },
     { id: 'assessment', name: 'Student Assessment', icon: <FileText className="w-5 h-5" />, href: '/career-preparation/student-assessment' },
