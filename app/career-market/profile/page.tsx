@@ -1100,7 +1100,7 @@ export default function ProfilePage() {
           <div className="mx-auto max-w-6xl px-4 py-6 lg:px-6">
             {shouldShowAd && (
               <Card className="p-5 relative mb-6">
-                <button 
+                <button
                   onClick={() => setShowCVAd(false)}
                   className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
                   aria-label="Close ad"
@@ -1128,9 +1128,7 @@ export default function ProfilePage() {
                     <div className="grid size-14 place-items-center rounded-2xl bg-primary/10 text-sm font-semibold text-primary ring-1 ring-primary/15">
                       {(basics.firstName?.[0] || "J") + (basics.lastName?.[0] || "D")}
                     </div>
-                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-medium text-primary-foreground shadow-sm">
-                      Open to work
-                    </span>
+
                   </div>
 
                   <div className="min-w-0">
@@ -1145,7 +1143,7 @@ export default function ProfilePage() {
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                       <span>{metaLine}</span>
-                      <span className="text-border">â€¢</span>
+                      <span className="text-border">•</span>
                       <span>{basics.contactEmail || "Add contact email"}</span>
                     </div>
                   </div>
@@ -1180,7 +1178,7 @@ export default function ProfilePage() {
                         onClick={() => { resetSections(); setIsSettingsOpen(false); }}
                         className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-muted transition-colors text-muted-foreground"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
                         Reset Sections
                       </button>
                       <div className="my-1 border-t border-border" />
@@ -1189,7 +1187,7 @@ export default function ProfilePage() {
                         onClick={() => { logout(); setIsSettingsOpen(false); }}
                         className="flex items-center gap-2 w-full px-4 py-2 text-sm text-left hover:bg-red-50 text-red-500 transition-colors"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                         Logout
                       </button>
                     </div>
@@ -1317,7 +1315,7 @@ export default function ProfilePage() {
                           onChange={(event) =>
                             setExperienceDraft((prev) => ({ ...prev, dates: event.target.value }))
                           }
-                          placeholder="2025 â€” 2026"
+                          placeholder="2025 — 2026"
                         />
                       </div>
                       <TextArea
@@ -1351,7 +1349,7 @@ export default function ProfilePage() {
                           experience.dates ? experience.dates : "",
                         ]
                           .filter(Boolean)
-                          .join(" Â· ");
+                          .join(" · ");
                         const bullets = experience.summary ? splitBullets(experience.summary) : [];
                         const body =
                           bullets.length > 1 ? (
@@ -1419,7 +1417,7 @@ export default function ProfilePage() {
                         onChange={(event) =>
                           setEducationDraft((prev) => ({ ...prev, dates: event.target.value }))
                         }
-                        placeholder="2022 â€” 2026"
+                        placeholder="2022 — 2026"
                       />
                       <div className="flex items-center gap-2">
                         <Button variant="primary" onClick={saveEducation}>
@@ -1483,7 +1481,7 @@ export default function ProfilePage() {
                     </div>
                   ) : skills.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      List the tools you are comfortable using. Weâ€™ll match them to jobs.
+                      List the tools you are comfortable using. We’ll match them to jobs.
                     </p>
                   ) : (
                     <div className="space-y-4">
@@ -1811,7 +1809,7 @@ export default function ProfilePage() {
                         {careerGuide?.top_1_prediction ? "AI Career Guide" : "No recommendations"}
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {careerGuide?.top_1_prediction 
+                        {careerGuide?.top_1_prediction
                           ? `Top match: ${careerGuide.top_1_prediction}`
                           : "Get tailored roadmaps and market insights."}
                       </p>

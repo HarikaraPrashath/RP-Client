@@ -156,15 +156,10 @@ export default function Home() {
             >
               Pricing
             </a>
-            {/* <Link href="/trends" className="text-foreground/70 hover:text-foreground transition-colors">
-              Trend Radar
-            </Link>
-            <Link href="/merge-skills" className="text-foreground/70 hover:text-foreground transition-colors">
-              Merge Skills
-            </Link> */}
+
           </div>
           {user ? (
-            <Link href="/recommendation">
+            <Link href="/career-market/profile">
               <div className="px-6 py-2 bg-gradient-to-r from-primary to-accent text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 {`Welcome, ${user.name.split(" ")[0]}!`}
               </div>
@@ -510,7 +505,7 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <ServiceButton href="/career-market/profile" />
+                <ServiceButton href="/career-market/merge-skills" />
               </div>
             </div>
 

@@ -5,46 +5,87 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
-  User,
   Merge,
-  TrendingUp,
   FileSearch,
   ChevronLeft,
   ChevronRight,
-  LayoutDashboard
+  LayoutDashboard,
+  Compass,
+  ClipboardCheck,
+  Map,
+  BarChart3,
+  HeartPulse
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+const navSections = [
   {
-    href: "/career-market/profile",
-    label: "Profile",
-    description: "Your career profile",
-    icon: User,
+    title: "Career Guide",
+    items: [
+      {
+        href: "/career-guide",
+        label: "Career Insights",
+        description: "Emotional path finding",
+        icon: Compass,
+      },
+    ],
   },
   {
-    href: "/career-market/merge-skills",
-    label: "Merge skills",
-    description: "Skills match summary",
-    icon: Merge,
+    title: "Career Preparation",
+    items: [
+      {
+        href: "/career-preparation",
+        label: "Dashboard",
+        description: "Dashboard",
+        icon: LayoutDashboard,
+      },
+      {
+        href: "/career-preparation/student-assessment",
+        label: "Assessment",
+        description: "Analyze your skills",
+        icon: ClipboardCheck,
+      },
+      {
+        href: "/career-preparation/personalized-roadmap",
+        label: "Roadmap",
+        description: "Custom career path",
+        icon: Map,
+      },
+    ],
   },
   {
-    href: "/career-market/trends",
-    label: "Trends",
-    description: "Market pulse",
-    icon: TrendingUp,
+    title: "Market Analysis",
+    items: [
+      {
+        href: "/career-market/merge-skills",
+        label: "Merge skills",
+        description: "Skills match summary",
+        icon: Merge,
+      },
+      /*{
+          href: "/career-market/cv_extracter",
+          label: "CV extracter",
+          description: "Parse and save CV",
+          icon: FileSearch,
+        },*/
+      {
+        href: "/career-market/all-trend",
+        label: "All Trend",
+        description: "Deep market insights",
+        icon: BarChart3,
+      },
+    ],
   },
   {
-    href: "/career-market/cv_extracter",
-    label: "CV extracter",
-    description: "Parse and save CV",
-    icon: FileSearch,
-  },
-  {
-    href: "/career-market/all-trend",
-    label: "All Trend",
-    description: "Deep market insights",
-    icon: LayoutDashboard,
+    title: "Emotion Guide",
+    items: [
+      {
+        href: "/Personality-career",
+        label: "Emotion Pulse",
+        description: "Personality assessment",
+        icon: HeartPulse,
+      },
+    ],
   },
 ];
 
@@ -89,35 +130,46 @@ export default function AppSider({ variant }: { variant?: "light" }) {
         {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
 
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-        {navItems.map((item) => {
-          const active = isActiveRoute(pathname, item.href);
-          const Icon = item.icon;
+      <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto mt-4">
+        {navSections.map((section) => (
+          <div key={section.title} className="space-y-4">
+            {!collapsed && (
+              <p className="px-2 text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                {section.title}
+              </p>
+            )}
+            <div className="space-y-2">
+              {section.items.map((item) => {
+                const active = isActiveRoute(pathname, item.href);
+                const Icon = item.icon;
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "group flex items-center gap-3 p-3 rounded-xl transition-all duration-200",
-                active
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                  : "hover:bg-accent text-muted-foreground hover:text-foreground"
-              )}
-              aria-current={active ? "page" : undefined}
-            >
-              <Icon size={20} className={cn("shrink-0", active ? "text-primary-foreground" : "group-hover:text-primary transition-colors")} />
-              {!collapsed && (
-                <div className="flex flex-col overflow-hidden">
-                  <span className="font-semibold whitespace-nowrap">{item.label}</span>
-                  <span className={cn("text-[10px] whitespace-nowrap", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                    {item.description}
-                  </span>
-                </div>
-              )}
-            </Link>
-          );
-        })}
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "group flex items-center gap-3 p-3 rounded-xl transition-all duration-200",
+                      active
+                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                        : "hover:bg-accent text-muted-foreground hover:text-foreground"
+                    )}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <Icon size={20} className={cn("shrink-0", active ? "text-primary-foreground" : "group-hover:text-primary transition-colors")} />
+                    {!collapsed && (
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="font-semibold whitespace-nowrap text-sm">{item.label}</span>
+                        <span className={cn("text-[10px] whitespace-nowrap", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                          {item.description}
+                        </span>
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {!collapsed && (
