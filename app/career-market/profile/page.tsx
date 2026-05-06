@@ -1808,15 +1808,11 @@ export default function ProfilePage() {
                       <p className="text-sm font-semibold">
                         {careerGuide?.top_1_prediction ? "AI Career Guide" : "No recommendations"}
                       </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {careerGuide?.top_1_prediction
-                          ? `Top match: ${careerGuide.top_1_prediction}`
-                          : "Get tailored roadmaps and market insights."}
-                      </p>
+
                       <div className="mt-3">
                         <Link href="/recommendation">
                           <Button size="sm" variant="primary" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-indigo-200 shadow-lg">
-                            {careerGuide?.top_1_prediction ? "Open Insights" : "Generate Now"}
+                            {careerGuide?.top_1_prediction ? "View Recomendations" : "Generate Now"}
                           </Button>
                         </Link>
                       </div>
@@ -1824,35 +1820,7 @@ export default function ProfilePage() {
                   </div>
                 </SectionCard>
 
-                <SectionCard title="Top matched job" description="Based on your skills + target role.">
-                  {bestMatch ? (
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">{bestMatch.position || "Untitled role"}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {bestMatch.employer || "Unknown employer"}
-                            {bestMatch.ref ? ` Â· ${bestMatch.ref}` : ""}
-                          </p>
-                        </div>
-                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary ring-1 ring-primary/15">
-                          {bestMatch.match_percent}% match
-                        </span>
-                      </div>
-                      {bestMatch.url ? (
-                        <a href={bestMatch.url} target="_blank" rel="noreferrer">
-                          <Button size="sm" variant="secondary">
-                            View
-                          </Button>
-                        </a>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No ranked job yet. Run skill insights to generate matches.
-                    </p>
-                  )}
-                </SectionCard>
+
 
                 <SectionCard title="Skill insights" description="Gap analysis and job demand signals.">
                   <div className="space-y-3">

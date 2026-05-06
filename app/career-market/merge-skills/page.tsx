@@ -412,6 +412,7 @@ export default function MergeSkillsPage() {
                 <RefreshCcw size={16} className={cn(isRefreshingRole && "animate-spin")} />
                 {isRefreshingRole ? "Analyzing..." : "Refresh Data"}
               </button>
+              {/* 
               <button
                 onClick={reindexJobs}
                 disabled={isReindexingJobs || isLoading}
@@ -421,7 +422,7 @@ export default function MergeSkillsPage() {
                 <Wrench size={16} className={cn(isReindexingJobs && "animate-spin")} />
                 {isReindexingJobs ? "Reindexing..." : "Fix Matching"}
               </button>
-              
+              */}
               <SaveToProfileButton 
                 type="mergeSkills"
                 label="Save Radar"
